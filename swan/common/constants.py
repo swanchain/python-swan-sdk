@@ -4,10 +4,10 @@ GET = "GET"
 POST = "POST"
 PUT = "PUT"
 DELETE = "DELETE"
-# lagrange api
+# auction api
 CELERY ="/celery/task/status/"
 JOBS = "/lagrange/jobs"
-DASHBOARD = "/api/tasks/processing"
+PROCESSING_TASKS = "/api/tasks/processing"
+DASHBOARD = "/"
 
 
-# auction api

@@ -74,10 +74,10 @@ class APIClient(object):
         #     raise exceptions.McsRequestException(json_res['message'])
         return response.json()
 
-    def _request_without_params(self, method, request_path, mcs_api, token):
-        return self._request(method, request_path, mcs_api, {}, token)
+    def _request_without_params(self, method, request_path, swan_api, token):
+        return self._request(method, request_path, swan_api, {}, token)
 
-    def _request_with_params(self, method, request_path, mcs_api, params, token, files):
-        return self._request(method, request_path, mcs_api, params, token, files)
+    def _request_with_params(self, method, request_path, swan_api, params, token, files):
+        return self._request(method, request_path, swan_api, params, token, files)
 
 
