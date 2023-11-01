@@ -9,8 +9,8 @@ class EngineAPI(object):
         self.api_client = api_client
         self.AUCTION_API = api_client.AUCTION_API
         #TODO: once authentication added we can modify this
-        #self.token = self.api_client.token
-        self.token = None
+        self.token = self.api_client.token
+        #self.token = None
 
     def get_celery_task_status(self, task_id):
         params = {"task_id":task_id}

@@ -22,8 +22,8 @@ class APIClient(object):
 
     def api_key_login(self):
         params = {
-            'api_key': self.api_key,
-            'wallet_address':self.wallet_address
+            'api_key': self.api_key[0],
+            'wallet_address':self.wallet_address[0]
             }
         # if params.get('apikey') == '' or params.get('access_token') == '' or params.get('chain_name') == '':
         #     logging.error("\033[31mAPIkey, access token, or chain name does not exist\033[0m")
@@ -34,7 +34,8 @@ class APIClient(object):
             self.token = result['data']
             logging.info("\033[32mLogin successful\033[0m")
             return self.token
-        except:
+        except Exception as e:
+            logging.error(str(e))
             logging.error("\033[31m Please check your APIkey.\033[0m")
             return
 
@@ -50,16 +51,16 @@ class APIClient(object):
         if method == c.GET:
             response = requests.get(url, headers=header)
         elif method == c.PUT:
-            body = json.dumps(params)
-            response = requests.put(url, data=body, headers=header)
+            #body = json.dumps(params)
+            response = requests.put(url, data=params, headers=header)
         elif method == c.POST:
             if files:
                 body = params
                 response = requests.post(
                     url, data=body, headers=header, files=files)
             else:
-                body = json.dumps(params) if method == c.POST else ""
-                response = requests.post(url, data=body, headers=header)
+                #body = json.dumps(params) if method == c.POST else ""
+                response = requests.post(url, data=params, headers=header)
         elif method == c.DELETE:
             if params:
                 body = json.dumps(params)
@@ -70,9 +71,8 @@ class APIClient(object):
         # exception handle
         if not str(response.status_code).startswith('2'):
             print(response.status_code)
-            print(response.message)
             json_res = response.json()
-            # print(json_res['message'])
+            print(json_res['message'])
             return None
         #     raise exceptions.McsAPIException(response)
         #
