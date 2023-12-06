@@ -116,8 +116,8 @@ jobs:
           python-version: '3.x'
         # Set up a Python environment with Python 3.x.
       - name: Install Twine
-        run: pip install twine # Install Twine, a tool for uploading Python packages to PyPI.
-
+        run: |
+          pip install twine
       - name: Build and Publish to PyPI
         env: # We need to create a gitHub secrets in REPO
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
