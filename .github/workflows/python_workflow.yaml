@@ -109,23 +109,29 @@ jobs:
     if: github.event_name == 'release' && github.event.action == 'created'
     steps:
       - uses: actions/checkout@v2
-      # Check out the repository code.
+        # Check out the repository code.
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
         # Set up a Python environment with Python 3.x.
+
       - name: Install Twine
         run: |
           pip install twine
+        # Install Twine, a tool for uploading Python packages to PyPI.
+
       - name: Build and Publish to PyPI
-        env: # We need to create a gitHub secrets in REPO
+        env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
           python setup.py sdist bdist_wheel
-        # Build source distribution (sdist) and wheel (bdist_wheel).
-          twine upload dist/* # Upload the built distributions to PyPI using Twine.
+          # Build source distribution (sdist) and wheel (bdist_wheel).
+          twine upload dist/*
+          # Upload the built distributions to PyPI using Twine.
+
       - name: Send Deployment Status Email
         if: failure() || success()
         uses: softprops/action-email@v1
@@ -140,6 +146,7 @@ jobs:
           smtp-secure: true
           html: |
             <p>Deployment status: ${{ job.status }}
+  
 
   # Database setup job
   setup-database:
