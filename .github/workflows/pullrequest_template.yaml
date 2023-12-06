@@ -1,0 +1,28 @@
+# To have specific PR template for all
+name: Pull Request Template
+
+on:
+  pull_request:
+    types:
+      - opened # Trigger when a new pull request is opened
+
+# Define the jobs for the workflow
+jobs:
+  pr_template:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check for Jira Issue
+        run: |
+        # Create the pull request template file with sections
+          echo "## Description\n\nPlease describe what this pull request is about.\n\n## How to Test\n\nPlease provide instructions on how to test this pull request.\n\n## Related Jira Issue\n\n- Link to the related Jira issue\n\n## Screenshots or Visuals (if applicable)\n\n[If your changes include any UI/visual modifications, add screenshots or visuals here.]" > PULL_REQUEST_TEMPLATE.md
+        continue-on-error: true
+
+      - name: Add Pull Request Template
+        run: |
+        # Add the pull request template file to the repository
+          git add PULL_REQUEST_TEMPLATE.md
+          git config --global user.name "Your Name"
+          git config --global user.email "your-email@example.com"
+          git commit -m "Add pull request template"
+          git push
