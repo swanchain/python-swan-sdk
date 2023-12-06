@@ -51,19 +51,19 @@ jobs:
         run: pytest # Runs tests using pytest
 
       - name: Send Test Status Email
-          if: failure() || success()
-          uses: softprops/action-email@v1
-          with:
-            from: sender@nbai.io
-            to: recipient1@nbai.io, recipient2@nbai.io
-            subject: Test Status - SwanHub SDK Application
-            smtp-server: smtp.nbai.io
-            smtp-username: ${{ secrets.SMTP_USERNAME }}
-            smtp-password: ${{ secrets.SMTP_PASSWORD }}
-            smtp-port: 587
-            smtp-secure: true
-            html: |
-              <p>Test status: ${{ job.status }}
+        if: failure() || success()
+        uses: softprops/action-email@v1
+        with:
+          from: sender@nbai.io
+          to: recipient1@nbai.io, recipient2@nbai.io
+          subject: Test Status - SwanHub SDK Application
+          smtp-server: smtp.nbai.io
+          smtp-username: ${{ secrets.SMTP_USERNAME }}
+          smtp-password: ${{ secrets.SMTP_PASSWORD }}
+          smtp-port: 587
+          smtp-secure: true
+          html: |
+            <p>Test status: ${{ job.status }}
 
   # Build job (placeholder - customize as needed)
   build:
@@ -88,19 +88,19 @@ jobs:
         # This command will build a source distribution (sdist)
         # and a wheel (bdist_wheel) using setup.py file
       - name: Send Build Status Email
-          if: failure() || success()
-          uses: softprops/action-email@v1
-          with:
-            from: sender@nbai.io
-            to: recipient1@nbai.io, recipient2@nbai.io
-            subject: Build Status - SwanHub SDK Application
-            smtp-server: smtp.nbai.io
-            smtp-username: ${{ secrets.SMTP_USERNAME }}
-            smtp-password: ${{ secrets.SMTP_PASSWORD }}
-            smtp-port: 587
-            smtp-secure: true
-            html: |
-              <p>Build status: ${{ job.status }}
+        if: failure() || success()
+        uses: softprops/action-email@v1
+        with:
+          from: sender@nbai.io
+          to: recipient1@nbai.io, recipient2@nbai.io
+          subject: Build Status - SwanHub SDK Application
+          smtp-server: smtp.nbai.io
+          smtp-username: ${{ secrets.SMTP_USERNAME }}
+          smtp-password: ${{ secrets.SMTP_PASSWORD }}
+          smtp-port: 587
+          smtp-secure: true
+          html: |
+            <p>Build status: ${{ job.status }}
 
   # Deployment job to PyPI
   deploy-to-pypi:
@@ -127,19 +127,19 @@ jobs:
         # Build source distribution (sdist) and wheel (bdist_wheel).
           twine upload dist/* # Upload the built distributions to PyPI using Twine.
       - name: Send Deployment Status Email
-          if: failure() || success()
-          uses: softprops/action-email@v1
-          with:
-            from: sender@nbai.io
-            to: recipient1@nbai.io, recipient2@nbai.io
-            subject: Deployment Status - SwanHub SDK Application
-            smtp-server: smtp.nbai.io
-            smtp-username: ${{ secrets.SMTP_USERNAME }}
-            smtp-password: ${{ secrets.SMTP_PASSWORD }}
-            smtp-port: 587
-            smtp-secure: true
-            html: |
-              <p>Deployment status: ${{ job.status }}
+        if: failure() || success()
+        uses: softprops/action-email@v1
+        with:
+          from: sender@nbai.io
+          to: recipient1@nbai.io, recipient2@nbai.io
+          subject: Deployment Status - SwanHub SDK Application
+          smtp-server: smtp.nbai.io
+          smtp-username: ${{ secrets.SMTP_USERNAME }}
+          smtp-password: ${{ secrets.SMTP_PASSWORD }}
+          smtp-port: 587
+          smtp-secure: true
+          html: |
+            <p>Deployment status: ${{ job.status }}
 
   # Database setup job
   setup-database:
