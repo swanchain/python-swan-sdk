@@ -2,7 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+.pytest_cache
+venv
 # C extensions
 *.so
 .DS_Store
