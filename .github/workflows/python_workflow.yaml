@@ -30,7 +30,7 @@ jobs:
         run: pip install black # Installs Black for linting
 
       - name: Lint with Black
-        run: black --check . # Runs Black in check mode
+        run: black --check ./**/*.py # Runs Black in check mode on Python files only
 
   # Testing job
   test:
@@ -147,37 +147,37 @@ jobs:
           html: |
             <p>Deployment status: ${{ job.status }}
   
-# uncomment after decision
+
   # Database setup job
-#  setup-database:
-#    runs-on: ubuntu-latest
-#    services: # Define the PostgreSQL service
-#      postgres:
-#        image: postgres:latest
-#        env:
-#          POSTGRES_DB: test_db  # Database name
-#          POSTGRES_USER: test_user  # Desired username
-#          POSTGRES_PASSWORD: test_password  # Desired password
-#        ports:
-#          - 5432:5432
-#    steps:
-#      - name: Wait for PostgreSQL to start
-#        run: |
-#          for i in {1..30}; do
-#            nc -z localhost 5432 && break
-#            sleep 1
-#          done
-#          sleep 10
-#
-#      - name: Install Python Dependencies
-#        run: |
-#          sudo apt-get -y install python3-pip
-#          pip install --upgrade pip
-#
-#      - name: Database Setup Steps
-#        run: |
-#          python setup_database.py
-#        # Create a setup_database.py file and run it here
+  setup-database:
+    runs-on: ubuntu-latest
+    services: # Define the PostgreSQL service
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_DB: test_db  # Database name
+          POSTGRES_USER: test_user  # Desired username
+          POSTGRES_PASSWORD: test_password  # Desired password
+        ports:
+          - 5432:5432
+    steps:
+      - name: Wait for PostgreSQL to start
+        run: |
+          for i in {1..30}; do
+            nc -z localhost 5432 && break
+            sleep 1
+          done
+          sleep 10
+
+      - name: Install Python Dependencies
+        run: |
+          sudo apt-get -y install python3-pip
+          pip install --upgrade pip
+
+      - name: Database Setup Steps
+        run: |
+          python setup_database.py
+        # Create a setup_database.py file and run it here
 
 # Permissions setup for the workflow
 permissions:
