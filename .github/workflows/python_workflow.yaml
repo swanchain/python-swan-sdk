@@ -19,10 +19,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest # Specifies the runner environment
     steps:
-      - uses: actions/checkout@v2 # Checks out the repository code
+      - uses: actions/checkout@v4 # Checks out the repository code
 
       - name: Set up Python
-        uses: actions/setup-python@v2 # Sets up a Python environment
+        uses: actions/setup-python@v4 # Sets up a Python environment
         with:
           python-version: '3.x' # Specifies Python version 3.x
 
@@ -37,10 +37,10 @@ jobs:
     needs: lint # Depends on the lint job
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
@@ -70,10 +70,10 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       # Check out the repository code.
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
         # Set up a Python environment with Python 3.x.
@@ -108,11 +108,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'created'
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         # Check out the repository code.
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.x'
         # Set up a Python environment with Python 3.x.
@@ -147,37 +147,37 @@ jobs:
           html: |
             <p>Deployment status: ${{ job.status }}
   
-
+# uncomment after decision
   # Database setup job
-  setup-database:
-    runs-on: ubuntu-latest
-    services: # Define the PostgreSQL service
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_DB: test_db  # Database name
-          POSTGRES_USER: test_user  # Desired username
-          POSTGRES_PASSWORD: test_password  # Desired password
-        ports:
-          - 5432:5432
-    steps:
-      - name: Wait for PostgreSQL to start
-        run: |
-          for i in {1..30}; do
-            nc -z localhost 5432 && break
-            sleep 1
-          done
-          sleep 10
-
-      - name: Install Python Dependencies
-        run: |
-          sudo apt-get -y install python3-pip
-          pip install --upgrade pip
-
-      - name: Database Setup Steps
-        run: |
-          python setup_database.py
-        # Create a setup_database.py file and run it here
+#  setup-database:
+#    runs-on: ubuntu-latest
+#    services: # Define the PostgreSQL service
+#      postgres:
+#        image: postgres:latest
+#        env:
+#          POSTGRES_DB: test_db  # Database name
+#          POSTGRES_USER: test_user  # Desired username
+#          POSTGRES_PASSWORD: test_password  # Desired password
+#        ports:
+#          - 5432:5432
+#    steps:
+#      - name: Wait for PostgreSQL to start
+#        run: |
+#          for i in {1..30}; do
+#            nc -z localhost 5432 && break
+#            sleep 1
+#          done
+#          sleep 10
+#
+#      - name: Install Python Dependencies
+#        run: |
+#          sudo apt-get -y install python3-pip
+#          pip install --upgrade pip
+#
+#      - name: Database Setup Steps
+#        run: |
+#          python setup_database.py
+#        # Create a setup_database.py file and run it here
 
 # Permissions setup for the workflow
 permissions:
