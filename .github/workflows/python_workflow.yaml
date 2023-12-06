@@ -168,7 +168,7 @@ jobs:
           pip install --upgrade pip
 
       - name: Database Setup Steps
-        run:
+        run: |
           python setup_database.py
         # Create a setup_database.py file and run it here
 
