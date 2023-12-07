@@ -19,7 +19,7 @@ setup(
     include_package_data=True,
     description="A python software development kit for Swan services",
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     url="https://github.com/username/package",  # Placeholder for URL
     python_requires=">=3.10",  # Specifies the required Python version
     classifiers=[
