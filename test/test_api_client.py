@@ -1,6 +1,3 @@
-import pytest
-import requests
-
 from swan.api_client import APIClient
 
 
@@ -29,4 +26,3 @@ class TestAPIClient:
         )
         token = api_client.api_key_login()
         assert token == "token"
-
