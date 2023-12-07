@@ -27,12 +27,15 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
 
       - name: Install dependencies (global)
         if: env.USE_VENV != 'true'
         run: |
           pip install black pytest twine
           pip install -r requirements.txt
+          python -m pip install --upgrade pip
 
       - name: Activate virtual environment
         if: env.USE_VENV == 'true'
@@ -43,6 +46,7 @@ jobs:
         run: |
           pip install black pytest twine
           pip install -r requirements.txt
+          python -m pip install --upgrade pip
 
       - name: Lint with Black
         run: |
