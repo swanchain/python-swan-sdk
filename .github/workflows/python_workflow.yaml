@@ -36,6 +36,7 @@ jobs:
         run: pytest
 
   Build:
+    needs: Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +46,7 @@ jobs:
 
 # UNCOMMENT ONLY AFTER PM DECISION
   deployments:
-    needs: build
+    needs: Build
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'created'
     steps:
