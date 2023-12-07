@@ -96,6 +96,40 @@ jobs:
 #          python setup_database.py
 #        # Create a setup_database.py file and run it here
 
+  notify_reviewers:
+    needs: [ Lint, Test, Build ] # Depends on the completion of previous jobs
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Optionally fetch PR information using GitHub API
+      - name: Get PR information
+        id: pr_info
+        run: |
+          PR_NUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+          PR_DATA=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                     https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER)
+          PR_REVIEWERS=$(echo $PR_DATA | jq -r '.requested_reviewers | .[].login')
+          echo "PR_REVIEWERS=$PR_REVIEWERS" >> $GITHUB_ENV
+
+      # Send email notification
+      - name: Send email notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          # Add your email server configuration here
+          server_address: smtp.nbai.io
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: SwanHub SDK PR Review Notification
+          # You can customize the body based on success or failure of previous jobs
+          body: |
+            Build ${{ needs.Lint.result == 'success' && needs.Test.result == 'success' && needs.Build.result == 'success' ? 'succeeded' : 'failed' }}. Please review the PR.
+          to: ${{ env.PR_REVIEWERS }}
+          from: Your Name <your-email@example.com>
+
 # Permissions setup for the workflow
 permissions:
     contents: read # Grants read access to the repository contents
