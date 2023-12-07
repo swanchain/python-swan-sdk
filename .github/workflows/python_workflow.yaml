@@ -16,34 +16,30 @@ on:
 jobs:
   prepare-dependencies:
     runs-on: ubuntu-latest
-    outputs:
-      cache-hit: ${{ steps.cache-dependencies.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-      - name: Cache dependencies
-        id: cache-dependencies
+      - name: Create virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+      - name: Cache virtual environment
         uses: actions/cache@v2
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          path: venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-venv-
       - name: Install dependencies
-        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: |
+          source venv/bin/activate
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Save dependencies as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: dependencies
-          path: ~/.cache/pip
 
-  LINT:
+  Lint:
     needs: prepare-dependencies
     runs-on: ubuntu-latest
     steps:
@@ -58,7 +54,7 @@ jobs:
       - name: Lint with Black
         run: black --check ./**/*.py
 
-  TESTS:
+  Test:
     needs: prepare-dependencies
     runs-on: ubuntu-latest
     steps:
@@ -73,7 +69,7 @@ jobs:
       - name: Run tests
         run: pytest
 
-  build:
+  Buils:
     needs: prepare-dependencies
     runs-on: ubuntu-latest
     steps:
