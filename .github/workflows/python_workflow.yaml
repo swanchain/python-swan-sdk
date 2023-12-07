@@ -26,6 +26,7 @@ jobs:
           black --check ./**/*.py
 
   Test:
+    needs: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
