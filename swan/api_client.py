@@ -20,13 +20,15 @@ class APIClient(object):
         self.AUCTION_API = AUCTION_API
         # TODO: Once authentication is Implemented for Auction Engine we can uncomment this
         self.token = None
-        self.api_key = (api_key,)
-        self.wallet_address = (wallet_address,)
+        self.api_key = api_key
+        self.wallet_address = wallet_address
         if login:
             self.api_key_login()
+        self.is_calibration = is_calibration
+        self.chain_name = chain_name
 
     def api_key_login(self):
-        params = {"api_key": self.api_key[0], "wallet_address": self.wallet_address[0]}
+        params = {"api_key": self.api_key, "wallet_address": self.wallet_address}
         # if params.get('apikey') == '' or params.get('access_token') == '' or params.get('chain_name') == '':
         #     logging.error("\033[31mAPIkey, access token, or chain name does not exist\033[0m")
         #     return
