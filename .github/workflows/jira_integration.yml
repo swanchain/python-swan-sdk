@@ -1,7 +1,7 @@
-
+# GitHub Actions workflow for integrating with Jira and closing issues upon PR merge
 name: Jira Integration
 
-
+# Specify the event that triggers this workflow: in this case, when a pull request is closed
 on:
   pull_request:
     types:
