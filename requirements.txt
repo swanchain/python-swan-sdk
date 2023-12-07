@@ -1,3 +1,10 @@
+# Web3
 web3==5.31.1
-requests==2.28.1
+
+# Request
+requests_mock==1.10.0
+requests==2.31.0
 requests_toolbelt==0.10.1
+
+# Pytest
+pytest==7.2.2
