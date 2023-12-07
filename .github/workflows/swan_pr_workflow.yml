@@ -114,6 +114,14 @@ jobs:
           PR_REVIEWERS=$(echo $PR_DATA | jq -r '.requested_reviewers | .[].login')
           echo "PR_REVIEWERS=$PR_REVIEWERS" >> $GITHUB_ENV
 
+      - name: Determine build status
+        run: |
+          if [[ ${{ needs.Lint.result }} == 'success' && ${{ needs.Test.result }} == 'success' && ${{ needs.Build.result }} == 'success' ]]; then
+            echo "BUILD_STATUS=succeeded" >> $GITHUB_ENV
+          else
+            echo "BUILD_STATUS=failed" >> $GITHUB_ENV
+          fi
+
       # Send email notification
       - name: Send email notification
         uses: dawidd6/action-send-mail@v3
@@ -126,9 +134,9 @@ jobs:
           subject: SwanHub SDK PR Review Notification
           # You can customize the body based on success or failure of previous jobs
           body: |
-            Build ${{ needs.Lint.result == 'success' && needs.Test.result == 'success' && needs.Build.result == 'success' ? 'succeeded' : 'failed' }}. Please review the PR.
+            body: Build ${{ env.BUILD_STATUS }}. Please review the PR.
           to: ${{ env.PR_REVIEWERS }}
-          from: Your Name <your-email@example.com>
+          from: Your Name <arash.khosravi@nbai.com>
 
 # Permissions setup for the workflow
 permissions:
