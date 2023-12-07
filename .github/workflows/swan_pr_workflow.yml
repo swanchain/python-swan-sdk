@@ -64,7 +64,7 @@ jobs:
         run: |
           twine upload dist/*
 
-# UNCOMMENT ONLY AFTER PM DECISION
+# UNCOMMENT ONLY AFTER PM DECISION (Pluto)
 #  # Database setup job
 #  setup-database:
 #    runs-on: ubuntu-latest
