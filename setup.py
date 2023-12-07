@@ -6,6 +6,7 @@ from pathlib import Path
 this_directory = Path(__file__).parent
 long_description = (this_directory / "PIPRELEASEDOC.md").read_text()
 
+
 # There are some placeholder for future needs
 # TODO: Delete/Modify placeholders as needed
 setup(
@@ -50,4 +51,5 @@ setup(
         # Placeholder for scripts
         # "bin/script.py",
     ],
+
 )
