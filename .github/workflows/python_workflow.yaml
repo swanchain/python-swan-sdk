@@ -14,52 +14,95 @@ on:
 
 # Defines the jobs that the workflow will execute
 jobs:
-  # Combined job for lint, test, build, and deploy
-  PR:
+  prepare-dependencies:
     runs-on: ubuntu-latest
-    env:
-      USE_VENV: ${{ secrets.USE_VENV }}  # Contributors set this in their repository secrets
-    if: github.event_name == 'push' || github.event_name == 'pull_request' || (github.event_name == 'release' && github.event.action == 'created')
+    outputs:
+      cache-hit: ${{ steps.cache-dependencies.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
-
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
-
-      - name: Install dependencies (global)
-        if: env.USE_VENV != 'true'
+          python-version: '3.x'
+      - name: Cache dependencies
+        id: cache-dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies
+        if: steps.cache-dependencies.outputs.cache-hit != 'true'
         run: |
-          pip install black pytest twine
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
+      - name: Save dependencies as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: dependencies
+          path: ~/.cache/pip
 
-      - name: Activate virtual environment
-        if: env.USE_VENV == 'true'
-        run: source ./venv/bin/activate
-
-      - name: Install dependencies (virtual environment)
-        if: env.USE_VENV == 'true'
+  LINT:
+    needs: prepare-dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download dependencies artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: dependencies
+      - name: Load dependencies from cache
         run: |
-          pip install black pytest twine
-          pip install -r requirements.txt
-
+          python -m pip install --no-index --find-links=dependencies black
       - name: Lint with Black
-        run: |
-          black --check ./**/*.py
+        run: black --check ./**/*.py
 
+  TESTS:
+    needs: prepare-dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download dependencies artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: dependencies
+      - name: Load dependencies from cache
+        run: |
+          python -m pip install --no-index --find-links=dependencies pytest
       - name: Run tests
         run: pytest
 
+  build:
+    needs: prepare-dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download dependencies artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: dependencies
+      - name: Load dependencies from cache
+        run: |
+          python -m pip install --no-index --find-links=dependencies
       - name: Build the project
         run: |
           python setup.py sdist bdist_wheel
 
+  deployments:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'created'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download dependencies artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: dependencies
+      - name: Load dependencies from cache
+        run: |
+          python -m pip install --no-index --find-links=dependencies twine
       - name: Publish to PyPI
-        if: github.event_name == 'release' && github.event.action == 'created'
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
