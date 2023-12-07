@@ -1,0 +1,104 @@
+# GitHub action file for SwanHub SDK
+name: SwanHub SDK Application Workflow
+
+# Triggers the workflow on push or pull request
+on:
+  push: # Triggered on a push to any branch ( do not change )
+  schedule:
+    # Run workflow at 4 AM EST (9 AM UTC)
+    - cron: '0 9 * * *'
+    # Run workflow at 7 PM EST (12 AM UTC next day)
+    - cron: '0 0 * * *'
+  release:
+    types: [ created ] # Triggers the workflow when a release is created.
+
+# Defines the jobs that the workflow will execute
+jobs:
+  Lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install black
+        run: |
+          pip install black
+      - name: Lint with Black
+        run: |
+          black --check ./**/*.py
+  Test:
+    needs: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pytest
+        run: |
+          pip install -r requirements.txt
+      - name: Run tests
+        run: pytest
+
+  Build:
+    needs: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the project
+        run: |
+          python setup.py sdist bdist_wheel
+# UNCOMMENT ONLY AFTER PM DECISION
+  Deployments:
+    needs: Build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'created'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download dependencies artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: dependencies
+      - name: Load dependencies from cache
+        run: |
+          python -m pip install --no-index --find-links=dependencies twine
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          twine upload dist/*
+
+# UNCOMMENT ONLY AFTER PM DECISION
+#  # Database setup job
+#  setup-database:
+#    runs-on: ubuntu-latest
+#    services: # Define the PostgreSQL service
+#      postgres:
+#        image: postgres:latest
+#        env:
+#          POSTGRES_DB: test_db  # Database name
+#          POSTGRES_USER: test_user  # Desired username
+#          POSTGRES_PASSWORD: test_password  # Desired password
+#        ports:
+#          - 5432:5432
+#    steps:
+#      - name: Wait for PostgreSQL to start
+#        run: |
+#          for i in {1..30}; do
+#            nc -z localhost 5432 && break
+#            sleep 1
+#          done
+#          sleep 10
+#
+#      - name: Install Python Dependencies
+#        run: |
+#          sudo apt-get -y install python3-pip
+#          pip install --upgrade pip
+#
+#      - name: Database Setup Steps
+#        run: |
+#          python setup_database.py
+#        # Create a setup_database.py file and run it here
+
+# Permissions setup for the workflow
+permissions:
+    contents: read # Grants read access to the repository contents
+    pull-requests: write # Grants write access to pull requests
+    issues: write # Grants write access to issues (optional)
+    actions: read # Grants read access to other GitHub Actions workflows
