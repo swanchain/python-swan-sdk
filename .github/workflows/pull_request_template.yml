@@ -1,4 +1,4 @@
-
+# To have specific PR template for all
 name: Pull Request Template
 
 on:
@@ -6,6 +6,7 @@ on:
     types:
       - opened # Trigger when a new pull request is opened
 
+# Define the jobs for the workflow
 jobs:
   pr_template:
     runs-on: ubuntu-latest
