@@ -14,30 +14,7 @@ on:
 
 # Defines the jobs that the workflow will execute
 jobs:
-#  prepare-dependencies:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - name: Set up Python
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: '3.x'
-#      - name: Create and activate virtual environment
-#        run: |
-#          python -m venv venv
-#          source venv/bin/activate
-#      - name: Install dependencies
-#        run: |
-#          python -m pip install --upgrade pip
-#          pip install -r requirements.txt
-#      - name: Upload dependencies as artifact
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: dependencies
-#          path: venv
-
   Lint:
-
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,20 +35,13 @@ jobs:
       - name: Run tests
         run: pytest
 
-#  Build:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - name: Download dependencies artifact
-#        uses: actions/download-artifact@v2
-#        with:
-#          name: dependencies
-#      - name: Activate virtual environment
-#        run: |
-#          source venv/bin/activate
-#      - name: Build the project
-#        run: |
-#          python setup.py sdist bdist_wheel
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the project
+        run: |
+          python setup.py sdist bdist_wheel
 
 # UNCOMMENT ONLY AFTER PM DECISION
 #  deployments:
