@@ -43,8 +43,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Cleanup /dist directory
-          run: |
-           rm -rf ./dist/*
+        run: |
+          rm -rf ./dist/*
 
       - name: Build the project
         run: |
