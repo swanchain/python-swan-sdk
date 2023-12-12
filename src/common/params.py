@@ -1,5 +1,5 @@
 """ Parameter definitions Class"""
-from scr.constants.constants import SWAN_API
+from src.constants.constants import SWAN_API
 
 
 class Params:

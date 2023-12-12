@@ -2,8 +2,8 @@
 
 import logging
 
-from scr.api_client import APIClient
-from scr.constants.constants import PROCESSING_TASKS, GET, POST, JOBS, CELERY
+from src.api_client import APIClient
+from src.constants.constants import PROCESSING_TASKS, GET, POST, JOBS, CELERY
 
 
 class EngineAPI(object):

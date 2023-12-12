@@ -4,7 +4,7 @@ import requests
 import json
 import logging
 
-from scr.constants.constants import (
+from src.constants.constants import (
     AUCTION_API,
     POST,
     APIKEY_LOGIN,

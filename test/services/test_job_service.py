@@ -3,7 +3,7 @@
 import pytest
 import requests_mock
 
-from scr.constants.constants import JOBS
+from src.constants.constants import JOBS
 
 
 class TestMockSendJob:
