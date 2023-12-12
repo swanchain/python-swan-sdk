@@ -41,8 +41,11 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
       - uses: actions/checkout@v4
+
       - name: Cleanup /dist directory
-          run: rm -rf ./dist/*
+          run: |
+          rm -rf ./dist/*
+
       - name: Build the project
         run: |
           python setup.py sdist bdist_wheel
