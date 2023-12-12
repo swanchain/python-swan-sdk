@@ -18,7 +18,7 @@ The SWAN SDK provides a streamlined and efficient interface for interacting with
 Install the SDK with ease:
 
 ```bash
-pip install sdk-name
+pip install swan-sdk
 ```
 
 ## Quick Start Guide
