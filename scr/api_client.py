@@ -1,11 +1,18 @@
 """ APIClient related code """
 
-from swan.common.constants import *
 import requests
 import json
 import logging
-from swan.common import utils
-from swan.common import constants as c
+
+from scr.constants.constants import (
+    AUCTION_API,
+    POST,
+    APIKEY_LOGIN,
+    SWAN_API,
+    GET,
+    PUT,
+    DELETE,
+)
 
 
 class APIClient(object):
@@ -45,7 +52,7 @@ class APIClient(object):
             return
 
     def _request(self, method, request_path, swan_api, params, token, files=False):
-        if method == c.GET:
+        if method == GET:
             request_path = request_path + utils.parse_params_to_str(params)
         url = swan_api + request_path
         header = {}
@@ -53,19 +60,19 @@ class APIClient(object):
             header["Authorization"] = "Bearer " + token
         # send request
         response = None
-        if method == c.GET:
+        if method == GET:
             response = requests.get(url, headers=header)
-        elif method == c.PUT:
+        elif method == PUT:
             # body = json.dumps(params)
             response = requests.put(url, data=params, headers=header)
-        elif method == c.POST:
+        elif method == POST:
             if files:
                 body = params
                 response = requests.post(url, data=body, headers=header, files=files)
             else:
-                # body = json.dumps(params) if method == c.POST else ""
+                # body = json.dumps(params) if method =POST else ""
                 response = requests.post(url, data=params, headers=header)
-        elif method == c.DELETE:
+        elif method == DELETE:
             if params:
                 body = json.dumps(params)
                 response = requests.delete(url, data=body, headers=header)

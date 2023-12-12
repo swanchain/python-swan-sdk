@@ -2,7 +2,8 @@
 
 import pytest
 import requests_mock
-from swan.common import constants as c
+
+from scr.constants.constants import CELERY
 
 
 class TestMockCeleryTask:
@@ -19,7 +20,7 @@ class TestMockCeleryTask:
         self.engine_api = shared_real_engine_api
         with requests_mock.Mocker() as m:
             # Mocking the GET request to the Celery endpoint
-            m.get(c.CELERY, json={"taskState": "success"})
+            m.get(CELERY, json={"taskState": "success"})
             yield m
 
     def test_mock_celery_task(self, mock_requests):

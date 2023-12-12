@@ -1,4 +1,5 @@
-from swan.common.constants import SWAN_API
+""" Parameter definitions Class"""
+from scr.constants.constants import SWAN_API
 
 
 class Params:

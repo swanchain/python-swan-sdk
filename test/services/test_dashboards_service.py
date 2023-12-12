@@ -2,7 +2,8 @@
 
 import pytest
 import requests_mock
-from swan.common import constants as c
+
+from scr.constants.constants import PROCESSING_TASKS
 
 
 class TestMockSendJob:
@@ -24,7 +25,7 @@ class TestMockSendJob:
 
         with requests_mock.Mocker() as m:
             # Mocking the GET request to the processing tasks endpoint
-            m.get(c.PROCESSING_TASKS, json=nested_data)
+            m.get(PROCESSING_TASKS, json=nested_data)
             yield m
 
     def test_mock_processing_tasks(self, mock_requests):

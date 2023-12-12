@@ -1,3 +1,6 @@
+""" Utility functions for SDK """
+
+
 def parse_params_to_str(params):
     url = "?"
     for key, value in params.items():
