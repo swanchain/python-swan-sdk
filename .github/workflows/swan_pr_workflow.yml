@@ -103,7 +103,7 @@ jobs:
 #        # Create a setup_database.py file and run it here
 
   notify_reviewers:
-    needs: [ Lint, Test, Build ] # Depends on the completion of previous jobs
+    needs: [ Lint, Test ] # Depends on the completion of previous jobs
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
