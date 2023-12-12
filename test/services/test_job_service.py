@@ -2,7 +2,8 @@
 
 import pytest
 import requests_mock
-from swan.common import constants as c
+
+from scr.constants.constants import JOBS
 
 
 class TestMockSendJob:
@@ -19,7 +20,7 @@ class TestMockSendJob:
         self.engine_api = shared_real_engine_api
         with requests_mock.Mocker() as m:
             # Mocking the POST request to the job submission endpoint
-            m.post(c.JOBS, json={"job1": "data", "job2": "data"})
+            m.post(JOBS, json={"job1": "data", "job2": "data"})
             yield m
 
     def test_mock_job_send(self, mock_requests):
