@@ -44,7 +44,7 @@ jobs:
 
       - name: Cleanup /dist directory
           run: |
-          rm -rf ./dist/*
+           rm -rf ./dist/*
 
       - name: Build the project
         run: |
