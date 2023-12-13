@@ -2,9 +2,10 @@
 
 import pytest
 import os
-from swan.api_client import APIClient
-from swan.api.engine_api import EngineAPI
 from dotenv import load_dotenv
+
+from src.api.engine_api import EngineAPI
+from src.api_client import APIClient
 
 # Load environment variables from a .env file
 load_dotenv()
