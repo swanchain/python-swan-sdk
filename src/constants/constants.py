@@ -1,4 +1,6 @@
-SWAN_API = "https://test-api.lagrangedao.org"
+""" Constants used in the project """
+
+SWAN_API = "https://swanhub-cali.swanchain.io"
 AUCTION_API = "http://172.16.200.12:5003"
 GET = "GET"
 POST = "POST"

@@ -1,6 +1,9 @@
-from swan.api_client import APIClient
-from swan.common.constants import *
+""" Engine API Class code """
+
 import logging
+
+from src.api_client import APIClient
+from src.constants.constants import PROCESSING_TASKS, GET, POST, JOBS, CELERY
 
 
 class EngineAPI(object):

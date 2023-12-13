@@ -1,0 +1,38 @@
+# GitHub Actions workflow for integrating with Jira and closing issues upon PR merge
+name: Jira Integration
+
+# Specify the event that triggers this workflow: in this case, when a pull request is closed
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  jira_integration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if PR is merged
+        # This step checks if the pull request is merged
+        id: pr_merged
+        run: echo ::set-output name=merged::${{ github.event.pull_request.merged }}
+
+      - name: Close Jira Issue
+        # This step runs if the pull request is merged
+        if: steps.pr_merged.outputs.merged == 'true'
+        env:
+          # Set up environment variables for Jira authentication
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USERNAME: ${{ secrets.JIRA_USERNAME }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+        run: |
+          # Use Jira API to close the associated issue
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -u $JIRA_USERNAME:$JIRA_API_TOKEN \
+            --url "$JIRA_BASE_URL/rest/api/2/issue/${{ github.event.pull_request.head.ref }}/transitions" \
+            --data '{
+              "transition": {
+                "id": "21" # The transition ID for "Done" status (customize as needed)
+              }
+            }'

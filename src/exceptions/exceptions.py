@@ -1,4 +1,4 @@
-# coding=utf-8
+""" All exceptions class for SDK """
 
 
 class SwanAPIException(Exception):
