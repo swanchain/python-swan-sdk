@@ -1,9 +1,6 @@
 """Tests for APIClient class. """
-import pytest
-
-from swan.api_client import APIClient
-from swan.common import constants as c
-from swan.common.constants import SWAN_API
+from src.api_client import APIClient
+from src.constants.constants import SWAN_API, GET
 
 
 class TestAPIClient:
@@ -53,7 +50,7 @@ class TestAPIClient:
 
         # When
         response = api_client._request(
-            c.GET, "/path", SWAN_API, {"param": "value"}, "token"
+            GET, "/path", SWAN_API, {"param": "value"}, "token"
         )
 
         # Then
