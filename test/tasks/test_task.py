@@ -4,6 +4,7 @@ import requests
 from mock.mock import patch, Mock
 
 from src.api.task import get_task_bidding
+from src.exceptions.exceptions import RequestError
 
 
 class TestTask:
@@ -17,7 +18,7 @@ class TestTask:
 
             # Assert that requests.get was called with the correct arguments
             mock_get.assert_called_once_with(
-                "https://swanhub-cali.swanchain.io/task/bidding",
+                "http://swanhub-cali.swanchain.io//task/bidding",
                 params={"task_id": "12345"},
                 timeout=15,
             )
@@ -26,22 +27,23 @@ class TestTask:
             assert result == {"task_id": "12345", "status": "bidding"}
 
     def test_task_id_parameter_is_none(self):
-        # Call the function with task_id as None
-        response = get_task_bidding(None)
+        # Call the function with task_id as None and expect an exception
+        with pytest.raises(RequestError) as exc_info:
+            get_task_bidding(None)
 
-        # Assert that the response is an error message
-        assert isinstance(response, str)
+        # Check if the error message is as expected
+        assert str(exc_info.value) == "SwanRequestError: Please Provide TASK ID"
 
     def test_empty_task_id(self):
         # Call the function with an empty task_id
-        response = get_task_bidding("")
+        with pytest.raises(RequestError) as exc_info:
+            get_task_bidding("")
 
-        # Assert that the response is an error message
-        assert isinstance(response, dict)
-        assert "error" in response
+        # Check if the error message is as expected
+        assert str(exc_info.value) == "SwanRequestError: Please Provide TASK ID"
 
     def test_api_endpoint_not_available(self):
         # Mock the requests.get method to raise a ConnectionError
-        with pytest.raises(ConnectionError):
-            with patch("requests.get", side_effect=requests.exceptions.ConnectionError):
+        with patch("requests.get", side_effect=ConnectionError):
+            with pytest.raises(ConnectionError):
                 get_task_bidding("task_id")
