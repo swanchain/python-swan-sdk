@@ -18,17 +18,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install black and mypy
+      - name: Install black
         run: |
-          pip3 install black mypy
+          pip3 install black
       - name: Lint with Black
         run: |
           black --check ./**/*.py
+
+  TypeCheck:
+    needs: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install mypy and type stubs
+        run: |
+          pip3 install mypy
+          pip3 install types-requests types-pytest types-python-dotenv
       - name: Type Check with Mypy
         run: |
-          mypy --install-types --non-interactive ./**/*.py
+          mypy ./**/*.py
+
   Test:
-    needs: Lint
+    needs: TypeCheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
