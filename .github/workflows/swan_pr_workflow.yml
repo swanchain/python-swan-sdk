@@ -26,7 +26,7 @@ jobs:
           black --check ./**/*.py
       - name: Type Check with Mypy
         run: |
-          mypy ./**/*.py
+          mypy --install-types --non-interactive ./**/*.py
   Test:
     needs: Lint
     runs-on: ubuntu-latest
