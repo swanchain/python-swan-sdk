@@ -36,7 +36,7 @@ jobs:
           pip3 install types-requests
       - name: Type Check with Mypy
         run: |
-          mypy ./**/*.py
+          mypy --ignore-missing-imports ./**/*.py
 
   Test:
     needs: TypeCheck
