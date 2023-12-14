@@ -33,7 +33,7 @@ jobs:
       - name: Install mypy and type stubs
         run: |
           pip3 install mypy
-          pip3 install types-requests types-pytest types-python-dotenv
+          pip3 install types-requests
       - name: Type Check with Mypy
         run: |
           mypy ./**/*.py
