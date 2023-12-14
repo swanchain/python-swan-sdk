@@ -33,6 +33,8 @@ def get_task_bidding(task_id) -> Dict[str, Any]:
         TimeoutError: If the request times out.
         RequestError: For other request-related errors.
     """
+    if not task_id:
+        raise RequestError("Please Provide TASK ID")
     base_url = SWAN_API
     # Construct the full URL for the API endpoint
     url = f"{base_url}/{TASK_BIDDING}"
