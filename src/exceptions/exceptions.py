@@ -41,3 +41,116 @@ class SwanParamsException(Exception):
 
     def __str__(self):
         return "SwanParamsException: %s" % self.message
+
+
+class HTTPError(Exception):
+    """
+    Custom exception for HTTP errors.
+
+    Attributes:
+        message (str): A message describing the error.
+    """
+
+    def __init__(self, message):
+        """
+        Initialize the exception with a message.
+
+        Args:
+            message (str): A message describing the error.
+        """
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        """
+        Return a string representation of the exception.
+
+        Returns:
+            str: A string describing the exception.
+        """
+        return f"SwanHTTPError: {self.message}"
+
+
+class ConnectionError(Exception):
+    """
+    Custom exception for connection errors.
+
+    Attributes:
+        message (str): A message describing the error.
+    """
+
+    def __init__(self, message):
+        """
+        Initialize the exception with a message.
+
+        Args:
+            message (str): A message describing the error.
+        """
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        """
+        Return a string representation of the exception.
+
+        Returns:
+            str: A string describing the exception.
+        """
+        return f"SwanConnectionError: {self.message}"
+
+
+class TimeoutError(Exception):
+    """
+    Custom exception for timeout errors.
+
+    Attributes:
+        message (str): A message describing the error.
+    """
+
+    def __init__(self, message):
+        """
+        Initialize the exception with a message.
+
+        Args:
+            message (str): A message describing the error.
+        """
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        """
+        Return a string representation of the exception.
+
+        Returns:
+            str: A string describing the exception.
+        """
+        return f"SwanTimeoutError: {self.message}"
+
+
+class RequestError(Exception):
+    """
+    Custom exception for general request errors.
+
+    Attributes:
+        message (str): A message describing the error.
+    """
+
+    def __init__(self, message):
+        """
+        Initialize the exception with a message.
+
+        Args:
+            message (str): A message describing the error.
+        """
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        """
+        Return a string representation of the exception.
+
+        Returns:
+            str: A string describing the exception.
+        """
+        return f"SwanRequestError: {self.message}"
+

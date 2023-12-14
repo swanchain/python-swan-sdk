@@ -1,7 +1,11 @@
 """ Constants used in the project """
 
-SWAN_API = "https://swanhub-cali.swanchain.io"
+# Base APIs
+SWAN_API = "http://swanhub-cali.swanchain.io"
 AUCTION_API = "http://172.16.200.12:5003"
+
+# APIs
+TOKEN_VALIDATION = '/api_token/validate'
 GET = "GET"
 POST = "POST"
 PUT = "PUT"
@@ -12,3 +16,5 @@ JOBS = "/lagrange/jobs"
 PROCESSING_TASKS = "/api/tasks/processing"
 DASHBOARD = "/"
 APIKEY_LOGIN = "/login_by_api_key"
+
+

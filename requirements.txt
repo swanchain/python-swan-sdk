@@ -7,6 +7,9 @@ requests~=2.31.0
 requests_toolbelt==0.10.1
 
 # Pytest
-pytest~=7.2.2
+pytest==7.2.2
 python-dotenv~=0.21.1
 setuptools~=69.0.0
+pytest-mock==3.12.0
+mock~=5.0.1
+types-requests==2.31.0.10
