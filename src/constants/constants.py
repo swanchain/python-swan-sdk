@@ -10,6 +10,7 @@ TOKEN_VALIDATION = '/api_token/validate'
 STATS_GENERAL = "/stats/general"
 TASK_BIDDING = "/task/bidding"
 APIKEY_LOGIN = "/login_by_api_key"
+ALL_CP_MACHINE = "/cp/machines"
 
 # Request
 GET = "GET"
