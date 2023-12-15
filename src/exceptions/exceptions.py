@@ -153,4 +153,3 @@ class RequestError(Exception):
             str: A string describing the exception.
         """
         return f"SwanRequestError: {self.message}"
-
