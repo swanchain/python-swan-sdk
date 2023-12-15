@@ -2,7 +2,6 @@
 import pytest
 import requests
 from mock.mock import patch, Mock
-
 from src.api.task import get_task_bidding
 from src.exceptions.exceptions import RequestError
 
