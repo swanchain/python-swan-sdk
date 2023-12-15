@@ -2,7 +2,13 @@
 
 import requests
 from src.constants.constants import SWAN_API, TOKEN_VALIDATION
-from src.exceptions.exceptions import HTTPError, RequestError
+from src.exceptions.request_exceptions import (
+    SwanHTTPError,
+    SwanConnectionError,
+    SwanTimeoutError,
+    SwanRequestError,
+)
+from src.exceptions.task_exceptions import SwanTaskInvalidInputError
 
 
 def validate_token(token):
@@ -25,6 +31,9 @@ def validate_token(token):
         response = validate_api_token("your_api_token")
     """
 
+    if not token:
+        raise SwanTaskInvalidInputError("Please Provide TASK ID")
+
     # The endpoint for validating the API token
     endpoint = f"{SWAN_API}/{TOKEN_VALIDATION}"
 
@@ -36,19 +45,19 @@ def validate_token(token):
 
     except requests.exceptions.HTTPError as errh:
         # Raise a custom HTTPError
-        raise HTTPError(f"HTTP Error: {errh}") from errh
+        raise SwanHTTPError(f"HTTP Error: {errh}") from errh
 
     except requests.exceptions.ConnectionError as errc:
         # Raise a custom ConnectionError
-        raise ConnectionError(f"Connection Error: {errc}") from errc
+        raise SwanConnectionError(f"Connection Error: {errc}") from errc
 
     except requests.exceptions.Timeout as errt:
         # Raise a custom TimeoutError
-        raise TimeoutError(f"Timeout Error: {errt}") from errt
+        raise SwanTimeoutError(f"Timeout Error: {errt}") from errt
 
     except requests.exceptions.RequestException as err:
         # Raise a custom RequestError
-        raise RequestError(f"Request Exception: {err}") from err
+        raise SwanRequestError(f"Request Exception: {err}") from err
 
     else:
         # Parsing the JSON response from the server
