@@ -11,6 +11,7 @@ GET = "GET"
 POST = "POST"
 PUT = "PUT"
 DELETE = "DELETE"
+
 # auction api
 CELERY = "/celery/task/status/"
 JOBS = "/lagrange/jobs"
