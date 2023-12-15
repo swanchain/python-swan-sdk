@@ -51,7 +51,7 @@ def get_all_cp_machines() -> List[Dict[str, Any]]:
 
 def get_collateral_balance(cp_address: str) -> Dict[str, Union[str, Any]]:
     """
-    Retrieves the collateral balance for a given computing provider address.
+    Retrieves the collateral balance for a given computing provider.
 
     This function makes a GET request to the '/cp/collateral/<cp_address>' endpoint
     to retrieve the collateral balance associated with the specified computing provider address.
