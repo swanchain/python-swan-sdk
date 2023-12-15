@@ -62,4 +62,3 @@ class TestStats:
                 "total_users": None,
                 "space_builders": None,
             }
-

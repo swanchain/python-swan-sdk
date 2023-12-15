@@ -44,4 +44,3 @@ def get_general_stats():
         # Handle any other request errors
         logging.info(f"An error occurred: {req_err}")
         return {"error": f"General error: {req_err}"}
-
