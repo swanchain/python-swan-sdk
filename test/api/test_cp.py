@@ -3,7 +3,8 @@
 import pytest
 import requests
 from mock.mock import Mock, MagicMock, patch
-from src.api.cp import get_all_cp_machines
+from src.api.cp import get_all_cp_machines, get_cp_detail
+from src.constants.constants import SWAN_API
 from src.exceptions.request_exceptions import SwanHTTPError, SwanRequestError
 
 
@@ -46,3 +47,51 @@ class TestComputingProviders:
         with patch("requests.get", side_effect=requests.exceptions.RequestException):
             with pytest.raises(SwanRequestError):
                 get_all_cp_machines()
+
+    def test_retrieve_valid_cp_detail(self):
+        # Mock the requests.get method to return a mock response
+        mock_response = Mock()
+        mock_response.json.return_value = {"cp_id": "123", "name": "Test CP"}
+        mock_response.status_code = 200
+        with patch("requests.get", return_value=mock_response) as mock_get:
+            # Call the function with a valid cp_id
+            cp_id = "123"
+            response, status_code = get_cp_detail(cp_id)
+
+            # Assert that the requests.get method was called with the correct URL
+            mock_get.assert_called_once_with(f"{SWAN_API}/{cp_id}")
+
+            # Assert that the response data and status code are correct
+            assert response == {"cp_id": "123", "name": "Test CP"}
+            assert status_code == 200
+
+    def test_returned_dictionary_contains_expected_keys(self):
+        # Mock the requests.get method to return a mock response
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "key1": "value1",
+            "key2": "value2",
+            "key3": "value3",
+        }
+        mock_response.status_code = 200
+        requests.get = MagicMock(return_value=mock_response)
+
+        # Call the function you're testing
+        response, status_code = get_cp_detail("cp_id")
+
+        # Assert that the response contains all expected keys
+        assert "key1" in response
+        assert "key2" in response
+        assert "key3" in response
+
+    def test_http_status_code_type(self):
+        # Mock the requests.get method to return a mock response
+        mock_response = Mock()
+        mock_response.json.return_value = {"data": "mock_data"}
+        mock_response.status_code = 200
+        with patch("requests.get", return_value=mock_response):
+            # Call the function under test
+            response, status_code = get_cp_detail("cp_id")
+
+            # Assert that the status code is of the expected type
+            assert isinstance(status_code, int)
