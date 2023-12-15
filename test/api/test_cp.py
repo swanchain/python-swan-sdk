@@ -3,8 +3,17 @@
 import pytest
 import requests
 from mock.mock import Mock, MagicMock, patch
-from src.api.cp import get_all_cp_machines
-from src.exceptions.request_exceptions import SwanHTTPError, SwanRequestError
+from src.api.cp import (
+    get_all_cp_machines,
+    get_cp_detail,
+    get_available_computing_providers,
+)
+from src.constants.constants import SWAN_API, CP_AVAILABLE
+from src.exceptions.request_exceptions import (
+    SwanHTTPError,
+    SwanRequestError,
+    SwanConnectionError,
+)
 
 
 class TestComputingProviders:
@@ -46,3 +55,101 @@ class TestComputingProviders:
         with patch("requests.get", side_effect=requests.exceptions.RequestException):
             with pytest.raises(SwanRequestError):
                 get_all_cp_machines()
+
+    def test_retrieve_valid_cp_detail(self):
+        # Mock the requests.get method to return a mock response
+        mock_response = Mock()
+        mock_response.json.return_value = {"cp_id": "123", "name": "Test CP"}
+        mock_response.status_code = 200
+        with patch("requests.get", return_value=mock_response) as mock_get:
+            # Call the function with a valid cp_id
+            cp_id = "123"
+            response, status_code = get_cp_detail(cp_id)
+
+            # Assert that the requests.get method was called with the correct URL
+            mock_get.assert_called_once_with(f"{SWAN_API}/{cp_id}")
+
+            # Assert that the response data and status code are correct
+            assert response == {"cp_id": "123", "name": "Test CP"}
+            assert status_code == 200
+
+    def test_returned_dictionary_contains_expected_keys(self):
+        # Mock the requests.get method to return a mock response
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "key1": "value1",
+            "key2": "value2",
+            "key3": "value3",
+        }
+        mock_response.status_code = 200
+        requests.get = MagicMock(return_value=mock_response)
+
+        # Call the function you're testing
+        response, status_code = get_cp_detail("cp_id")
+
+        # Assert that the response contains all expected keys
+        assert "key1" in response
+        assert "key2" in response
+        assert "key3" in response
+
+    def test_http_status_code_type(self):
+        # Mock the requests.get method to return a mock response
+        mock_response = Mock()
+        mock_response.json.return_value = {"data": "mock_data"}
+        mock_response.status_code = 200
+        with patch("requests.get", return_value=mock_response):
+            # Call the function under test
+            response, status_code = get_cp_detail("cp_id")
+
+            # Assert that the status code is of the expected type
+            assert isinstance(status_code, int)
+
+    def test_valid_json_response(self):
+        # Mock the requests.get method to return a mock response
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "status": "success",
+            "message": "Data retrieved successfully",
+            "data": {"providers": ["provider1", "provider2"]},
+        }
+        mock_response.raise_for_status.return_value = None
+        requests.get = MagicMock(return_value=mock_response)
+
+        # Call the function under test
+        result = get_available_computing_providers()
+
+        # Assert that the result is the expected JSON response
+        assert result == {
+            "status": "success",
+            "message": "Data retrieved successfully",
+            "data": {"providers": ["provider1", "provider2"]},
+        }
+
+    def test_api_endpoint_not_available(self):
+        # Mock the requests.get method to raise a ConnectionError
+        with patch("requests.get", side_effect=requests.exceptions.ConnectionError):
+            with pytest.raises(SwanConnectionError):
+                get_available_computing_providers()
+
+    def test_invalid_json_response(self):
+        # Mock the requests.get method to return an invalid JSON response
+        with patch("requests.get") as mock_get:
+            mock_get.return_value.json.side_effect = ValueError
+
+            # Call the function under test
+            with pytest.raises(ValueError):
+                get_available_computing_providers()
+
+    def test_empty_json_response(self):
+        # Mock the requests.get method to return an empty JSON response
+        with patch("requests.get") as mock_get:
+            mock_get.return_value.json.return_value = {}
+
+            # Call the function under test
+            result = get_available_computing_providers()
+
+            # Assert that the result is an empty dictionary
+            assert result == {}
+
+            # Assert that the requests.get method was called with the correct URL
+            mock_get.assert_called_once_with(f"{SWAN_API}{CP_AVAILABLE}")
