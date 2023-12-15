@@ -2,9 +2,14 @@
 
 import logging
 import requests
-from typing import List, Dict, Any
-from src.constants.constants import SWAN_API, ALL_CP_MACHINE
-from src.exceptions.request_exceptions import SwanHTTPError, SwanRequestError
+from typing import List, Dict, Any, Union
+from src.constants.constants import SWAN_API, ALL_CP_MACHINE, CP_DISTRIBUTION
+from src.exceptions.request_exceptions import (
+    SwanHTTPError,
+    SwanRequestError,
+    SwanConnectionError,
+    SwanTimeoutError,
+)
 
 
 def get_all_cp_machines() -> List[Dict[str, Any]]:
@@ -42,3 +47,61 @@ def get_all_cp_machines() -> List[Dict[str, Any]]:
     except ValueError as json_err:
         logging.error(f"JSON decoding error: {json_err}")
         raise json_err
+
+
+def get_cp_distribution() -> Union[List[Dict[str, Any]], None]:
+    """
+    Retrieve the distribution of computing providers.
+
+    This function makes a GET request to the specified API endpoint to obtain
+    the distribution of computing providers. It expects the API to return a list
+    of dictionaries with details about each provider.
+
+    Returns:
+        List[Dict[str, Any]]: A list of dictionaries containing the distribution of computing providers.
+        None: If the request fails or an error occurs.
+
+    Raises:
+        SwanHTTPError: For HTTP errors.
+        SwanConnectionError: For network-related errors.
+        SwanTimeout: For request timeout errors.
+        SwanRequestException: For other request-related errors.
+
+    Example:
+        api_url = "https://example.com/api/cp_distribution"
+        cp_distribution = get_cp_distribution()
+    """
+
+    endpoint = f"{SWAN_API}{CP_DISTRIBUTION}"
+
+    try:
+        response = requests.get(endpoint)
+        response.raise_for_status()
+        return response.json().get("data", [])
+    except requests.exceptions.HTTPError as http_err:
+        logging.error(f"HTTP error occurred: {http_err}")
+        raise SwanHTTPError(
+            "An HTTP error occurred while retrieving distribution"
+        ) from http_err
+
+    except requests.exceptions.ConnectionError as conn_err:
+        logging.error(f"Error connecting: {conn_err}")
+        raise SwanConnectionError(
+            "A connection error occurred while retrieving distribution"
+        ) from conn_err
+
+    except requests.exceptions.Timeout as timeout_err:
+        logging.error(f"Timeout error: {timeout_err}")
+        raise SwanTimeoutError(
+            "A timeout occurred while retrieving distribution"
+        ) from timeout_err
+
+    except requests.exceptions.RequestException as req_err:
+        logging.error(f"Error during requests to {endpoint}: {req_err}")
+        raise SwanRequestError(
+            "An unexpected error occurred while retrieving distribution"
+        ) from req_err
+
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+        raise Exception(f"An unexpected error occurred: {e}")
