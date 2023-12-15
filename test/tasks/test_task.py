@@ -1,9 +1,9 @@
 """ Task Test File """
+
 import pytest
-import requests
 from mock.mock import patch, Mock
 from src.api.task import get_task_bidding
-from src.exceptions.exceptions import RequestError
+from src.exceptions.task_exceptions import SwanTaskInvalidInputError
 
 
 class TestTask:
@@ -27,19 +27,19 @@ class TestTask:
 
     def test_task_id_parameter_is_none(self):
         # Call the function with task_id as None and expect an exception
-        with pytest.raises(RequestError) as exc_info:
+        with pytest.raises(SwanTaskInvalidInputError) as exc_info:
             get_task_bidding(None)
 
         # Check if the error message is as expected
-        assert str(exc_info.value) == "SwanRequestError: Please Provide TASK ID"
+        assert str(exc_info.value) == "SwanTaskInvalidInputError: Please Provide TASK ID"
 
     def test_empty_task_id(self):
         # Call the function with an empty task_id
-        with pytest.raises(RequestError) as exc_info:
+        with pytest.raises(SwanTaskInvalidInputError) as exc_info:
             get_task_bidding("")
 
         # Check if the error message is as expected
-        assert str(exc_info.value) == "SwanRequestError: Please Provide TASK ID"
+        assert str(exc_info.value) == "SwanTaskInvalidInputError: Please Provide TASK ID"
 
     def test_api_endpoint_not_available(self):
         # Mock the requests.get method to raise a ConnectionError

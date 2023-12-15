@@ -3,9 +3,8 @@
 import pytest
 import requests
 from mock.mock import Mock, MagicMock, patch
-
 from src.api.cp import get_all_cp_machines
-from src.exceptions.exceptions import HTTPError, RequestError
+from src.exceptions.request_exceptions import SwanHTTPError, SwanRequestError
 
 
 class TestComputingProviders:
@@ -39,11 +38,11 @@ class TestComputingProviders:
     def test_function_raises_httperror_if_api_call_fails(self):
         # Mock the requests.get method to raise an exception
         with patch("requests.get", side_effect=requests.exceptions.HTTPError):
-            with pytest.raises(HTTPError):
+            with pytest.raises(SwanHTTPError):
                 get_all_cp_machines()
 
     def test_failed_api_response(self):
         # Mock the requests.get method to raise an exception
         with patch("requests.get", side_effect=requests.exceptions.RequestException):
-            with pytest.raises(RequestError):
+            with pytest.raises(SwanRequestError):
                 get_all_cp_machines()

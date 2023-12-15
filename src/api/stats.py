@@ -4,6 +4,12 @@
 import logging
 import requests
 from src.constants.constants import SWAN_API, STATS_GENERAL
+from src.exceptions.request_exceptions import (
+    SwanHTTPError,
+    SwanConnectionError,
+    SwanTimeoutError,
+    SwanRequestError,
+)
 
 
 def get_general_stats():
@@ -31,16 +37,19 @@ def get_general_stats():
     except requests.exceptions.HTTPError as http_err:
         # Handle HTTP errors (e.g., 404, 503, etc.)
         logging.info(f"HTTP error occurred: {http_err}")
-        return {"error": f"HTTP error: {http_err}"}
+        raise SwanHTTPError(f"HTTP error occurred: {http_err}")
+
     except requests.exceptions.ConnectionError as conn_err:
         # Handle errors due to connection problems
         logging.info(f"Connection error occurred: {conn_err}")
-        return {"error": f"Connection error: {conn_err}"}
+        raise SwanConnectionError(f"Connection error occurred: {conn_err}")
+
     except requests.exceptions.Timeout as timeout_err:
         # Handle request timeout errors
         logging.info(f"Timeout error occurred: {timeout_err}")
-        return {"error": f"Timeout error: {timeout_err}"}
+        raise SwanTimeoutError(f"Timeout error occurred: {timeout_err}")
+
     except requests.exceptions.RequestException as req_err:
         # Handle any other request errors
         logging.info(f"An error occurred: {req_err}")
-        return {"error": f"General error: {req_err}"}
+        raise SwanRequestError(f"Request Exception: {req_err}") from req_err

@@ -4,7 +4,7 @@ import logging
 import requests
 from typing import List, Dict, Any
 from src.constants.constants import SWAN_API, ALL_CP_MACHINE
-from src.exceptions.exceptions import HTTPError, RequestError
+from src.exceptions.request_exceptions import SwanHTTPError, SwanRequestError
 
 
 def get_all_cp_machines() -> List[Dict[str, Any]]:
@@ -35,12 +35,10 @@ def get_all_cp_machines() -> List[Dict[str, Any]]:
             return []
     except requests.exceptions.HTTPError as http_err:
         logging.error(f"HTTP error occurred: {http_err}")
-        raise HTTPError("Failed to connect to the API endpoint.")
+        raise SwanHTTPError("Failed to connect to the API endpoint.")
     except requests.exceptions.RequestException as req_err:
         logging.error(f"Request error occurred: {req_err}")
-        raise RequestError("Failed to make a request to the API.")
+        raise SwanRequestError("Failed to make a request to the API.")
     except ValueError as json_err:
         logging.error(f"JSON decoding error: {json_err}")
         raise json_err
-
-

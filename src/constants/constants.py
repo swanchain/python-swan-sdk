@@ -5,7 +5,8 @@ SWAN_API = "http://swanhub-cali.swanchain.io"
 AUCTION_API = "http://172.16.200.12:5003"
 
 # APIs
-TOKEN_VALIDATION = "/api_token/validate"
+
+TOKEN_VALIDATION = '/api_token/validate'
 STATS_GENERAL = "/stats/general"
 TASK_BIDDING = "/task/bidding"
 APIKEY_LOGIN = "/login_by_api_key"
@@ -22,3 +23,4 @@ CELERY = "/celery/task/status/"
 JOBS = "/lagrange/jobs"
 PROCESSING_TASKS = "/api/tasks/processing"
 DASHBOARD = "/"
+
