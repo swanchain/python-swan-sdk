@@ -6,6 +6,7 @@ AUCTION_API = "http://172.16.200.12:5003"
 
 # APIs
 TOKEN_VALIDATION = '/api_token/validate'
+STATS_GENERAL = "/stats/general"
 GET = "GET"
 POST = "POST"
 PUT = "PUT"
