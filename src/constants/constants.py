@@ -11,7 +11,7 @@ STATS_GENERAL = "/stats/general"
 TASK_BIDDING = "/task/bidding"
 APIKEY_LOGIN = "/login_by_api_key"
 ALL_CP_MACHINE = "/cp/machines"
-GET_DEPLOYMENT_INFO = "/v1/space_deployment/"
+DEPLOYMENT_SPACE = "/v1/space_deployment/"
 
 # Request
 GET = "GET"
