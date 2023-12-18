@@ -1,11 +1,12 @@
 """ Space related functions """
+from decimal import Decimal
 
 import requests
 import logging
 from typing import Dict, Any
 from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
 
-from src.constants.constants import SWAN_API, GET_DEPLOYMENT_INFO
+from src.constants.constants import SWAN_API, DEPLOYMENT_SPACE
 from src.exceptions.request_exceptions import (
     SwanRequestError,
     SwanTimeoutError,
@@ -14,28 +15,29 @@ from src.exceptions.request_exceptions import (
 from src.exceptions.swan_base_exceptions import SwanValueError
 
 
-def get_space_deployment_info(
-    task_uuid: str,
-    job_source_uri: str,
-    paid: int,
+def deploy_space_v1(
+    paid: Decimal,
     duration: int,
     cfg_name: str,
     region: str,
     start_in: int,
-    wallet: str,
+    tx_hash: str,
+    job_source_uri: str,
 ) -> Dict[str, Any]:
     """
-    Posts deployment data to the space deployment API for a given task UUID.
+    Deploy a space with given parameters.
+
+    This function sends a POST request to a space deployment API endpoint. It handles the necessary data formatting
+    and error checking.
 
     Args:
-        task_uuid (str): The unique identifier for the task.
-        job_source_uri (str): URI for the job source.
-        paid (int): Indicate whether the job is paid or not (1 for paid, 0 for unpaid).
-        duration (int): Duration of the job in seconds.
-        cfg_name (str): Configuration name.
-        region (str): The region where the job is deployed.
-        start_in (int): The start time in seconds.
-        wallet (str): The wallet address.
+        paid (Decimal): The amount paid for the deployment.
+        duration (int): The duration of the deployment.
+        cfg_name (str): The name of the configuration.
+        region (str): The region for the deployment.
+        start_in (int): The start time in minutes.
+        tx_hash (str): The transaction hash.
+        job_source_uri (str): The URI of the job source.
 
     Returns:
         Dict[str, Any]: A dictionary containing the response data.
@@ -46,21 +48,45 @@ def get_space_deployment_info(
         SwanHTTPError: For HTTP errors.
         SwanTimeoutError: If the request times out.
         SwanRequestError: For other types of requests exceptions.
+
+    Example:
+        response = deploy_space_with_url(
+                    paid=Decimal("100.00"),
+                    duration=30,
+                    cfg_name="example_config",
+                    region="us-west-1",
+                    start_in=15,
+                    start_in (int): The start time in minutes.
+                    tx_hash="1234567890abcdef",
+                    job_source_uri="http://source.example.com"
+                )
     """
 
-    if not task_uuid or not job_source_uri or not cfg_name or not region or not wallet:
-        raise ValueError("Required parameters are missing or invalid")
+    # TODO: Enhance to use;
+    #  if any(arg is None or arg == '' for arg in args):
+    #         raise ValueError("Required parameters are missing or invalid")
 
-    url = f"{SWAN_API}{GET_DEPLOYMENT_INFO}{task_uuid}"
+    if (
+        not paid
+        or not job_source_uri
+        or not cfg_name
+        or not region
+        or not start_in
+        or not duration
+        or not tx_hash
+    ):
+        raise SwanValueError("Required parameters are missing or invalid")
+
+    url = f"{SWAN_API}{DEPLOYMENT_SPACE}"
 
     data = {
         "job_source_uri": job_source_uri,
-        "paid": paid,
+        "paid": str(paid),
         "duration": duration,
         "cfg_name": cfg_name,
         "region": region,
         "start_in": start_in,
-        "wallet": wallet,
+        "tx_hash": tx_hash,
     }
 
     try:
@@ -88,4 +114,3 @@ def get_space_deployment_info(
     except RequestException as err:
         logging.error(f"Error during requests to {url} : {err}")
         raise SwanRequestError(f"Error during requests to {url} : {err}")
-
