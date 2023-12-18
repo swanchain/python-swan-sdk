@@ -1,36 +1,342 @@
 """ Test the Space functionality"""
-from src.api.engine_api import EngineAPI
-from src.api.space import get_space_deployment_info
-from test.mock.client_mock import MockAPIClient
+import pytest
+import requests
+from decimal import Decimal
+from mock.mock import Mock, MagicMock, patch
+from requests import RequestException, Timeout
+from requests.models import HTTPError
+
+from src.api.space import deploy_space_v1
+from src.exceptions.request_exceptions import (
+    SwanRequestError,
+    SwanHTTPError,
+    SwanTimeoutError,
+    SwanConnectionError,
+)
+from src.exceptions.swan_base_exceptions import SwanValueError
 
 
 class TestSpaceService:
-    """ Test the Space Service class """
-    def test_valid_input_parameters(self):
+    """Test the Space Service class"""
 
+    def test_send_post_request_with_valid_parameters(self):
+        # Mock the requests.post method to return a mock response
+        mock_response = Mock()
+        mock_response.content = '{"message": "Success"}'
+        mock_response.json.return_value = {"message": "Success"}
+        mock_response.raise_for_status.return_value = None
+        requests.post = MagicMock(return_value=mock_response)
 
-        # Set up valid input parameters
-        task_uuid = "12345"
-        job_source_uri = "https://example.com/job"
-        paid = 1
-        duration = 3600
-        cfg_name = "config"
-        region = "us-west-1"
-        start_in = 0
-        wallet = "0x1234567890"
-        breakpoint()
-        # Call the function under test
-        response = get_space_deployment_info(
-            task_uuid,
-            job_source_uri,
-            paid,
-            duration,
-            cfg_name,
-            region,
-            start_in,
-            wallet
+        # Call the deploy_space_v1 function with valid parameters
+        response = deploy_space_v1(
+            paid=Decimal("100.00"),
+            duration=30,
+            cfg_name="example_config",
+            region="us-west-1",
+            start_in=15,
+            tx_hash="1234567890abcdef",
+            job_source_uri="http://source.example.com",
         )
 
+        # Assert that the requests.post method was called with the correct URL and data
+        requests.post.assert_called_with(
+            "http://swanhub-cali.swanchain.io/v1/space_deployment/",
+            data={
+                "job_source_uri": "http://source.example.com",
+                "paid": "100.00",
+                "duration": 30,
+                "cfg_name": "example_config",
+                "region": "us-west-1",
+                "start_in": 15,
+                "tx_hash": "1234567890abcdef",
+            },
+        )
+
+        # Assert that the response is the expected JSON data
+        assert response == {"message": "Success"}
+
+    def test_invalid_input(self):
+        # Test case with missing required parameters
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=None,
+                duration=30,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+        # Test case with invalid paid parameter
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("0.00"),
+                duration=30,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+        # Test case with invalid job_source_uri parameter
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=30,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri="",
+            )
+
+        # Test case with invalid cfg_name parameter
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=30,
+                cfg_name="",
+                region="us-west-1",
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+        # Test case with invalid region parameter
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=30,
+                cfg_name="example_config",
+                region="",
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+        # Test case with invalid start_in parameter
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=30,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=None,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+        # Test case with invalid duration parameter
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=None,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+        # Test case with invalid tx_hash parameter
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=30,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=15,
+                tx_hash="",
+                job_source_uri="http://source.example.com",
+            )
+
+    def test_raises_swan_value_error(self):
+        # Test case where paid parameter is missing
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=None,
+                duration=30,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+        # Test case where job_source_uri parameter is missing
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=30,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri=None,
+            )
+
+        # Test case where cfg_name parameter is missing
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=30,
+                cfg_name=None,
+                region="us-west-1",
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+        # Test case where region parameter is missing
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=30,
+                cfg_name="example_config",
+                region=None,
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+        # Test case where start_in parameter is missing
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=30,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=None,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+        # Test case where duration parameter is missing
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=None,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+        # Test case where tx_hash parameter is missing
+        with pytest.raises(SwanValueError):
+            deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=30,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=15,
+                tx_hash=None,
+                job_source_uri="http://source.example.com",
+            )
+
+    def test_raises_swan_request_error(self):
+        # Mock the requests.post method to raise a RequestException
+        with patch("requests.post", side_effect=RequestException):
+            with pytest.raises(SwanRequestError):
+                deploy_space_v1(
+                    paid=Decimal("100.00"),
+                    duration=30,
+                    cfg_name="example_config",
+                    region="us-west-1",
+                    start_in=15,
+                    tx_hash="1234567890abcdef",
+                    job_source_uri="http://source.example.com",
+                )
+
+    def test_raises_swan_http_error(self):
+        # Mock the requests.post method to raise an HTTPError
+        with patch("requests.post") as mock_post:
+            mock_post.side_effect = HTTPError("HTTP error occurred")
+
+            # Call the deploy_space_v1 function and assert that it raises a SwanHTTPError
+            with pytest.raises(SwanHTTPError):
+                deploy_space_v1(
+                    paid=Decimal("100.00"),
+                    duration=30,
+                    cfg_name="example_config",
+                    region="us-west-1",
+                    start_in=15,
+                    tx_hash="1234567890abcdef",
+                    job_source_uri="http://source.example.com",
+                )
+
+    def test_request_timeout(self):
+        # Mock the requests.post method to raise a Timeout exception
+        with patch("requests.post", side_effect=Timeout):
+            with pytest.raises(SwanTimeoutError):
+                deploy_space_v1(
+                    paid=Decimal("100.00"),
+                    duration=30,
+                    cfg_name="example_config",
+                    region="us-west-1",
+                    start_in=15,
+                    tx_hash="1234567890abcdef",
+                    job_source_uri="http://source.example.com",
+                )
+
+    def test_response_data_not_empty_and_json_format(self):
+        # Mock the requests.post method to return a mock response
+        mock_response = Mock()
+        mock_response.content = '{"message": "Success"}'
+        mock_response.json.return_value = {"message": "Success"}
+        mock_response.raise_for_status.return_value = None
+        requests.post = MagicMock(return_value=mock_response)
+
+        # Call the deploy_space_v1 function with valid parameters
+        response = deploy_space_v1(
+            paid=Decimal("100.00"),
+            duration=30,
+            cfg_name="example_config",
+            region="us-west-1",
+            start_in=15,
+            tx_hash="1234567890abcdef",
+            job_source_uri="http://source.example.com",
+        )
 
         # Assert that the response is a dictionary
         assert isinstance(response, dict)
+
+        # Assert that the response contains the expected data
+        assert response == {"message": "Success"}
+
+        # Assert that requests.post was called with the correct arguments
+        requests.post.assert_called_once_with(
+            "http://swanhub-cali.swanchain.io/v1/space_deployment/",
+            data={
+                "job_source_uri": "http://source.example.com",
+                "paid": "100.00",
+                "duration": 30,
+                "cfg_name": "example_config",
+                "region": "us-west-1",
+                "start_in": 15,
+                "tx_hash": "1234567890abcdef",
+            },
+        )
+
+    def test_empty_response_content(self):
+        # Mock the requests.post method to return a response with empty content
+        with patch("requests.post") as mock_post:
+            mock_post.return_value.content = b""
+            mock_post.return_value.raise_for_status.return_value = None
+
+            # Call the deploy_space_v1 function
+            response = deploy_space_v1(
+                paid=Decimal("100.00"),
+                duration=30,
+                cfg_name="example_config",
+                region="us-west-1",
+                start_in=15,
+                tx_hash="1234567890abcdef",
+                job_source_uri="http://source.example.com",
+            )
+
+            # Assert that the response is a dictionary with the expected message
+            assert response == {"message": "No content in response"}
