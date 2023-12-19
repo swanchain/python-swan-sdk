@@ -25,6 +25,7 @@ class TestMockSendJob:
 
     def test_mock_job_send(self, mock_requests):
         """Test the mock job sending functionality."""
+
         # Sending jobs using the mocked job submission endpoint
         response = self.engine_api.send_jobs({"job1": "data", "job2": "data"})
 
