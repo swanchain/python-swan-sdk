@@ -13,6 +13,7 @@ from src.constants.constants import (
     PUT,
     DELETE,
 )
+from src.utils import utils
 
 
 class APIClient(object):
@@ -79,16 +80,6 @@ class APIClient(object):
             else:
                 response = requests.delete(url, headers=header)
 
-        # exception handle
-        if not str(response.status_code).startswith("2"):
-            print(response.status_code)
-            json_res = response.json()
-            print(json_res["message"])
-            return None
-        #     raise exceptions.McsAPIException(response)
-        #
-        # if str(json_res['status']) == 'error':
-        #     raise exceptions.McsRequestException(json_res['message'])
         return response.json()
 
     def _request_without_params(self, method, request_path, swan_api, token):

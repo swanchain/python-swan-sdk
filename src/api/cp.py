@@ -38,13 +38,11 @@ class ComputerProvider(EngineAPI):
                 swan_api=SWAN_API,
                 token=self.token,
             )
-            response.raise_for_status()  # Raises HTTPError for HTTP errors.
 
-            data = response.json()
-            if data.get("status") == "success":
-                return data.get("data", {}).get("hardware", [])
+            if response.get("status") == "success":
+                return response.get("data", {}).get("hardware", [])
             else:
-                logging.error(f"API returned an error: {data.get('message')}")
+                logging.error(f"API returned an error: {response.get('message')}")
                 return []
         except requests.exceptions.HTTPError as http_err:
             logging.error(f"HTTP error occurred: {http_err}")
@@ -86,8 +84,8 @@ class ComputerProvider(EngineAPI):
                 swan_api=SWAN_API,
                 token=self.token,
             )
-            response.raise_for_status()
-            return response.json().get("data", [])
+
+            return response.get("data", [])
         except requests.exceptions.HTTPError as http_err:
             logging.error(f"HTTP error occurred: {http_err}")
             raise SwanHTTPError(
