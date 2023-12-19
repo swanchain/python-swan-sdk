@@ -6,7 +6,6 @@ import requests
 from mock.mock import Mock, MagicMock, patch
 
 from src.api.cp import ComputerProvider
-from src.constants.constants import SWAN_API, CP_DISTRIBUTION
 from src.exceptions.request_exceptions import (
     SwanHTTPError,
     SwanRequestError,
