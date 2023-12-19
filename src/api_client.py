@@ -5,7 +5,7 @@ import json
 import logging
 
 from src.constants.constants import (
-    AUCTION_API,
+    SWAN_API,
     POST,
     APIKEY_LOGIN,
     SWAN_API,
@@ -24,7 +24,7 @@ class APIClient(object):
         login=True,
         is_calibration=False,
     ):
-        self.AUCTION_API = AUCTION_API
+        self.SWAN_API = SWAN_API
         # TODO: Once authentication is Implemented for Auction Engine we can uncomment this
         self.token = None
         self.api_key = api_key
