@@ -2,14 +2,13 @@
 
 import pytest
 import requests
-from mock.mock import Mock, MagicMock, patch]
-from src.constants.constants import SWAN_API
+from mock.mock import Mock, MagicMock, patch  # type: ignore
 
 from src.api.cp import (
     get_all_cp_machines,
     get_cp_detail,
     get_available_computing_providers,
-  get_collateral_balance,
+    get_collateral_balance,
 )
 from src.constants.constants import SWAN_API, CP_AVAILABLE
 from src.exceptions.request_exceptions import (
@@ -17,8 +16,6 @@ from src.exceptions.request_exceptions import (
     SwanRequestError,
     SwanConnectionError,
 )
-
-
 
 
 class TestComputingProviders:
@@ -61,7 +58,6 @@ class TestComputingProviders:
             with pytest.raises(SwanRequestError):
                 get_all_cp_machines()
 
-
     def test_retrieve_collateral_balance_valid_address(self):
         # Mock the requests.get method to return a mock response
         with patch("requests.get") as mock_get:
@@ -83,6 +79,7 @@ class TestComputingProviders:
                 "message": "Successfully retrieved collateral balance",
                 "data": {"balance": 100},
             }
+
     # NOTE: do not uncomment before ApiClient changes
     # def test_invalid_address_format(self):
     #     # Arrange
@@ -178,7 +175,6 @@ class TestComputingProviders:
 
             # Assert that the status code is of the expected type
             assert isinstance(status_code, int)
-
 
     def test_valid_json_response(self):
         # Mock the requests.get method to return a mock response
