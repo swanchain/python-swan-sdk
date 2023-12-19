@@ -16,6 +16,7 @@ from src.exceptions.request_exceptions import (
 )
 
 
+
 class TestComputingProviders:
     def test_retrieve_all_cp_machines(self):
         # Mock the requests.get method to return a mock response
