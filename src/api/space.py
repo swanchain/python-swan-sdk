@@ -1,9 +1,10 @@
 """ Space related functions """
-from decimal import Decimal
 
-import requests
 import logging
+
+from decimal import Decimal
 from typing import Dict, Any
+
 from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
 
 from src.api.engine_api import EngineAPI

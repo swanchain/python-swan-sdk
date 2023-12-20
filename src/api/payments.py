@@ -1,8 +1,7 @@
 import logging
+import requests
 from decimal import Decimal
 from typing import Tuple, Dict, Any
-
-import requests
 
 from src.api.engine_api import EngineAPI
 from src.constants.constants import PAYMENT_VALIDATION, SWAN_API
