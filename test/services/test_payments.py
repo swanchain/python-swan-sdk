@@ -3,7 +3,7 @@
 
 import pytest
 import requests
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 from src.api.payments import Payments
 from src.exceptions.request_exceptions import (
