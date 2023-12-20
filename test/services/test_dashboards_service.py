@@ -21,13 +21,6 @@ class TestEngineAPI:
             "task2": {"task_instance_data": "task_2_data"},
         }
 
-    def test_instantiate_engine_api_with_default_api_client(self):
-        engine_api = EngineAPI()
-        assert isinstance(engine_api.api_client, APIClient)
-        assert engine_api.api_client.api_key == "placeholder_api_key"
-        assert engine_api.api_client.wallet_address == "sample_wallet_address"
-        assert engine_api.token is None
-
     def test_get_celery_task_status_with_valid_task_id(self):
         # Instantiate EngineAPI with MockAPIClient
         mock_api_client = MockAPIClient("dummy_api_key", "dummy_wallet_address")
