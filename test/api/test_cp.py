@@ -6,13 +6,7 @@ import requests
 
 from mock.mock import Mock, MagicMock, patch  # type: ignore
 
-from src.api.cp import (
-    ComputerProvider,
-    get_computing_providers_list,
-    get_collateral_balance,
-    get_cp_detail,
-    get_available_computing_providers,
-)
+from src.api.cp import ComputerProvider
 from src.constants.constants import SWAN_API, CP_AVAILABLE
 
 from src.exceptions.request_exceptions import (
