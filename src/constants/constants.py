@@ -2,15 +2,14 @@
 
 # Base APIs
 SWAN_API = "http://swanhub-cali.swanchain.io"
-AUCTION_API = "http://172.16.200.12:5003"
 
 # APIs
-
 TOKEN_VALIDATION = "/api_token/validate"
 STATS_GENERAL = "/stats/general"
 TASK_BIDDING = "/task/bidding"
 APIKEY_LOGIN = "/login_by_api_key"
 ALL_CP_MACHINE = "/cp/machines"
+CP_DISTRIBUTION = "/cp_distribution"
 CP_LIST = "/cp_list"
 COLLATERAL_BALANCE = "/cp/collateral/"
 CP_DETAIL = "cp_detail/<string:cp_id>"
