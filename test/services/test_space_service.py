@@ -2,7 +2,7 @@
 
 import pytest
 from decimal import Decimal
-from mock.mock import patch
+from mock.mock import patch, MagicMock
 from requests import RequestException, Timeout
 from requests.models import HTTPError
 
@@ -21,7 +21,6 @@ class TestSpaceService:
 
     def setup(self):
         self.space = Space()
-
 
     # Please do not uncomment before APiClient change
     # def test_send_post_request_with_valid_parameters(self):
@@ -326,13 +325,16 @@ class TestSpaceService:
                     job_source_uri="http://source.example.com",
                 )
 
-
-
     def test_empty_response_content(self):
-        # Mock the requests.post method to return a response with empty content
+        # Mock the requests.post method to return a mocked response
         with patch("requests.post") as mock_post:
-            mock_post.return_value.content = b""
-            mock_post.return_value.raise_for_status.return_value = None
+            # Create a mock response object with the desired attributes
+            mock_response = MagicMock()
+            mock_response.content = b""
+            mock_response.raise_for_status.return_value = None
+            mock_response.json.return_value = {"id": 4414961072}  # Mocked JSON response
+
+            mock_post.return_value = mock_response
 
             # Call the self.space.deploy_space_v1 function
             response = self.space.deploy_space_v1(
@@ -345,5 +347,5 @@ class TestSpaceService:
                 job_source_uri="http://source.example.com",
             )
 
-            # Assert that the response is a dictionary with the expected message
-            assert response == None
+            # Assert that the response has the expected id
+            assert response["id"] == 4414961072
