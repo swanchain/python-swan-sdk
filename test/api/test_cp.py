@@ -1,17 +1,17 @@
 """ Tests for Computing Providers """
-import logging
 
+import logging
 import pytest
 import requests
 
 from mock.mock import Mock, MagicMock, patch  # type: ignore
 
 from src.api.cp import (
-    get_all_cp_machines,
-    ComputerProvider
+    ComputerProvider,
+    get_computing_providers_list,
+    get_collateral_balance,
     get_cp_detail,
     get_available_computing_providers,
-    get_collateral_balance, get_computing_providers_list,
 )
 from src.constants.constants import SWAN_API, CP_AVAILABLE
 
@@ -22,10 +22,10 @@ from src.exceptions.request_exceptions import (
     SwanTimeoutError,
 )
 
+
 class TestComputingProviders:
     def setup(self):
         self.provider = ComputerProvider()
-
 
     def test_retrieve_all_cp_machines(self):
         # Mock the requests.get method to return a mock response
@@ -259,7 +259,7 @@ class TestComputingProvidersListByRegion:
 
     def test_raises_swan_http_error_if_api_call_fails(self):
         # Mock the requests.post method to raise an HTTPError
-        with patch('requests.post') as mock_post:
+        with patch("requests.post") as mock_post:
             mock_post.side_effect = requests.exceptions.HTTPError()
 
             # Call the function under test
@@ -274,8 +274,10 @@ class TestComputingProvidersListByRegion:
 
     def test_raises_swan_http_error(self):
         # Mock the requests.post method to raise an HTTPError
-        with patch('requests.post') as mock_post:
-            mock_post.return_value.raise_for_status.side_effect = requests.exceptions.HTTPError
+        with patch("requests.post") as mock_post:
+            mock_post.return_value.raise_for_status.side_effect = (
+                requests.exceptions.HTTPError
+            )
 
             # Call the function under test
             with pytest.raises(SwanHTTPError):
@@ -286,7 +288,7 @@ class TestComputingProvidersListByRegion:
         def mock_post(*args, **kwargs):
             raise Exception("An error occurred")
 
-        with patch('requests.post', side_effect=mock_post):
+        with patch("requests.post", side_effect=mock_post):
             with pytest.raises(Exception):
                 get_computing_providers_list("region")
 
@@ -359,7 +361,6 @@ class TestComputingProvidersListByRegion:
                 "message": "Successfully retrieved collateral balance",
                 "data": {"balance": 100},
             }
-
 
     def test_retrieve_valid_cp_detail(self):
         # Mock the requests.get method to return a mock response
