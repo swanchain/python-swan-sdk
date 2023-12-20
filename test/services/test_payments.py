@@ -3,8 +3,9 @@
 
 import pytest
 import requests
-from src.utils.utils import Payments
 from unittest.mock import Mock, patch, MagicMock
+
+from src.api.payments import Payments
 from src.exceptions.request_exceptions import (
     SwanConnectionError,
     SwanTimeoutError,

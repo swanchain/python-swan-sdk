@@ -4,13 +4,14 @@
 import pytest
 import requests
 from unittest.mock import Mock, patch
+
+from src.api.claims import Claims
 from src.exceptions.request_exceptions import (
     SwanHTTPError,
     SwanConnectionError,
     SwanTimeoutError,
     SwanRequestError
 )
-from src.utils.utils import Claims
 
 
 class TestReviewClaim:

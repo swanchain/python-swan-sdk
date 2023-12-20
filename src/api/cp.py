@@ -26,6 +26,7 @@ from src.exceptions.request_exceptions import (
 )
 
 from src.api.engine_api import EngineAPI
+
 class ComputerProvider(EngineAPI):
     def get_all_cp_machines(self) -> List[Dict[str, Any]]:
         """
