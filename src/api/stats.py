@@ -24,10 +24,10 @@ def get_general_stats():
         dict: A dictionary containing the general statistics if the request is successful, or an error message if not.
 
     Raises:
-        requests.exceptions.HTTPError: If the HTTP request returned an unsuccessful status code.
-        requests.exceptions.ConnectionError: If a connection to the URL cannot be established.
-        requests.exceptions.Timeout: If the request timed out.
-        requests.exceptions.RequestException: For any other type of exception.
+        SwanHTTPError: If the HTTP request returned an unsuccessful status code.
+        SwanConnectionError: If a connection to the URL cannot be established.
+        SwanTimeout: If the request timed out.
+        SwanRequestException: For any other type of exception.
     """
     url = f"{SWAN_API}/{STATS_GENERAL}"
     try:
