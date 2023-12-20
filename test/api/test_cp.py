@@ -9,7 +9,7 @@ from src.api.cp import (
     get_all_cp_machines,
     get_cp_detail,
     get_available_computing_providers,
-    get_collateral_balance,
+    get_collateral_balance, get_computing_providers_list,
 )
 from src.constants.constants import SWAN_API, CP_AVAILABLE
 from src.exceptions.request_exceptions import (
