@@ -1,10 +1,15 @@
+""" Test the stats """
+
 import requests
 from mock.mock import Mock, MagicMock, patch
 
-from src.api.stats import get_general_stats
+from src.api.stats import Stats
 
 
 class TestStats:
+    def setup_method(self):
+        self.stats = Stats()
+
     def test_returns_general_stats_if_request_successful(self):
         # Mock the requests.get method to return a successful response
         mock_response = Mock()
@@ -17,7 +22,7 @@ class TestStats:
         requests.get = MagicMock(return_value=mock_response)
 
         # Call the function under test
-        result = get_general_stats()
+        result = self.stats.get_general_stats()
 
         # Assert that the result is a dictionary containing general statistics
         assert isinstance(result, dict)
@@ -31,7 +36,7 @@ class TestStats:
             mock_get.return_value.json.return_value = "invalid_data"
 
             # Call the function under test
-            result = get_general_stats()
+            result = self.stats.get_general_stats()
 
             # Assert that the result is an error message
             assert result == "invalid_data"
@@ -51,7 +56,7 @@ class TestStats:
             mock_get.return_value = mock_response
 
             # Call the function under test
-            result = get_general_stats()
+            result = self.stats.get_general_stats()
 
             # Assert that the result is equal
             assert result == {
