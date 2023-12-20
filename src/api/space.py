@@ -80,6 +80,8 @@ class Space(EngineAPI):
         ):
             raise SwanValueError("Required parameters are missing or invalid")
 
+        # This transaction hash is for the payment made for the given service, we use this tx hash to cross reference
+        # with the paid amount
         data = {
             "job_source_uri": job_source_uri,
             "paid": str(paid),
