@@ -1,4 +1,16 @@
 """ Utility functions for SDK """
+import logging
+import requests
+
+from typing import Tuple, Dict, Any
+from src.api.engine_api import EngineAPI
+from src.constants.constants import SWAN_API, CLAIM_REVIEW
+from src.exceptions.request_exceptions import (
+    SwanConnectionError,
+    SwanTimeoutError,
+    SwanHTTPError,
+    SwanRequestError,
+)
 
 
 import logging
@@ -56,17 +68,19 @@ class Payments(EngineAPI):
             "tx_hash": payment_tx_hash,
             "paid_amount": f"{Decimal(paid_amount):.5f}",  # Formatting to match the required decimal format
         }
-
+        
         try:
             response = self.api_client._request_with_params(
                 method="POST",
+
                 request_path=PAYMENT_VALIDATION,
+                request_path=CLAIM_REVIEW,
                 swan_api=SWAN_API,
                 params=data,
                 token=self.token,
                 files=None,
             )
-
+        
             if response is None:
                 raise ValueError("Invalid response from API")
 

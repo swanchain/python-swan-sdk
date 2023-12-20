@@ -41,3 +41,11 @@ class SwanParamsException(Exception):
 
     def __str__(self):
         return "SwanParamsException: %s" % self.message
+
+
+class SwanValueError(Exception):
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return "SwanValueError: %s" % self.message
