@@ -12,6 +12,7 @@ from src.constants.constants import (
     CP_AVAILABLE,
     CP_LIST,
     CP_DISTRIBUTION,
+    CP_DETAIL,
 )
 from src.exceptions.cp_exceptions import (
     SwanCPDetailInvalidInputError,
@@ -23,9 +24,11 @@ from src.exceptions.request_exceptions import (
     SwanRequestError,
     SwanConnectionError,
     SwanTimeoutError,
+    SwanTooManyRedirectsError,
 )
 
 from src.api.engine_api import EngineAPI
+
 
 class ComputerProvider(EngineAPI):
     def get_all_cp_machines(self) -> List[Dict[str, Any]]:
@@ -43,7 +46,6 @@ class ComputerProvider(EngineAPI):
             HTTPError: If the API call fails.
             RequestError: If the response is not a valid JSON.
         """
-        a = self.api_client()
 
         try:
             response = self.api_client._request_without_params(
@@ -211,11 +213,8 @@ class ComputerProvider(EngineAPI):
                 token=self.token,
             )
 
-            if response.get("status") == "success":
-                return response.get("data", {}).get("hardware", [])
-            else:
-                logging.error(f"API returned an error: {response.get('message')}")
-                return None  # type: ignore
+            return response
+
         except requests.exceptions.HTTPError as e:
             logging.error(f"HTTP error occurred: {e}")
             raise SwanHTTPError(f"HTTP error occurred: {e}")
@@ -261,10 +260,10 @@ class ComputerProvider(EngineAPI):
             SwanTimeoutError
             SwanRequestError
         """
-        if not cp_id:
+        if not cp_id or not isinstance(cp_id, int):
             logging.error("cp_id is required but was not provided.")
             raise SwanCPDetailInvalidInputError(
-                "cp_id must be provided and cannot be an empty string."
+                "cp_id must be provided and cannot be an empty ."
             )
 
         data = {"cp_id": cp_id}
@@ -323,7 +322,7 @@ class ComputerProvider(EngineAPI):
 
         try:
             response = self.api_client._request_with_params(
-                method="POST",
+                method="GET",
                 request_path=COLLATERAL_BALANCE,
                 swan_api=SWAN_API,
                 params=data,

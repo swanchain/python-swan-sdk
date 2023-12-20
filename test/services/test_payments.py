@@ -14,7 +14,7 @@ from src.exceptions.request_exceptions import (
 
 
 class TestValidatePayment:
-    def setup(self):
+    def setup_method(self):
         self.provider = Payments()
 
     def test_valid_payment_success(self):

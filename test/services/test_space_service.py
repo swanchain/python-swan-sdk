@@ -19,7 +19,7 @@ from src.exceptions.swan_base_exceptions import SwanValueError
 class TestSpaceService:
     """Test the Space Service class"""
 
-    def setup(self):
+    def setup_method(self):
         self.space = Space()
 
     # Please do not uncomment before APiClient change

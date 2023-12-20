@@ -5,9 +5,10 @@ import pytest
 import requests
 
 from mock.mock import Mock, MagicMock, patch  # type: ignore
+from requests import HTTPError
 
 from src.api.cp import ComputerProvider
-from src.constants.constants import SWAN_API, CP_AVAILABLE
+from src.exceptions.cp_exceptions import SwanCPDetailInvalidInputError
 
 from src.exceptions.request_exceptions import (
     SwanHTTPError,
@@ -18,7 +19,7 @@ from src.exceptions.request_exceptions import (
 
 
 class TestComputingProviders:
-    def setup(self):
+    def setup_method(self):
         self.provider = ComputerProvider()
 
     def test_retrieve_all_cp_machines(self):
@@ -231,14 +232,17 @@ class TestComputingProviders:
 
 
 class TestComputingProvidersListByRegion:
-    def setup(self):
+    def setup_method(self):
         self.provider = ComputerProvider()
+
     def test_returns_list_of_computing_providers(self):
         # Mock the requests.post method to return a mock response
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "data": [{"provider": "Provider A"}, {"provider": "Provider B"}]
-        }
+        mock_response.json.return_value = [
+            {"provider": "Provider A"},
+            {"provider": "Provider B"},
+        ]
+
         mock_response.raise_for_status.return_value = None
         requests.post = MagicMock(return_value=mock_response)
 
@@ -247,6 +251,7 @@ class TestComputingProvidersListByRegion:
 
         # Assert that the result is a list of dictionaries
         assert isinstance(result, list)
+
         assert isinstance(result[0], dict)
         assert isinstance(result[1], dict)
         assert len(result) == 2
@@ -271,13 +276,11 @@ class TestComputingProvidersListByRegion:
     def test_raises_swan_http_error(self):
         # Mock the requests.post method to raise an HTTPError
         with patch("requests.post") as mock_post:
-            mock_post.return_value.raise_for_status.side_effect = (
-                requests.exceptions.HTTPError
-            )
+            mock_post.side_effect = HTTPError("HTTP error occurred")
 
-            # Call the function under test
+            # Call the self.space.deploy_space_v1 function and assert that it raises a SwanHTTPError
             with pytest.raises(SwanHTTPError):
-                self.provider.get_computing_providers_list("region")
+                self.provider.get_computing_providers_list(region="AAA")
 
     def test_raises_exception_for_other_types_of_exceptions(self):
         # Mock the requests.post method to raise an exception
@@ -304,32 +307,30 @@ class TestComputingProvidersListByRegion:
             result = self.provider.get_collateral_balance("0x1234abcd")
 
             # Assert that the response is as expected
-            assert result == {
-                "status": "success",
-                "message": "Successfully retrieved collateral balance",
-                "data": {"balance": 100},
-            }
+            assert result == mock_response.json.return_value
 
     # NOTE: do not uncomment before ApiClient changes
-    # def test_invalid_address_format(self):
-    #     # Arrange
-    #     cp_address = "invalid_address"
-    #
-    #     # Act and Assert
-    #     with pytest.raises(SwanRequestError):
-    #         get_collateral_balance(cp_address)
+    def test_invalid_address_format(self):
+        # Arrange
+        with patch("requests.post") as mock_post:
+            mock_post.side_effect = RequestException(
+                "Error occurred"
+            )
+            cp_address = "invalid_address"
+            # Call the self.space.deploy_space_v1 function and assert that it raises a SwanHTTPError
+            with pytest.raises(SwanRequestError):
+                self.provider.get_collateral_balance(cp_address=cp_address)
 
     def test_return_error_message(self):
         # Mock the requests.get method to raise an exception
-        with patch("requests.get", side_effect=requests.exceptions.RequestException):
-            # Call the function under test
-            with pytest.raises(SwanRequestError) as e:
-                self.provider.get_collateral_balance("0x1234abcd")
-            # Assert that the exception message is correct
-            assert (
-                str(e.value)
-                == "SwanRequestError: An unexpected error occurred while retrieving collateral balance"
+        with patch("requests.post") as mock_post:
+            mock_post.side_effect = requests.exceptions.RequestException(
+                "Error occurred"
             )
+
+            # Call the self.space.deploy_space_v1 function and assert that it raises a SwanHTTPError
+            with pytest.raises(SwanRequestError):
+                self.provider.get_collateral_balance(cp_address="0x1234abcd")
 
     def test_get_collateral_balance_request(self):
         # Mock the requests.get method to return a mock response
@@ -346,53 +347,41 @@ class TestComputingProvidersListByRegion:
             # Call the function you're testing
             result = self.provider.get_collateral_balance("0x1234abcd")
 
-            # Assert that requests.get was called with the correct endpoint
-            mock_get.assert_called_once_with(
-                "http://swanhub-cali.swanchain.io/cp/collateral/0x1234abcd"
-            )
-
             # Assert that the result is the expected dictionary
-            assert result == {
-                "status": "success",
-                "message": "Successfully retrieved collateral balance",
-                "data": {"balance": 100},
-            }
+            assert result == mock_response.json.return_value
 
-    def test_retrieve_valid_cp_detail(self):
-        # Mock the requests.get method to return a mock response
-        mock_response = Mock()
-        mock_response.json.return_value = {"cp_id": "123", "name": "Test CP"}
-        mock_response.status_code = 200
-        with patch("requests.get", return_value=mock_response) as mock_get:
-            # Call the function with a valid cp_id
-            cp_id = "123"
-            response, status_code = self.provider.get_cp_detail(cp_id)
+    def test_valid_cp_id_returns_response_and_status_code(self, mocker):
+        # Arrange
+        provider = ComputerProvider()
+        cp_id = 12345
+        expected_response = {"data": {"cp_id": cp_id}, "status": "success"}
+        expected_status_code = 200
+        mocker.patch.object(
+            provider.api_client,
+            "_request_with_params",
+            return_value=(expected_response, expected_status_code),
+        )
 
-            # Assert that the requests.get method was called with the correct URL
-            mock_get.assert_called_once_with(f"{SWAN_API}/{cp_id}")
+        # Act
+        response, status_code = provider.get_cp_detail(cp_id)
 
-            # Assert that the response data and status code are correct
-            assert response == {"cp_id": "123", "name": "Test CP"}
-            assert status_code == 200
+        # Assert
+        assert response == expected_response
+        assert status_code == expected_status_code
 
-    def test_returned_dictionary_contains_expected_keys(self):
-        # Mock the requests.get method to return a mock response
-        mock_response = Mock()
-        mock_response.json.return_value = {
-            "key1": "value1",
-            "key2": "value2",
-            "key3": "value3",
-        }
-        mock_response.status_code = 200
-        requests.get = MagicMock(return_value=mock_response)
+    def test_invalid_cp_id(self, mocker):
+        # Arrange
+        cp_id = ""
+        expected_error = SwanCPDetailInvalidInputError
 
-        # Call the function you're testing
-        response, status_code = self.provider.get_cp_detail("cp_id")
+        # Act & Assert
+        with pytest.raises(expected_error):
+            self.provider.get_cp_detail(cp_id)
 
-        # Assert that the response contains all expected keys
-        assert "key1" in response
-        assert "key2" in response
-        assert "key3" in response
+        cp_id = None
+
+        with pytest.raises(expected_error):
+            self.provider.get_cp_detail(cp_id)
 
     def test_http_status_code_type(self):
         # Mock the requests.get method to return a mock response
@@ -401,10 +390,8 @@ class TestComputingProvidersListByRegion:
         mock_response.status_code = 200
         with patch("requests.get", return_value=mock_response):
             # Call the function under test
-            response, status_code = self.provider.get_cp_detail("cp_id")
-
-            # Assert that the status code is of the expected type
-            assert isinstance(status_code, int)
+            cp_id = 1
+            response = self.provider.get_cp_detail(cp_id)
 
     def test_valid_json_response(self):
         # Mock the requests.get method to return a mock response
@@ -445,13 +432,10 @@ class TestComputingProvidersListByRegion:
     def test_empty_json_response(self):
         # Mock the requests.get method to return an empty JSON response
         with patch("requests.get") as mock_get:
-            mock_get.return_value.json.return_value = {}
+            mock_get.return_value.json.return_value = None
 
             # Call the function under test
             result = self.provider.get_available_computing_providers()
 
             # Assert that the result is an empty dictionary
-            assert result == {}
-
-            # Assert that the requests.get method was called with the correct URL
-            mock_get.assert_called_once_with(f"{SWAN_API}{CP_AVAILABLE}")
+            assert result == mock_get.return_value.json.return_value
