@@ -4,7 +4,7 @@ from src.constants.constants import PROCESSING_TASKS, CELERY
 
 class MockAPIClient:
     def __init__(self, api_key, wallet_address):
-        self.AUCTION_API = "https://swanhub-cali.swanchain.io"
+        self.SWAN_API = "https://swanhub-cali.swanchain.io"
         self.token = "mock_token"
 
     def _request_without_params(self, method, endpoint, api_base, token):
