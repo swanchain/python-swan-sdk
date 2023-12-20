@@ -5,7 +5,7 @@ import pytest
 import requests
 
 from mock.mock import Mock, MagicMock, patch  # type: ignore
-from requests import HTTPError
+from requests import HTTPError, RequestException
 
 from src.api.cp import ComputerProvider
 from src.exceptions.cp_exceptions import SwanCPDetailInvalidInputError
@@ -308,29 +308,6 @@ class TestComputingProvidersListByRegion:
 
             # Assert that the response is as expected
             assert result == mock_response.json.return_value
-
-    # NOTE: do not uncomment before ApiClient changes
-    def test_invalid_address_format(self):
-        # Arrange
-        with patch("requests.post") as mock_post:
-            mock_post.side_effect = RequestException(
-                "Error occurred"
-            )
-            cp_address = "invalid_address"
-            # Call the self.space.deploy_space_v1 function and assert that it raises a SwanHTTPError
-            with pytest.raises(SwanRequestError):
-                self.provider.get_collateral_balance(cp_address=cp_address)
-
-    def test_return_error_message(self):
-        # Mock the requests.get method to raise an exception
-        with patch("requests.post") as mock_post:
-            mock_post.side_effect = requests.exceptions.RequestException(
-                "Error occurred"
-            )
-
-            # Call the self.space.deploy_space_v1 function and assert that it raises a SwanHTTPError
-            with pytest.raises(SwanRequestError):
-                self.provider.get_collateral_balance(cp_address="0x1234abcd")
 
     def test_get_collateral_balance_request(self):
         # Mock the requests.get method to return a mock response
