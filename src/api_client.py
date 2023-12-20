@@ -5,7 +5,6 @@ import json
 import logging
 
 from src.constants.constants import (
-    SWAN_API,
     POST,
     APIKEY_LOGIN,
     SWAN_API,

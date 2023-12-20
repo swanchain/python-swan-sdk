@@ -14,7 +14,7 @@ CLAIM_REVIEW = "/claim_review"
 DEPLOYMENT_SPACE = "/v1/space_deployment/"
 CP_DISTRIBUTION = "/cp_distribution"
 CP_LIST = "/cp_list"
-COLLATERAL_BALANCE = "/cp/collateral/"
+COLLATERAL_BALANCE = "/cp/collateral/<string:cp_address>"
 CP_DETAIL = "cp_detail/<string:cp_id>"
 CP_AVAILABLE = "/cp_available"
 

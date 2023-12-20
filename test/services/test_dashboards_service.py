@@ -1,7 +1,6 @@
 """Test class for EngineAPI """
 
-from unittest.mock import patch
-from src.api_client import APIClient
+from mock import patch
 from src.api.engine_api import EngineAPI
 from test.mock.client_mock import MockAPIClient
 
