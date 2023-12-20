@@ -11,16 +11,14 @@ class EngineAPI(object):
         if api_client is None:
             api_client = APIClient("placeholder_api_key", "sample_wallet_address")
         self.api_client = api_client
-        self.AUCTION_API = api_client.AUCTION_API
-        # TODO: once authentication added we can modify this
+        self.SWAN_API = api_client.SWAN_API
         self.token = self.api_client.token
-        # self.token = None
 
     def get_celery_task_status(self, task_id):
         params = {"task_id": task_id}
         try:
             response = self.api_client._request_with_params(
-                GET, CELERY, self.api_client.AUCTION_API, params, self.token, None
+                GET, CELERY, self.api_client.SWAN_API, params, self.token, None
             )
             return response
         except:
@@ -30,7 +28,7 @@ class EngineAPI(object):
     def get_processing_tasks(self):
         try:
             result = self.api_client._request_without_params(
-                GET, PROCESSING_TASKS, self.api_client.AUCTION_API, self.token
+                GET, PROCESSING_TASKS, self.api_client.SWAN_API, self.token
             )
             return result
         except:
@@ -40,7 +38,7 @@ class EngineAPI(object):
     def send_jobs(self, job_data):
         try:
             response = self.api_client._request_with_params(
-                POST, JOBS, self.api_client.AUCTION_API, job_data, self.token, None
+                POST, JOBS, self.api_client.SWAN_API, job_data, self.token, None
             )
             return response
         except:
