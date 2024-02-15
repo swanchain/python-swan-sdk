@@ -10,7 +10,7 @@ from swan.common import utils
 
 class APIClient(object):
 
-    def __init__(self, api_key: str, login: bool = True,  environment: str = ""):
+    def __init__(self, api_key: str, login: bool = True, environment: str = ""):
         """Initialize user configuration and login
 
         Args:
@@ -31,15 +31,15 @@ class APIClient(object):
             A str access token for further SwanHub API access in
             current session.
         """
-        params = {'api_key': self.api_key}
+        params = {"api_key": self.api_key}
         try:
             result = self._request_with_params(
                 POST, APIKEY_LOGIN, SWAN_API, params, None, None
             )
-            self.token = result['data']
-            logging.info('')
+            self.token = result["data"]
+            logging.info("")
         except:
-            logging.error('')
+            logging.error("")
 
     def _request(self, method, request_path, swan_api, params, token, files=False):
         if method == GET:
@@ -74,5 +74,7 @@ class APIClient(object):
     def _request_without_params(self, method, request_path, swan_api, token):
         return self._request(method, request_path, swan_api, {}, token)
 
-    def _request_with_params(self, method, request_path, swan_api, params, token, files):
+    def _request_with_params(
+        self, method, request_path, swan_api, params, token, files
+    ):
         return self._request(method, request_path, swan_api, params, token, files)
