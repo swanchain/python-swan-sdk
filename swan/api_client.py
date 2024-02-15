@@ -4,9 +4,7 @@ import requests
 import json
 import logging
 
-from swan.common.constant import (
-    GET, PUT, POST, DELETE, SWAN_API, APIKEY_LOGIN
-)
+from swan.common.constant import GET, PUT, POST, DELETE, SWAN_API, APIKEY_LOGIN
 from swan.common import utils
 
 
