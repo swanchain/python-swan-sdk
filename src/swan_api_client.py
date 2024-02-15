@@ -31,7 +31,6 @@ class APIClient(object):
         self.private_key = private_key
         self.swanhub_url = swanhub_url
         self.api_key = api_key
-        self.wallet_address = wallet_address
         if login:
             self.api_key_login()
         self.is_calibration = is_calibration
