@@ -1,10 +1,12 @@
-""" APIClient related code """
+# ./swan/api_client.py
 
 import requests
 import json
 import logging
 
-from swan.common import constant
+from swan.common.constant import (
+    GET, PUT, POST, DELETE
+)
 from swan.common import utils
 
 
