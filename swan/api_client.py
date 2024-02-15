@@ -18,6 +18,7 @@ class APIClient(object):
             login: Login into Swanhub or Not
             environment: Selected server 'production/calibration'
         """
+        self.token = None
         self.api_key = api_key
         self.environment = environment
         if login:
