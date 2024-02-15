@@ -17,6 +17,10 @@ CP_LIST = "/cp_list"
 COLLATERAL_BALANCE = "/cp/collateral/<string:cp_address>"
 CP_DETAIL = "cp_detail/<string:cp_id>"
 CP_AVAILABLE = "/cp_available"
+API_TOKEN = "/api_token"
+DELETE_API_TOKEN = '/api_token/delete'
+VALIDATE_API_TOKEN = '/api_token/validate'
+ADDRESS_FROM_TOKEN = '/address_from_token'
 
 # Request
 GET = "GET"
