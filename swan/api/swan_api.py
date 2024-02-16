@@ -2,7 +2,7 @@ import web3
 import logging
 
 from swan.api_client import APIClient
-from swan.common.constant import GET, POST
+from swan.common.constant import GET, POST, CP_MACHINES
 
 
 class SwanAPI(APIClient):
@@ -16,8 +16,17 @@ class SwanAPI(APIClient):
     def query_price_list(self):
         """Query the orchestrator for the current instance price list."""
         try:
-            price_list = self._request_without_params(
-                GET, PRICE_LIST, self.orchestrator_url, self.token
+            response = self._request_without_params(
+                GET, CP_MACHINES, self.orchestrator_url, self.token
+            )
+            available_hardware = list(
+                filter(
+                    lambda hardware: hardware["hardware_status"] == "available",
+                    response["hardware"],
+                )
+            )
+            price_list = list(
+                map(lambda hardware: hardware["hardware_price"], available_hardware)
             )
             return price_list
         except:
@@ -97,6 +106,7 @@ class SwanAPI(APIClient):
         """Retrieve the deployed URL and credentials/token for access after task success.
         Decrypt the credentials/token with the private key if necessary.
         """
+        # PRIVATE KEY GIVEN THROUGH .ENV FILE
         try:
             task_details = self._request_without_params(
                 GET, TASK_DETAILS, self.orchestrator_url, self.token
