@@ -1,9 +1,12 @@
 # ./swan/common/constant.py
 
-SWAN_API = ""
+SWAN_API = "https://swanhub-cali.swanchain.io"
 
 # Swan API
 APIKEY_LOGIN = "/login_by_api_key"
+DEPLOY_SPACE = "/v1/space_deployment"
+DEPLOYMENT_INFO = "/v1/space_deployment/<string:task_uuid>"
+
 API_TOKEN = "/api_token"
 DELETE_API_TOKEN = "/api_token/delete"
 VALIDATE_API_TOKEN = "/api_token/validate"
@@ -32,8 +35,6 @@ CP_DISTRIBUTION = "/cp_distribution"
 AVAILABLE_CPS = "cp_avilable"
 CP_LIST = "/cp_list"
 CP_DETAIL = "/cp_detail/<string:cp_id>"
-DEPLOY_SPACE = "/v1/space_deployment"
-DEPLOYMENT_INFO = "/v1/space_deployment/<string:task_uuid>"
 CONFIG_ORDER = "/v1/active_order/<string:task_uuid"
 HOST_INFO = "/host/info"
 AUCTION_INFO = "/auction/info"

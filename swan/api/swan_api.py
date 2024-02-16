@@ -3,15 +3,7 @@ import logging
 import os
 
 from swan.api_client import APIClient
-from swan.common.constant import (
-    GET,
-    POST,
-    CP_MACHINES,
-    PROVIDER_PAYMENTS,
-    TASKS,
-    DEPLOY_STATUS,
-    USER_PROVIDER_PAYMENTS,
-)
+from swan.common.constant import *
 
 
 class SwanAPI(APIClient):

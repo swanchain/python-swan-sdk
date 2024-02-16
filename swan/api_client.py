@@ -22,7 +22,7 @@ class APIClient(object):
         self.api_key = api_key
         self.environment = environment
         if login:
-            self.api_key_login
+            self.api_key_login()
 
     def api_key_login(self):
         """Login with SwanHub API Key
@@ -37,9 +37,9 @@ class APIClient(object):
                 POST, APIKEY_LOGIN, SWAN_API, params, None, None
             )
             self.token = result["data"]
-            logging.info("")
+            logging.info("Login Successfully!")
         except:
-            logging.error("")
+            logging.error("Login Failed!")
 
     def _request(self, method, request_path, swan_api, params, token, files=False):
         if method == GET:
