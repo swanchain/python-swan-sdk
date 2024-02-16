@@ -2,7 +2,7 @@ import web3
 import logging
 
 from swan.api_client import APIClient
-from swan.common.constant import GET, POST, CP_MACHINES
+from swan.common.constant import GET, POST, CP_MACHINES, PROVIDER_PAYMENTS
 
 
 class SwanAPI(APIClient):
@@ -84,7 +84,7 @@ class SwanAPI(APIClient):
         """Retrieve payment information from the orchestrator after making the payment."""
         try:
             payment_info = self._request_without_params(
-                GET, PAYMENT_INFO, self.orchestrator_url, self.token
+                GET, PROVIDER_PAYMENTS, self.orchestrator_url, self.token
             )
             return payment_info
         except:
