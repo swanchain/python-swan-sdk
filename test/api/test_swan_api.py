@@ -43,8 +43,43 @@ class TestSwanAPI:
     def test_make_payment(self):
         payment = self.swan_api.make_payment()
 
-    def test_get_payment_info(self):
-        payment_info = self.swan_api.get_payment_info()
+    def test_get_payment_info_successful(self):
+        mock_response = {
+            "payments": [
+                {
+                    "id": 1,
+                    "uuid": "123",
+                    "job_id": 1,
+                    "order_id": 1,
+                    "provider_id": 1,
+                    "provider_owner_address": "address",
+                    "amount": "10.00000",
+                    "token": "token",
+                    "status": "created",
+                    "claimed": False,
+                    "transaction_hash": "hash",
+                    "created_at": "time",
+                    "updated_at": "time",
+                    "deleted_at": "time",
+                }
+            ],
+            "total": 1,
+        }
+        self.swan_api._request_without_params = MagicMock(return_value=mock_response)
+
+        result = self.swan_api.get_payment_info()
+
+        assert isinstance(result, dict)
+        assert "payments" in result
+        assert "total" in result
+
+    def test_get_payment_info_invalid_data(self):
+        with patch.object(self.swan_api, "_request_without_params") as mock_request:
+            mock_request.return_value = "invalid_data"
+
+            result = self.swan_api.get_payment_info()
+
+            assert result is None
 
     def test_get_task_status(self):
         task_status = self.swan_api.get_task_status()
