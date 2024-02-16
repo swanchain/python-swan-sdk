@@ -1,11 +1,13 @@
 # ./swan/common/utils.py
 import requests
 
+
 def parse_params_to_str(params):
-    url = '?'
+    url = "?"
     for key, value in params.items():
-        url = url + str(key) + '=' + str(value) + '&'
+        url = url + str(key) + "=" + str(value) + "&"
     return url[0:-1]
+
 
 def list_repo_contents(user, repo):
     """
@@ -18,10 +20,11 @@ def list_repo_contents(user, repo):
     Returns:
     list: A list of dictionaries representing the files in the repository.
     """
-    url = f'https://api.github.com/repos/{user}/{repo}/contents'
+    url = f"https://api.github.com/repos/{user}/{repo}/contents"
     response = requests.get(url)
-    response.raise_for_status()  
+    response.raise_for_status()
     return response.json()
+
 
 def read_file_from_url(url):
     """
@@ -34,5 +37,5 @@ def read_file_from_url(url):
     str: The content of the file.
     """
     response = requests.get(url)
-    response.raise_for_status()  
+    response.raise_for_status()
     return response.text

@@ -51,5 +51,4 @@ setup(
         # Placeholder for scripts
         # "bin/script.py",
     ],
-
 )

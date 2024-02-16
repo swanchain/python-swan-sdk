@@ -4,14 +4,15 @@ import os
 
 from swan.api_client import APIClient
 from swan.common.constant import (
-    GET, 
-    POST, 
-    CP_MACHINES, 
-    PROVIDER_PAYMENTS, 
-    TASKS, 
+    GET,
+    POST,
+    CP_MACHINES,
+    PROVIDER_PAYMENTS,
+    TASKS,
     DEPLOY_STATUS,
-    USER_PROVIDER_PAYMENTS
+    USER_PROVIDER_PAYMENTS,
 )
+
 
 class SwanAPI(APIClient):
 
@@ -81,7 +82,11 @@ class SwanAPI(APIClient):
             )
             payment_info["payment_key"] = self.payment_key
             result = self._request_with_params(
-                POST, USER_PROVIDER_PAYMENTS, self.orchestrator_url, payment_info, self.token
+                POST,
+                USER_PROVIDER_PAYMENTS,
+                self.orchestrator_url,
+                payment_info,
+                self.token,
             )
             return result
         except:
