@@ -1,9 +1,16 @@
 import web3
 import logging
+import os
 
 from swan.api_client import APIClient
-from swan.common.constant import GET, POST, CP_MACHINES, PROVIDER_PAYMENTS
-
+from swan.common.constant import (
+    GET, 
+    POST, 
+    CP_MACHINES, 
+    PROVIDER_PAYMENTS, 
+    TASKS, 
+    DEPLOY_STATUS
+)
 
 class SwanAPI(APIClient):
 
@@ -59,7 +66,7 @@ class SwanAPI(APIClient):
         """Propose the prepared task to the orchestrator."""
         try:
             result = self._request_with_params(
-                POST, PROPOSE_TASK, self.orchestrator_url, {}, self.token
+                POST, TASKS, self.orchestrator_url, {}, self.token
             )
             return result
         except Exception as e:
@@ -95,7 +102,7 @@ class SwanAPI(APIClient):
         """Fetch the current status of the task from the orchestrator."""
         try:
             task_status = self._request_without_params(
-                GET, TASK_STATUS, self.orchestrator_url, self.token
+                GET, DEPLOY_STATUS, self.orchestrator_url, self.token
             )
             return task_status
         except:
@@ -107,6 +114,7 @@ class SwanAPI(APIClient):
         Decrypt the credentials/token with the private key if necessary.
         """
         # PRIVATE KEY GIVEN THROUGH .ENV FILE
+        private_key = os.environ.get("PRIVATE_KEY")
         try:
             task_details = self._request_without_params(
                 GET, TASK_DETAILS, self.orchestrator_url, self.token
