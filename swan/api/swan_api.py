@@ -1,6 +1,9 @@
 import web3
 import logging
 import os
+import rsa
+import base64 
+import json
 
 from swan.api_client import APIClient
 from swan.common.constant import *
@@ -114,10 +117,16 @@ class SwanAPI(APIClient):
         # PRIVATE KEY GIVEN THROUGH .ENV FILE
         private_key = os.environ.get("PRIVATE_KEY")
         try:
+            private_key = rsa.PrivateKey.load_pkcs1(private_key)
             task_details = self._request_without_params(
                 GET, TASK_DETAILS, self.orchestrator_url, self.token
             )
-            return task_details
+            encrypted_token = task_details.get('token')
+            decrypted_token = rsa.decrypt(base64.b64decode(encrypted_token), private_key)
+            decrypted_token = decrypted_token.decode()
+            task_details['token'] = decrypted_token
+            task_details_json = json.dumps(task_details)
+            return task_details_json
         except:
             logging.error("An error occurred while executing fetch_task_details()")
             return None
