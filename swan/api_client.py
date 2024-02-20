@@ -36,7 +36,7 @@ class APIClient(object):
             result = self._request_with_params(
                 POST, APIKEY_LOGIN, SWAN_API, params, None, None
             )
-            self.token = result["data"]
+            self.token = result["data"] 
             logging.info("Login Successfully!")
         except:
             logging.error("Login Failed!")
