@@ -1,6 +1,7 @@
 import web3
 import logging
 import os
+from typing import List, Dict
 
 from swan.api_client import APIClient
 from swan.common.constant import *
@@ -17,8 +18,8 @@ class SwanAPI(APIClient):
         """
         super().__init__(api_key)
 
-    def get_hardware_config(self):
-        """Query current hardware list.
+    def get_hardware_config(self) -> (list | None):
+        """Query current hardware list object.
         
         Returns:
             list of HardwareConfig object.
@@ -43,7 +44,7 @@ class SwanAPI(APIClient):
             logging.error("Failed to fetch hardware configurations.")
             return None
         
-    def deploy_space(self, cfg_name: str, region: str, start_in: int, duration: int, job_source_uri: str, paid: int = 0.0):
+    def deploy_space(self, cfg_name: str, region: str, start_in: int, duration: int, job_source_uri: str, paid: int = 0.0) -> (dict | None):
         """Sent deploy space request via orchestrator.
 
         Args:
@@ -74,7 +75,7 @@ class SwanAPI(APIClient):
             logging.error("")
             return None
         
-    def get_deployment_info(self, task_uuid: str):
+    def get_deployment_info(self, task_uuid: str) -> (dict | None):
         """Retrieve deployment info of a deployed space with task_uuid.
 
         Args:
