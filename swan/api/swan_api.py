@@ -6,6 +6,8 @@ import base64
 import json
 import time
 
+
+from urllib.parse import urlparse
 from swan.api_client import APIClient
 from swan.common.constant import *
 
@@ -44,18 +46,22 @@ class SwanAPI(APIClient):
         except:
             logging.error("An error occurred while executing query_price_list()")
             return None
-    # Not Done
-    def build_task(self, source_code_url):
+    # Done
+    def set_url(self, source_code_url):
         """Prepare a task for deployment with the required details.
         - source_code_url: URL to the code repository containing Docker/K8s file and env file
         convert source url to job source uri, upload file to mcs? return nothing
         """
         try:
-            job_source_uri = 
+            parsed_url = urlparse(source_code_url)
+            path_parts = parsed_url.path.split('/')
+            result = '/'.join(path_parts[1:])  
+            api = os.getenv("LAGRANGE_API")
+            job_source_uri = f"{api}/spaces/{result}"
             self.task["job_source_uri"] = job_source_uri
             return None
         except:
-            logging.error("An error occurred while executing build_task()")
+            logging.error("An error occurred while executing set_url()")
             return None
     # Not done
     def propose_task(self, start_in, region, config_name):
