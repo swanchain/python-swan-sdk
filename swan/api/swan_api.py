@@ -5,12 +5,12 @@ import rsa
 import base64
 import json
 import time
-
+import uuid
 
 from urllib.parse import urlparse
 from swan.api_client import APIClient
 from swan.common.constant import *
-
+from swan_mcs import APIClient, BucketAPI
 
 class SwanAPI(APIClient):
 
@@ -24,6 +24,8 @@ class SwanAPI(APIClient):
             "paid_amount": None,
             "duration": None,
             "tx_hash": None,
+            "config_name": None,
+            "random_uuid": None,
         }
 
     # Done
@@ -46,45 +48,49 @@ class SwanAPI(APIClient):
         except:
             logging.error("An error occurred while executing query_price_list()")
             return None
-    # Done
+    # Not Done
     def set_url(self, source_code_url):
         """Prepare a task for deployment with the required details.
         - source_code_url: URL to the code repository containing Docker/K8s file and env file
         convert source url to job source uri, upload file to mcs? return nothing
+        random uuid for job source uri
         """
         try:
-            parsed_url = urlparse(source_code_url)
-            path_parts = parsed_url.path.split('/')
-            result = '/'.join(path_parts[1:])  
-            api = os.getenv("LAGRANGE_API")
-            job_source_uri = f"{api}/spaces/{result}"
+            self.task["random_uuid"] = str(uuid.uuid4())
+            api = os.getenv("ORCHESTRATOR_API")
+            job_source_uri = f"{api}/spaces/{self.task["random_uuid"]}"
             self.task["job_source_uri"] = job_source_uri
             return None
         except:
             logging.error("An error occurred while executing set_url()")
             return None
-    # Not done
-    def propose_task(self, start_in, region, config_name):
-        """Propose the prepared task to the orchestrator. max duration, config name taken or not valid, valid region
+    # Done
+    def propose_task(self, start_in, region):
+        """Propose the prepared task to the orchestrator. max duration, valid region
         return task object"""
-
+        response = self._request_without_params(
+            GET, CP_MACHINES, self.orchestrator_url, self.token
+        )
+        regions = set()
+        for hardware_info in response['data']['hardware']:
+            if hardware_info['hardware_name'] == self.task["config_name"]:
+                regions.update(hardware_info['region']) 
         try:
-            requirements = {
-                "hardware_type": "cpu",
-                "hardware": "x86_64",
-                "vcpu": 1,
-                "memory": 1,
-                "region": "us-west-1",
-            }
-
+            if region not in regions:
+                logging.error("Invalid region") 
+            if self.task["duration"] > MAX_DURATION:
+                logging.error("Invalid duration")
             params = {
-                "public_address": wallet_address,
-                "user": user,
-                "name": name,
-                "task_detail": task_detail,
+                "paid": self.task["paid_amount"],
+                "duration": self.task["duration"],
+                "cfg_name": self.task["config_name"],
+                "region": region,
+                "start_in": start_in,
+                "tx_hash" : self.task["tx_hash"],
+                "job_source_uri": self.task["job_source_uri"],
             }
             result = self._request_with_params(
-                POST, TASKS, self.orchestrator_url, params, self.token
+                POST, DEPLOY_TASK, self.orchestrator_url, params, self.token
             )
             return result
         except Exception as e:
