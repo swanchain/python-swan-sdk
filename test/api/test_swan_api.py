@@ -108,11 +108,12 @@ class TestSwanAPI:
         assert result in valid_statuses
 
     def test_get_task_status_invalid_data(self):
-        with patch.object(self.swan_api, '_request_without_params') as mock_request:
+        with patch.object(self.swan_api, "_request_without_params") as mock_request:
             mock_request.return_value = "invalid_data"
 
             result = self.swan_api.get_task_status()
 
             assert result is None
+
     def test_fetch_task_details(self):
         task_details = self.swan_api.fetch_task_details()

@@ -2,7 +2,7 @@ import web3
 import logging
 import os
 import rsa
-import base64 
+import base64
 import json
 import time
 
@@ -55,15 +55,15 @@ class SwanAPI(APIClient):
                             "created_at": None,
                             "name": None,
                             "updated_at": None,
-                            "url": None
+                            "url": None,
                         },
                         {
                             "cid": None,
                             "created_at": None,
                             "name": None,
                             "updated_at": None,
-                            "url": None
-                        }
+                            "url": None,
+                        },
                     ],
                     "job": [
                         {
@@ -82,13 +82,13 @@ class SwanAPI(APIClient):
                                 "name": None,
                                 "online": None,
                                 "score": None,
-                                "status": None
+                                "status": None,
                             },
                             "status": None,
                             "storage_source": None,
                             "task_uuid": None,
                             "updated_at": None,
-                            "uuid": None
+                            "uuid": None,
                         },
                         {
                             "bidder_id": None,
@@ -106,13 +106,13 @@ class SwanAPI(APIClient):
                                 "name": None,
                                 "online": None,
                                 "score": None,
-                                "status": None
+                                "status": None,
                             },
                             "status": None,
                             "storage_source": None,
                             "task_uuid": None,
                             "updated_at": None,
-                            "uuid": None
+                            "uuid": None,
                         },
                         {
                             "bidder_id": None,
@@ -130,20 +130,20 @@ class SwanAPI(APIClient):
                                 "name": None,
                                 "online": None,
                                 "score": None,
-                                "status": None
+                                "status": None,
                             },
                             "status": None,
                             "storage_source": None,
                             "task_uuid": None,
                             "updated_at": None,
-                            "uuid": None
-                        }
+                            "uuid": None,
+                        },
                     ],
                     "nft": {
                         "chain_id": None,
                         "contract_address": None,
                         "status": None,
-                        "tokens": []
+                        "tokens": [],
                     },
                     "owner": {
                         "avatar": None,
@@ -154,7 +154,7 @@ class SwanAPI(APIClient):
                         "public_address": None,
                         "tier": None,
                         "twitter_username": None,
-                        "updated_at": None
+                        "updated_at": None,
                     },
                     "space": {
                         "activeOrder": {
@@ -166,7 +166,7 @@ class SwanAPI(APIClient):
                                 "memory": None,
                                 "name": None,
                                 "price_per_hour": None,
-                                "vcpu": None
+                                "vcpu": None,
                             },
                             "created_at": None,
                             "duration": None,
@@ -175,7 +175,7 @@ class SwanAPI(APIClient):
                             "region": None,
                             "space_name": None,
                             "started_at": None,
-                            "updated_at": None
+                            "updated_at": None,
                         },
                         "created_at": None,
                         "expiration_time": None,
@@ -189,7 +189,7 @@ class SwanAPI(APIClient):
                         "status_code": None,
                         "task_uuid": None,
                         "updated_at": None,
-                        "uuid": None
+                        "uuid": None,
                     },
                     "task": {
                         "created_at": None,
@@ -198,11 +198,11 @@ class SwanAPI(APIClient):
                         "status": None,
                         "task_detail_cid": None,
                         "updated_at": None,
-                        "uuid": None
-                    }
+                        "uuid": None,
+                    },
                 },
                 "message": None,
-                "status": None
+                "status": None,
             }
             params = {
                 "source_code_url": source_code_url,
@@ -218,11 +218,16 @@ class SwanAPI(APIClient):
             logging.error("An error occurred while executing build_task()")
             return None
 
-    def propose_task(self,wallet_address, user, start_in, duration):
+    def propose_task(self, name, wallet_address, user, start_in, duration):
         """Propose the prepared task to the orchestrator."""
         try:
-            requirement_fields = {"hardware_type", "hardware", "vcpu", "memory", "region"}
-            requirements = 
+            requirements = {
+                "hardware_type": "cpu",
+                "hardware": "x86_64",
+                "vcpu": 1,
+                "memory": 1,
+                "region": "us-west-1",
+            }
             task_detail = {
                 "duration": duration,
                 "job_result_uri": None,
@@ -230,11 +235,11 @@ class SwanAPI(APIClient):
                 "type": "instance",
                 "status": None,
                 "storage_source": STORAGE_LAGRANGE,
-                "bidder_limit": 3,  
-                "hardware": config_name,
+                "bidder_limit": 3,
+                "hardware": None,
                 "start_at": int(time.time() + start_in),
-                "end_at": str(task_detail["start_at"] + task_detail["duration"]),  
-                "price_per_hour": str(cfg_dict["price_per_hour"]),
+                "end_at": str(task_detail["start_at"] + task_detail["duration"]),
+                "price_per_hour": str["price_per_hour"],
                 "requirements": requirements,
                 "created_at": str(int(time.time())),
                 "updated_at": str(int(time.time())),
@@ -252,7 +257,7 @@ class SwanAPI(APIClient):
             return result
         except Exception as e:
             return None
-        
+
     # Done ???
     def make_payment(self):
         """Make payment for the task build after acceptance by the orchestrator."""
@@ -287,7 +292,7 @@ class SwanAPI(APIClient):
             task_status = self._request_without_params(
                 GET, DEPLOY_STATUS + str(task_uuid), self.orchestrator_url, self.token
             )
-            deploy_status = task_status.get('data', {}).get('deploy_status')
+            deploy_status = task_status.get("data", {}).get("deploy_status")
             return deploy_status
         except:
             logging.error("An error occurred while executing get_task_status()")
@@ -304,10 +309,12 @@ class SwanAPI(APIClient):
             task_details = self._request_without_params(
                 GET, TASK_DETAILS, self.orchestrator_url, self.token
             )
-            encrypted_token = task_details.get('token')
-            decrypted_token = rsa.decrypt(base64.b64decode(encrypted_token), private_key)
+            encrypted_token = task_details.get("token")
+            decrypted_token = rsa.decrypt(
+                base64.b64decode(encrypted_token), private_key
+            )
             decrypted_token = decrypted_token.decode()
-            task_details['token'] = decrypted_token
+            task_details["token"] = decrypted_token
             task_details_json = json.dumps(task_details)
             return task_details_json
         except:

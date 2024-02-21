@@ -60,4 +60,4 @@ DELETE = "DELETE"
 
 # Contract
 
-STORAGE_LAGRANGE : str = "lagrange"
+STORAGE_LAGRANGE: str = "lagrange"
