@@ -17,6 +17,12 @@ class SwanAPI(APIClient):
         self.orchestrator_url = orchestrator_url
         self.api_key = api_key
         self.payment_key = payment_key
+        self.task = {
+            "job_source_uri": None,
+            "paid_amount": None,
+            "duration": None,
+            "tx_hash": None,
+        }
 
     # Done
     def query_price_list(self):
@@ -38,188 +44,24 @@ class SwanAPI(APIClient):
         except:
             logging.error("An error occurred while executing query_price_list()")
             return None
-
-    def build_task(self, source_code_url, instance_type, task_name, public_key=None):
+    # Not Done
+    def build_task(self, source_code_url):
         """Prepare a task for deployment with the required details.
         - source_code_url: URL to the code repository containing Docker/K8s file and env file
-        - instance_type: Type of instance needed for the task
-        - task_name: A name for the task
-        - public_key: Optional public key for accessing confidential data
+        convert source url to job source uri, upload file to mcs? return nothing
         """
         try:
-            {
-                "data": {
-                    "files": [
-                        {
-                            "cid": None,
-                            "created_at": None,
-                            "name": None,
-                            "updated_at": None,
-                            "url": None,
-                        },
-                        {
-                            "cid": None,
-                            "created_at": None,
-                            "name": None,
-                            "updated_at": None,
-                            "url": None,
-                        },
-                    ],
-                    "job": [
-                        {
-                            "bidder_id": None,
-                            "build_log": None,
-                            "container_log": None,
-                            "created_at": None,
-                            "duration": None,
-                            "ended_at": None,
-                            "hardware": None,
-                            "job_result_uri": None,
-                            "job_source_uri": None,
-                            "name": None,
-                            "provider_status": {
-                                "multi_address": None,
-                                "name": None,
-                                "online": None,
-                                "score": None,
-                                "status": None,
-                            },
-                            "status": None,
-                            "storage_source": None,
-                            "task_uuid": None,
-                            "updated_at": None,
-                            "uuid": None,
-                        },
-                        {
-                            "bidder_id": None,
-                            "build_log": None,
-                            "container_log": None,
-                            "created_at": None,
-                            "duration": None,
-                            "ended_at": None,
-                            "hardware": None,
-                            "job_result_uri": None,
-                            "job_source_uri": None,
-                            "name": None,
-                            "provider_status": {
-                                "multi_address": None,
-                                "name": None,
-                                "online": None,
-                                "score": None,
-                                "status": None,
-                            },
-                            "status": None,
-                            "storage_source": None,
-                            "task_uuid": None,
-                            "updated_at": None,
-                            "uuid": None,
-                        },
-                        {
-                            "bidder_id": None,
-                            "build_log": None,
-                            "container_log": None,
-                            "created_at": None,
-                            "duration": None,
-                            "ended_at": None,
-                            "hardware": None,
-                            "job_result_uri": None,
-                            "job_source_uri": None,
-                            "name": None,
-                            "provider_status": {
-                                "multi_address": None,
-                                "name": None,
-                                "online": None,
-                                "score": None,
-                                "status": None,
-                            },
-                            "status": None,
-                            "storage_source": None,
-                            "task_uuid": None,
-                            "updated_at": None,
-                            "uuid": None,
-                        },
-                    ],
-                    "nft": {
-                        "chain_id": None,
-                        "contract_address": None,
-                        "status": None,
-                        "tokens": [],
-                    },
-                    "owner": {
-                        "avatar": None,
-                        "created_at": None,
-                        "full_name": None,
-                        "github_username": None,
-                        "homepage": None,
-                        "public_address": None,
-                        "tier": None,
-                        "twitter_username": None,
-                        "updated_at": None,
-                    },
-                    "space": {
-                        "activeOrder": {
-                            "config": {
-                                "description": None,
-                                "hardware": None,
-                                "hardware_id": None,
-                                "hardware_type": None,
-                                "memory": None,
-                                "name": None,
-                                "price_per_hour": None,
-                                "vcpu": None,
-                            },
-                            "created_at": None,
-                            "duration": None,
-                            "ended_at": None,
-                            "order_type": None,
-                            "region": None,
-                            "space_name": None,
-                            "started_at": None,
-                            "updated_at": None,
-                        },
-                        "created_at": None,
-                        "expiration_time": None,
-                        "is_public": None,
-                        "last_stop_reason": None,
-                        "license": None,
-                        "likes": None,
-                        "name": None,
-                        "sdk": None,
-                        "status": None,
-                        "status_code": None,
-                        "task_uuid": None,
-                        "updated_at": None,
-                        "uuid": None,
-                    },
-                    "task": {
-                        "created_at": None,
-                        "leading_job_id": None,
-                        "name": None,
-                        "status": None,
-                        "task_detail_cid": None,
-                        "updated_at": None,
-                        "uuid": None,
-                    },
-                },
-                "message": None,
-                "status": None,
-            }
-            params = {
-                "source_code_url": source_code_url,
-                "instance_type": instance_type,
-                "task_name": task_name,
-                "public_key": public_key,
-            }
-            result = self._request_with_params(
-                POST, BUILD_TASK, self.orchestrator_url, params, self.token
-            )
-            return result
+            job_source_uri = 
+            self.task["job_source_uri"] = job_source_uri
+            return None
         except:
             logging.error("An error occurred while executing build_task()")
             return None
+    # Not done
+    def propose_task(self, start_in, region, config_name):
+        """Propose the prepared task to the orchestrator. max duration, config name taken or not valid, valid region
+        return task object"""
 
-    def propose_task(self, name, wallet_address, user, start_in, duration):
-        """Propose the prepared task to the orchestrator."""
         try:
             requirements = {
                 "hardware_type": "cpu",
@@ -228,23 +70,7 @@ class SwanAPI(APIClient):
                 "memory": 1,
                 "region": "us-west-1",
             }
-            task_detail = {
-                "duration": duration,
-                "job_result_uri": None,
-                "job_source_uri": None,
-                "type": "instance",
-                "status": None,
-                "storage_source": STORAGE_LAGRANGE,
-                "bidder_limit": 3,
-                "hardware": None,
-                "start_at": int(time.time() + start_in),
-                "end_at": str(task_detail["start_at"] + task_detail["duration"]),
-                "price_per_hour": str["price_per_hour"],
-                "requirements": requirements,
-                "created_at": str(int(time.time())),
-                "updated_at": str(int(time.time())),
-                "amount": 0,
-            }
+
             params = {
                 "public_address": wallet_address,
                 "user": user,
@@ -258,7 +84,7 @@ class SwanAPI(APIClient):
         except Exception as e:
             return None
 
-    # Done ???
+    # Not done
     def make_payment(self):
         """Make payment for the task build after acceptance by the orchestrator."""
         try:
@@ -298,6 +124,7 @@ class SwanAPI(APIClient):
             logging.error("An error occurred while executing get_task_status()")
             return None
 
+    # Not done
     def fetch_task_details(self):
         """Retrieve the deployed URL and credentials/token for access after task success.
         Decrypt the credentials/token with the private key if necessary.
