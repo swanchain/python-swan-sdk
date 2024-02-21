@@ -61,4 +61,5 @@ DELETE = "DELETE"
 # Contract
 
 STORAGE_LAGRANGE: str = "lagrange"
-ORCHESTRATOR_API="orchestrator-api.swanchain.io"
+ORCHESTRATOR_API = "orchestrator-api.swanchain.io"
+MAX_DURATION = 10000000
