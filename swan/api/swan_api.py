@@ -62,8 +62,14 @@ class SwanAPI(APIClient):
     def propose_task(self):
         """Propose the prepared task to the orchestrator."""
         try:
+            params = {
+                public_address = ,
+                user = ,
+                name = ,
+                task_detail = ,
+            }
             result = self._request_with_params(
-                POST, TASKS, self.orchestrator_url, {}, self.token
+                POST, TASKS, self.orchestrator_url, params, self.token
             )
             return result
         except Exception as e:
@@ -99,13 +105,14 @@ class SwanAPI(APIClient):
             logging.error("An error occurred while executing get_payment_info()")
             return None
 
-    def get_task_status(self):
+    def get_task_status(self, task_uuid):
         """Fetch the current status of the task from the orchestrator."""
         try:
             task_status = self._request_without_params(
-                GET, DEPLOY_STATUS, self.orchestrator_url, self.token
+                GET, DEPLOY_STATUS + str(task_uuid), self.orchestrator_url, self.token
             )
-            return task_status
+            deploy_status = task_status.get('data', {}).get('deploy_status')
+            return deploy_status
         except:
             logging.error("An error occurred while executing get_task_status()")
             return None
