@@ -62,4 +62,4 @@ DELETE = "DELETE"
 
 STORAGE_LAGRANGE: str = "lagrange"
 ORCHESTRATOR_API = "orchestrator-api.swanchain.io"
-MAX_DURATION = 10000000
+MAX_DURATION = 1209600
