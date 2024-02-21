@@ -11,7 +11,7 @@ from swan.common import utils
 class APIClient(object):
 
     def __init__(self, api_key: str, login: bool = True, environment: str = ""):
-        """Initialize user configuration and login
+        """Initialize user configuration and login.
 
         Args:
             api_key: SwanHub API key, generated through website
@@ -25,7 +25,7 @@ class APIClient(object):
             self.api_key_login()
 
     def api_key_login(self):
-        """Login with SwanHub API Key
+        """Login with SwanHub API Key.
 
         Returns:
             A str access token for further SwanHub API access in

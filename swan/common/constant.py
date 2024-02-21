@@ -57,3 +57,8 @@ POST = "POST"
 DELETE = "DELETE"
 
 # Contract
+PAYMENT_CONTRACT_ABI = "PaymentContract.json"
+SWAN_TOKEN_ABI = "SwanToken.json"
+
+# Other
+CONTRACT_TIMEOUT = 300

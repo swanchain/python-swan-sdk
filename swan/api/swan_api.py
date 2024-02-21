@@ -18,7 +18,7 @@ class SwanAPI(APIClient):
         """
         super().__init__(api_key)
 
-    def get_hardware_config(self) -> (list | None):
+    def get_hardware_config(self):
         """Query current hardware list object.
         
         Returns:
@@ -44,7 +44,7 @@ class SwanAPI(APIClient):
             logging.error("Failed to fetch hardware configurations.")
             return None
         
-    def deploy_space(self, cfg_name: str, region: str, start_in: int, duration: int, job_source_uri: str, paid: int = 0.0) -> (dict | None):
+    def deploy_space(self, cfg_name: str, region: str, start_in: int, duration: int, job_source_uri: str, paid: int = 0.0):
         """Sent deploy space request via orchestrator.
 
         Args:
@@ -72,10 +72,10 @@ class SwanAPI(APIClient):
             )
             return result
         except Exception:
-            logging.error("")
+            logging.error("Failed to deploy space.")
             return None
         
-    def get_deployment_info(self, task_uuid: str) -> (dict | None):
+    def get_deployment_info(self, task_uuid: str):
         """Retrieve deployment info of a deployed space with task_uuid.
 
         Args:
@@ -93,7 +93,7 @@ class SwanAPI(APIClient):
             )
             return response
         except Exception:
-            logging.error("")
+            logging.error("Failed to extract space info.")
             return None
 
 

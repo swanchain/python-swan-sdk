@@ -1,5 +1,7 @@
 # ./swan/common/utils.py
 import requests
+import os
+import json
 
 
 def parse_params_to_str(params):
@@ -10,8 +12,7 @@ def parse_params_to_str(params):
 
 
 def list_repo_contents(user, repo):
-    """
-    Lists the contents of a GitHub repository.
+    """Lists the contents of a GitHub repository.
 
     Parameters:
     user (str): The username of the repository owner.
@@ -27,8 +28,7 @@ def list_repo_contents(user, repo):
 
 
 def read_file_from_url(url):
-    """
-    Reads a file from a URL.
+    """Reads a file from a URL.
 
     Parameters:
     url (str): The URL of the file.
@@ -39,3 +39,17 @@ def read_file_from_url(url):
     response = requests.get(url)
     response.raise_for_status()
     return response.text
+
+def get_contract_abi(abi_name: str):
+    """Get local contract directory.
+
+    Args:
+        abi_name: name and extension of the ABI file.
+
+    Returns:
+        Loaded abi file data in JSON.
+    """
+    parent_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + "/contract/abi/"
+    with open(parent_path + abi_name, 'r') as abi_file:
+        abi_data = json.load(abi_file)
+        return json.dumps(abi_data)
