@@ -37,10 +37,19 @@ class TestSwanAPI:
     def test_build_task(self):
         task = self.swan_api.build_task()
 
+    def test_build_task_invalid_data(self):
+        task = self.swan_api.build_task()
+
     def test_propose_task(self):
         task = self.swan_api.propose_task()
 
+    def test_propose_task_invalid_data(self):
+        task = self.swan_api.propose_task()
+
     def test_make_payment(self):
+        payment = self.swan_api.make_payment()
+
+    def test_make_payment_invalid_data(self):
         payment = self.swan_api.make_payment()
 
     def test_get_payment_info_successful(self):
@@ -116,4 +125,7 @@ class TestSwanAPI:
             assert result is None
 
     def test_fetch_task_details(self):
+        task_details = self.swan_api.fetch_task_details()
+
+    def fetch_task_details_invalid_data(self):
         task_details = self.swan_api.fetch_task_details()
