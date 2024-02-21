@@ -82,7 +82,37 @@ class TestSwanAPI:
             assert result is None
 
     def test_get_task_status(self):
-        task_status = self.swan_api.get_task_status()
+        mock_response = {
+            "data": {
+                "deploy_status": "Complete",
+            }
+        }
+        self.swan_api._request_without_params = MagicMock(return_value=mock_response)
 
+        result = self.swan_api.get_task_status()
+
+        valid_statuses = [
+            "paid",
+            "Cancel failed",
+            "Cancelled",
+            "Submitted",
+            "Complete",
+            "deployToK8s",
+            "Failed",
+            "uploadResult",
+            "buildImage",
+            "downloadSource",
+            "Running",
+        ]
+
+        assert result in valid_statuses
+
+    def test_get_task_status_invalid_data(self):
+        with patch.object(self.swan_api, '_request_without_params') as mock_request:
+            mock_request.return_value = "invalid_data"
+
+            result = self.swan_api.get_task_status()
+
+            assert result is None
     def test_fetch_task_details(self):
         task_details = self.swan_api.fetch_task_details()
