@@ -3,11 +3,14 @@ import requests
 import re
 from urllib.parse import urlparse
 
+
 def parse_params_to_str(params):
     url = "?"
     for key, value in params.items():
         url = url + str(key) + "=" + str(value) + "&"
     return url[0:-1]
+
+
 def list_repo_contents(source_code_url):
     """
     Lists the contents of a GitHub or IPFS repository and gets the raw contents of the .env file, the Dockerfile, and all .yml files.
@@ -20,10 +23,10 @@ def list_repo_contents(source_code_url):
     """
     file_contents = {}
 
-    if 'github.com' in source_code_url:
+    if "github.com" in source_code_url:
         # Handle GitHub links
         # Extract the username and repository name from the URL
-        parts = source_code_url.split('/')
+        parts = source_code_url.split("/")
         user = parts[-2]
         repo = parts[-1]
 
@@ -33,29 +36,36 @@ def list_repo_contents(source_code_url):
         repo_contents = response.json()
 
         for item in repo_contents:
-            if item['type'] == 'file' and (item['name'] in ['.env', 'Dockerfile'] or re.search(r'\.yml$', item['name'])):
-                raw_url = item['download_url']
+            if item["type"] == "file" and (
+                item["name"] in [".env", "Dockerfile"]
+                or re.search(r"\.yml$", item["name"])
+            ):
+                raw_url = item["download_url"]
                 file_content = requests.get(raw_url).text
                 if file_content is not None:
-                    file_contents[item['name']] = file_content
+                    file_contents[item["name"]] = file_content
     else:
         # Handle IPFS links
         parsed_url = urlparse(source_code_url)
         gateway_url = f"{parsed_url.scheme}://{parsed_url.netloc}/ipfs/"
-        file_hash = source_code_url.split('/')[-1]
+        file_hash = source_code_url.split("/")[-1]
         response = requests.get(gateway_url + file_hash)
         response.raise_for_status()
         file_contents[file_hash] = response.text
 
     return file_contents
 
+
 def get_raw_github_url(web_url):
-    return web_url.replace('https://github.com/', 'https://raw.githubusercontent.com/').replace('/blob/', '/')
+    return web_url.replace(
+        "https://github.com/", "https://raw.githubusercontent.com/"
+    ).replace("/blob/", "/")
+
 
 def read_file_from_url(url):
     response = requests.get(url)
     if response.status_code == 200:
         return response.text
     else:
-        print('Failed to get file')
+        print("Failed to get file")
         return None
