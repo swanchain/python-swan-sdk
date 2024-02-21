@@ -4,7 +4,7 @@ SWAN_API = "https://swanhub-cali.swanchain.io"
 
 # Swan API
 APIKEY_LOGIN = "/login_by_api_key"
-DEPLOY_SPACE = "/v1/space_deployment"
+DEPLOY_TASK = "/v1/space_deployment"
 DEPLOYMENT_INFO = "/v1/space_deployment/<string:task_uuid>"
 
 API_TOKEN = "/api_token"
