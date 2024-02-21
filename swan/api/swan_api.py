@@ -4,6 +4,7 @@ import os
 import rsa
 import base64 
 import json
+import time
 
 from swan.api_client import APIClient
 from swan.common.constant import *
@@ -17,6 +18,7 @@ class SwanAPI(APIClient):
         self.api_key = api_key
         self.payment_key = payment_key
 
+    # Done
     def query_price_list(self):
         """Query the orchestrator for the current instance price list."""
         try:
@@ -59,14 +61,33 @@ class SwanAPI(APIClient):
             logging.error("An error occurred while executing build_task()")
             return None
 
-    def propose_task(self):
+    def propose_task(self, start_in, duration):
         """Propose the prepared task to the orchestrator."""
         try:
+            requirement_fields = {"hardware_type", "hardware", "vcpu", "memory", "region"}
+            requirements = 
+            task_detail = {
+                "duration": duration,
+                "job_result_uri": None,
+                "job_source_uri": None,
+                "type": "instance",
+                "status": None,
+                "storage_source": STORAGE_LAGRANGE,
+                "bidder_limit": 3,  
+                "hardware": name,
+                "start_at": int(time.time() + start_in),
+                "end_at": str(task_detail["start_at"] + task_detail["duration"]),  
+                "price_per_hour": str(cfg_dict["price_per_hour"]),
+                "requirements": requirements,
+                "created_at": str(int(time.time())),
+                "updated_at": str(int(time.time())),
+                "amount": 0,
+            }
             params = {
-                public_address = ,
-                user = ,
-                name = ,
-                task_detail = ,
+                "public_address": WALLET_ADDRESS,
+                "user": user,
+                "name": name,
+                "task_detail": task_detail,
             }
             result = self._request_with_params(
                 POST, TASKS, self.orchestrator_url, params, self.token
@@ -94,6 +115,7 @@ class SwanAPI(APIClient):
             logging.error("An error occurred while executing make_payment()")
             return None
 
+    # Done
     def get_payment_info(self):
         """Retrieve payment information from the orchestrator after making the payment."""
         try:
@@ -105,6 +127,7 @@ class SwanAPI(APIClient):
             logging.error("An error occurred while executing get_payment_info()")
             return None
 
+    # Done
     def get_task_status(self, task_uuid):
         """Fetch the current status of the task from the orchestrator."""
         try:

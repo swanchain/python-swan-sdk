@@ -59,3 +59,5 @@ POST = "POST"
 DELETE = "DELETE"
 
 # Contract
+
+STORAGE_LAGRANGE : str = "lagrange"
