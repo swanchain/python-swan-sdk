@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 from swan.api_client import APIClient
 from swan.common.constant import *
 from swan_mcs import APIClient, BucketAPI
+from swan.common.utils import list_repo_contents
 
 class SwanAPI(APIClient):
 
@@ -48,14 +49,19 @@ class SwanAPI(APIClient):
         except:
             logging.error("An error occurred while executing query_price_list()")
             return None
-    # Not Done
-    def set_url(self, source_code_url):
+    # Not Done, need to upload source code files to mcs
+    def prepare_task(self, source_code_url):
         """Prepare a task for deployment with the required details.
         - source_code_url: URL to the code repository containing Docker/K8s file and env file
         convert source url to job source uri, upload file to mcs? return nothing
         random uuid for job source uri
         """
         try:
+            file_contents = list_repo_contents(source_code_url)
+            env_contents = file_contents.get('.env')
+            dockerfile_contents = file_contents.get('Dockerfile')
+            kubernetes_contents = {filename: content for filename, content in file_contents.items() if filename.endswith('.yaml')}
+            
             self.task["random_uuid"] = str(uuid.uuid4())
             api = os.getenv("ORCHESTRATOR_API")
             job_source_uri = f"{api}/spaces/{self.task["random_uuid"]}"
