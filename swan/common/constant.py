@@ -61,3 +61,4 @@ DELETE = "DELETE"
 # Contract
 
 STORAGE_LAGRANGE: str = "lagrange"
+LAGRANGE_API="http://localhost:5002"
