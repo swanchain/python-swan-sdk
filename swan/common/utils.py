@@ -2,6 +2,9 @@
 import requests
 import re
 from urllib.parse import urlparse
+from swan_mcs import BucketAPI
+from swan.common import mcs_api
+from swan.common.file import File
 
 
 def parse_params_to_str(params):
@@ -69,3 +72,19 @@ def read_file_from_url(url):
     else:
         print("Failed to get file")
         return None
+
+
+def upload_file(file_path: str, bucket_name: str, dest_file_path: str) -> File:
+    """
+    Upload a file by file path, bucket name and the target path
+    :rtype: object
+    :param file_path: the source file path
+    :param bucket_name: the bucket name user want to upload
+    :param dest_file_path: the destination of the file you want to store exclude the bucket name
+    :return: File Object
+    """
+
+    bucket_client = BucketAPI(mcs_api)
+    # check if file exist
+    file_data = bucket_client.upload_file(bucket_name, dest_file_path, file_path)
+    return file_data
