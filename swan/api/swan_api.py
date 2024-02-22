@@ -11,7 +11,8 @@ from urllib.parse import urlparse
 from swan.api_client import APIClient
 from swan.common.constant import *
 from swan_mcs import APIClient, BucketAPI
-from swan.common.utils import list_repo_contents
+from swan.common.utils import list_repo_contents, upload_file
+
 
 class SwanAPI(APIClient):
 
@@ -49,7 +50,8 @@ class SwanAPI(APIClient):
         except:
             logging.error("An error occurred while executing query_price_list()")
             return None
-    # Not Done, need to upload source code files to mcs
+
+    # Done
     def prepare_task(self, source_code_url):
         """Prepare a task for deployment with the required details.
         - source_code_url: URL to the code repository containing Docker/K8s file and env file
@@ -58,18 +60,49 @@ class SwanAPI(APIClient):
         """
         try:
             file_contents = list_repo_contents(source_code_url)
-            env_contents = file_contents.get('.env')
-            dockerfile_contents = file_contents.get('Dockerfile')
-            kubernetes_contents = {filename: content for filename, content in file_contents.items() if filename.endswith('.yaml')}
-            
+            env_contents = file_contents.get(".env")
+            dockerfile_contents = file_contents.get("Dockerfile")
+            kubernetes_contents = {
+                filename: content
+                for filename, content in file_contents.items()
+                if filename.endswith(".yaml")
+            }
+
+            folder_path = os.path.join("tasks", "task" + self.task["random_uuid"])
+
+            new_names = {".env": ".env.production", "Dockerfile": "Dockerfile"}
+
+            for filename, content in [
+                ("env", env_contents),
+                ("Dockerfile", dockerfile_contents),
+            ] + list(kubernetes_contents.items()):
+                if content is not None:
+
+                    temp_file_path = os.path.join(
+                        os.getenv("file_cache_path"), filename
+                    )
+                    with open(temp_file_path, "w") as f:
+                        f.write(content)
+
+                    new_filename = new_names.get(filename, filename)
+                    dest_file_path = os.path.join(folder_path, new_filename)
+                    mcs_file = upload_file(
+                        temp_file_path, os.getenv("MCS_BUCKET"), dest_file_path
+                    )
+
+                    os.remove(temp_file_path)
+
+                    if mcs_file is None:
+                        raise Exception(f"Failed to upload {new_filename} to MCS.")
             self.task["random_uuid"] = str(uuid.uuid4())
             api = os.getenv("ORCHESTRATOR_API")
-            job_source_uri = f"{api}/spaces/{self.task["random_uuid"]}"
+            job_source_uri = f"{api}/spaces/{self.task['random_uuid']}"
             self.task["job_source_uri"] = job_source_uri
             return None
         except:
             logging.error("An error occurred while executing set_url()")
             return None
+
     # Done
     def propose_task(self, start_in, region):
         """Propose the prepared task to the orchestrator. max duration, valid region
@@ -78,12 +111,12 @@ class SwanAPI(APIClient):
             GET, CP_MACHINES, self.orchestrator_url, self.token
         )
         regions = set()
-        for hardware_info in response['data']['hardware']:
-            if hardware_info['hardware_name'] == self.task["config_name"]:
-                regions.update(hardware_info['region']) 
+        for hardware_info in response["data"]["hardware"]:
+            if hardware_info["hardware_name"] == self.task["config_name"]:
+                regions.update(hardware_info["region"])
         try:
             if region not in regions:
-                logging.error("Invalid region") 
+                logging.error("Invalid region")
             if self.task["duration"] > MAX_DURATION:
                 logging.error("Invalid duration")
             params = {
@@ -92,7 +125,7 @@ class SwanAPI(APIClient):
                 "cfg_name": self.task["config_name"],
                 "region": region,
                 "start_in": start_in,
-                "tx_hash" : self.task["tx_hash"],
+                "tx_hash": self.task["tx_hash"],
                 "job_source_uri": self.task["job_source_uri"],
             }
             result = self._request_with_params(
