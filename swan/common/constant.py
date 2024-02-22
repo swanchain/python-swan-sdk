@@ -6,13 +6,12 @@ SWAN_API = "https://swanhub-cali.swanchain.io"
 APIKEY_LOGIN = "/login_by_api_key"
 DEPLOY_TASK = "/v1/space_deployment"
 DEPLOYMENT_INFO = "/v1/space_deployment/<string:task_uuid>"
+GET_CP_CONFIG = "/cp/machines"
 
 API_TOKEN = "/api_token"
 DELETE_API_TOKEN = "/api_token/delete"
 VALIDATE_API_TOKEN = "/api_token/validate"
 ADDRESS_FROM_TOKEN = "/address_from_token"
-LOGIN = "/login"
-LOGIN_WITH_API_KEY = "/login_by_api_key"
 PUBLIC_ADDRESS = "/public_address"
 COMPUTE_PROVIDER = "/cp"
 AUTHENTICATE_PROVIDER = "/cp/<string:apikey>"
@@ -22,7 +21,6 @@ DELETE_CP = "/cp/delete"
 PROVIDER_DASHBOARD = "/cp/dashboard"
 UPDATE_CP_RESOURCES = "/cp/summary"
 UPDATE_CP_STATUS = "/cp/heartbeat"
-CP_MACHINES = "/cp/machines"
 CHECK_ACTIVE_CP = "/cp/active"
 FILTER_CP_BY_NAME = "/cp/filter/<string:serach_string>"
 GET_CP_DETAILS = "/cp/details/<string:node_id>"
@@ -59,7 +57,11 @@ POST = "POST"
 DELETE = "DELETE"
 
 # Contract
+PAYMENT_CONTRACT_ABI = "PaymentContract.json"
+SWAN_TOKEN_ABI = "SwanToken.json"
 
+# Other
+CONTRACT_TIMEOUT = 300
 STORAGE_LAGRANGE: str = "lagrange"
 ORCHESTRATOR_API = "orchestrator-api.swanchain.io"
 MAX_DURATION = 1209600

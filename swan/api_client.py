@@ -11,7 +11,7 @@ from swan.common import utils
 class APIClient(object):
 
     def __init__(self, api_key: str, login: bool = True, environment: str = ""):
-        """Initialize user configuration and login
+        """Initialize user configuration and login.
 
         Args:
             api_key: SwanHub API key, generated through website
@@ -25,7 +25,7 @@ class APIClient(object):
             self.api_key_login()
 
     def api_key_login(self):
-        """Login with SwanHub API Key
+        """Login with SwanHub API Key.
 
         Returns:
             A str access token for further SwanHub API access in
@@ -36,7 +36,7 @@ class APIClient(object):
             result = self._request_with_params(
                 POST, APIKEY_LOGIN, SWAN_API, params, None, None
             )
-            self.token = result["data"]
+            self.token = result["data"] 
             logging.info("Login Successfully!")
         except:
             logging.error("Login Failed!")
@@ -74,7 +74,5 @@ class APIClient(object):
     def _request_without_params(self, method, request_path, swan_api, token):
         return self._request(method, request_path, swan_api, {}, token)
 
-    def _request_with_params(
-        self, method, request_path, swan_api, params, token, files
-    ):
+    def _request_with_params(self, method, request_path, swan_api, params, token, files):
         return self._request(method, request_path, swan_api, params, token, files)
