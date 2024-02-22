@@ -10,7 +10,6 @@ import uuid
 from urllib.parse import urlparse
 from swan.api_client import APIClient
 from swan.common.constant import *
-from swan_mcs import APIClient, BucketAPI
 from swan.common.utils import list_repo_contents, upload_file
 
 
