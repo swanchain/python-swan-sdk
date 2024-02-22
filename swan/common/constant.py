@@ -4,7 +4,7 @@ SWAN_API = "https://swanhub-cali.swanchain.io"
 
 # Swan API
 APIKEY_LOGIN = "/login_by_api_key"
-DEPLOY_SPACE = "/v1/space_deployment"
+DEPLOY_TASK = "/v1/space_deployment"
 DEPLOYMENT_INFO = "/v1/space_deployment/<string:task_uuid>"
 GET_CP_CONFIG = "/cp/machines"
 
@@ -40,7 +40,7 @@ STATS = "/stats/general"
 TASK_BIDDING = "/task/bidding"
 TASKS = "/tasks"
 JOB_UUID = "/tasks/job_uuid/<string:task_uuid>"
-DEPLOY_STATUS = "/tasks/deploy_space/<string:task_uuid>"
+DEPLOY_STATUS = "/tasks/deploy_space/"
 REFUNDABLE_STATUS = "check_refundable/<string:task_uuid>"
 USER_PROVIDER_PAYMENTS = "/user/provider/payments"
 PROVIDER_PAYMENTS = "/provider/payments"
@@ -62,3 +62,6 @@ SWAN_TOKEN_ABI = "SwanToken.json"
 
 # Other
 CONTRACT_TIMEOUT = 300
+STORAGE_LAGRANGE: str = "lagrange"
+ORCHESTRATOR_API = "orchestrator-api.swanchain.io"
+MAX_DURATION = 1209600
