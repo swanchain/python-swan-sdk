@@ -8,7 +8,10 @@ from swan.api.swan_api import SwanAPI
 
 class TestSwanAPI:
     def setup_method(self):
-        self.swan_api = SwanAPI()
+        orchestrator_url = 'https://orchestrator.swanchain.io/'  
+        api_key = Mock()  
+        payment_key = Mock()  
+        self.swan_api = SwanAPI(orchestrator_url, api_key, payment_key)
 
     def test_query_price_list_successful(self):
         mock_response = {
