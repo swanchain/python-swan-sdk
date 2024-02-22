@@ -10,37 +10,6 @@ from swan.common import utils
 
 class APIClient(object):
 
-    def __init__(self, api_key: str, login: bool = True, environment: str = ""):
-        """Initialize user configuration and login.
-
-        Args:
-            api_key: SwanHub API key, generated through website
-            login: Login into Swanhub or Not
-            environment: Selected server 'production/calibration'
-        """
-        self.token = None
-        self.api_key = api_key
-        self.environment = environment
-        if login:
-            self.api_key_login()
-
-    def api_key_login(self):
-        """Login with SwanHub API Key.
-
-        Returns:
-            A str access token for further SwanHub API access in
-            current session.
-        """
-        params = {"api_key": self.api_key}
-        try:
-            result = self._request_with_params(
-                POST, APIKEY_LOGIN, SWAN_API, params, None, None
-            )
-            self.token = result["data"] 
-            logging.info("Login Successfully!")
-        except:
-            logging.error("Login Failed!")
-
     def _request(self, method, request_path, swan_api, params, token, files=False):
         if method == GET:
             request_path = request_path + utils.parse_params_to_str(params)

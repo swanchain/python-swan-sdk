@@ -14,6 +14,16 @@ def parse_params_to_str(params):
         url = url + str(key) + "=" + str(value) + "&"
     return url[0:-1]
 
+def object_to_filename(object_name):
+    index = object_name.rfind('/')
+    if index == -1:
+        prefix = ''
+        file_name = object_name
+    else:
+        prefix = object_name[0:index]
+        file_name = object_name[index + 1:]
+    return prefix, file_name
+
 
 def list_repo_contents(source_code_url):
     """

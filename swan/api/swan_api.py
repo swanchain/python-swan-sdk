@@ -4,19 +4,42 @@ import uuid
 
 from swan.api_client import APIClient
 from swan.common.constant import *
-from swan.object.cp_config import HardwareConfig
+from swan.object import HardwareConfig, Task
 # from swan.common.utils import list_repo_contents, upload_file
 
 
 class SwanAPI(APIClient):
   
-    def __init__(self, api_key: str):
-        """Initialize Swan API connection with API key.
+    def __init__(self, api_key: str, login: bool = True, environment: str = ""):
+        """Initialize user configuration and login.
 
         Args:
-            api_key: API key for swan services.
+            api_key: SwanHub API key, generated through website
+            login: Login into Swanhub or Not
+            environment: Selected server 'production/calibration'
         """
-        super().__init__(api_key)
+        self.token = None
+        self.api_key = api_key
+        self.environment = environment
+        if login:
+            self.api_key_login()
+
+    def api_key_login(self):
+        """Login with SwanHub API Key.
+
+        Returns:
+            A str access token for further SwanHub API access in
+            current session.
+        """
+        params = {"api_key": self.api_key}
+        try:
+            result = self._request_with_params(
+                POST, APIKEY_LOGIN, SWAN_API, params, None, None
+            )
+            self.token = result["data"] 
+            logging.info("Login Successfully!")
+        except:
+            logging.error("Login Failed!")
     
     # def prepare_task(self, source_code_url):
     #     """Prepare a task for deployment with the required details.
@@ -165,7 +188,17 @@ class SwanAPI(APIClient):
             logging.error("An error occurred while executing get_payment_info()")
             return None
 
-    def _verify_hardware_region(self, hardware_name, region):
+    def _verify_hardware_region(self, hardware_name: str, region: str):
+        """Verify if the hardware exist in given region.
+
+        Args:
+            hardware_name: cfg name
+            region: geological regions.
+
+        Returns:
+            True when hardware exist in given region.
+            False when hardware does not exist or do not exit in given region.
+        """
         hardwares = self.get_hardware_config()
         for hardware in hardwares:
             if hardware.id == hardware_name:
