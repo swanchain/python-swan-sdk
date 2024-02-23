@@ -2,8 +2,9 @@ import logging
 import os
 import uuid
 
-from swan.api_client import APIClient
+from swan import APIClient, MCSAPI
 from swan.common.constant import *
+from swan.common.utils import list_repo_contents
 from swan.object import HardwareConfig, Task
 # from swan.common.utils import list_repo_contents, upload_file
 
@@ -41,65 +42,70 @@ class SwanAPI(APIClient):
         except:
             logging.error("Login Failed!")
     
-    # def prepare_task(self, source_code_url):
-    #     """Prepare a task for deployment with the required details.
-    #     - source_code_url: URL to the code repository containing Docker/K8s file and env file
-    #     convert source url to job source uri, upload file to mcs? return nothing
-    #     random uuid for job source uri
-    #     """
-    #     try:
-    #         self.task = {
-    #                     "job_source_uri": None,
-    #                     "paid_amount": None,
-    #                     "duration": None,
-    #                     "tx_hash": None,
-    #                     "config_name": None,
-    #                     "random_uuid": None,
-    #                 }
+    def prepare_task(self, source_code_url):
+        """Prepare a task for deployment with the required details.
+        - source_code_url: URL to the code repository containing Docker/K8s file and env file
+        convert source url to job source uri, upload file to mcs? return nothing
+        random uuid for job source uri
+        """
+        try:
+            self.task = {
+                        "job_source_uri": None,
+                        "paid_amount": None,
+                        "duration": None,
+                        "tx_hash": None,
+                        "config_name": None,
+                        "random_uuid": None,
+                    }
 
-    #         file_contents = list_repo_contents(source_code_url)
-    #         env_contents = file_contents.get(".env")
-    #         dockerfile_contents = file_contents.get("Dockerfile")
-    #         kubernetes_contents = {
-    #             filename: content
-    #             for filename, content in file_contents.items()
-    #             if filename.endswith(".yaml")
-    #         }
+            file_contents = list_repo_contents(source_code_url)
+            env_contents = file_contents.get(".env")
+            dockerfile_contents = file_contents.get("Dockerfile")
+            kubernetes_contents = {
+                filename: content
+                for filename, content in file_contents.items()
+                if filename.endswith(".yaml")
+            }
 
-    #         folder_path = os.path.join("tasks", "task" + self.task["random_uuid"])
+            folder_path = os.path.join("tasks", "task" + self.task["random_uuid"])
 
-    #         new_names = {".env": ".env.production", "Dockerfile": "Dockerfile"}
+            new_names = {".env": ".env.production", "Dockerfile": "Dockerfile"}
 
-    #         for filename, content in [
-    #             ("env", env_contents),
-    #             ("Dockerfile", dockerfile_contents),
-    #         ] + list(kubernetes_contents.items()):
-    #             if content is not None:
+            for filename, content in [
+                ("env", env_contents),
+                ("Dockerfile", dockerfile_contents),
+            ] + list(kubernetes_contents.items()):
+                if content is not None:
 
-    #                 temp_file_path = os.path.join(
-    #                     os.getenv("file_cache_path"), filename
-    #                 )
-    #                 with open(temp_file_path, "w") as f:
-    #                     f.write(content)
+                    temp_file_path = os.path.join(
+                        os.getenv("file_cache_path"), filename
+                    )
+                    with open(temp_file_path, "w") as f:
+                        f.write(content)
 
-    #                 new_filename = new_names.get(filename, filename)
-    #                 dest_file_path = os.path.join(folder_path, new_filename)
-    #                 mcs_file = upload_file(
-    #                     temp_file_path, os.getenv("MCS_BUCKET"), dest_file_path
-    #                 )
+                    new_filename = new_names.get(filename, filename)
+                    dest_file_path = os.path.join(folder_path, new_filename)
 
-    #                 os.remove(temp_file_path)
+                    api_key = os.getenv("MCS_API_KEY")
+                    access_token = os.getenv("MCS_ACCESS_TOKEN")
+                    mcs_api = os.getenv("MCS_API")
 
-    #                 if mcs_file is None:
-    #                     raise Exception(f"Failed to upload {new_filename} to MCS.")
-    #         self.task["random_uuid"] = str(uuid.uuid4())
-    #         api = os.getenv("ORCHESTRATOR_API")
-    #         job_source_uri = f"{api}/spaces/{self.task['random_uuid']}"
-    #         self.task["job_source_uri"] = job_source_uri
-    #         return None
-    #     except:
-    #         logging.error("An error occurred while executing set_url()")
-    #         return None
+                    bucket_client = MCSAPI(api_key, access_token,  mcs_api)
+                    # check if file exist
+                    mcs_file = bucket_client.upload_file(os.getenv("MCS_BUCKET"), dest_file_path, temp_file_path)
+
+                    os.remove(temp_file_path)
+
+                    if mcs_file is None:
+                        raise Exception(f"Failed to upload {new_filename} to MCS.")
+            self.task["random_uuid"] = str(uuid.uuid4())
+            api = os.getenv("ORCHESTRATOR_API")
+            job_source_uri = f"{api}/spaces/{self.task['random_uuid']}"
+            self.task["job_source_uri"] = job_source_uri
+            return None
+        except:
+            logging.error("An error occurred while executing set_url()")
+            return None
               
     def get_hardware_config(self):
         """Query current hardware list object.
