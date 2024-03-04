@@ -3,6 +3,8 @@ import requests
 import os
 import json
 import re
+import datetime
+import time
 from urllib.parse import urlparse
 # from swan_mcs import BucketAPI
 # from swan.common import mcs_api
@@ -97,3 +99,9 @@ def get_contract_abi(abi_name: str):
     with open(parent_path + abi_name, 'r') as abi_file:
         abi_data = json.load(abi_file)
         return json.dumps(abi_data)
+    
+
+def datetime_to_unixtime(datetime_str: str):
+    datetime_obj = datetime.datetime.strptime(datetime_str, '%Y-%m-%dT%H:%M:%SZ')
+    unix_timestamp = datetime_obj.timestamp()
+    return unix_timestamp

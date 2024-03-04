@@ -1,13 +1,13 @@
 import logging
 import os
 import uuid
+import traceback
 
-from swan import APIClient, MCSAPI
+from swan.api_client import APIClient
+from swan.api.mcs_api import MCSAPI
 from swan.common.constant import *
 from swan.common.utils import list_repo_contents
 from swan.object import HardwareConfig, Task
-# from swan.common.utils import list_repo_contents, upload_file
-
 
 class SwanAPI(APIClient):
   
@@ -35,76 +35,30 @@ class SwanAPI(APIClient):
         params = {"api_key": self.api_key}
         try:
             result = self._request_with_params(
-                POST, APIKEY_LOGIN, SWAN_API, params, None, None
+                POST, SWAN_APIKEY_LOGIN, SWAN_API, params, None, None
             )
             self.token = result["data"] 
             logging.info("Login Successfully!")
-        except:
-            logging.error("Login Failed!")
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
     
-    def prepare_task(self, source_code_url):
-        """Prepare a task for deployment with the required details.
-        - source_code_url: URL to the code repository containing Docker/K8s file and env file
-        convert source url to job source uri, upload file to mcs? return nothing
-        random uuid for job source uri
+    def prepare_source_uri(self, mcs_client: MCSAPI, bucket_name: str, obj_name: str, folder_dir: str):
+        """Prepare source uri for task deployment using MCS.
+
+        Args:
+            mcs_client: MCSAPI object for mcs connection.
+            bucket_name: bucket_name to upload files to.
+            obj_name: object/folder name on MCS.
+            folder_dir: folder/repo directory for deployment.
+
+        Returns
         """
         try:
-            self.task = {
-                        "job_source_uri": None,
-                        "paid_amount": None,
-                        "duration": None,
-                        "tx_hash": None,
-                        "config_name": None,
-                        "random_uuid": None,
-                    }
-
-            file_contents = list_repo_contents(source_code_url)
-            env_contents = file_contents.get(".env")
-            dockerfile_contents = file_contents.get("Dockerfile")
-            kubernetes_contents = {
-                filename: content
-                for filename, content in file_contents.items()
-                if filename.endswith(".yaml")
-            }
-
-            folder_path = os.path.join("tasks", "task" + self.task["random_uuid"])
-
-            new_names = {".env": ".env.production", "Dockerfile": "Dockerfile"}
-
-            for filename, content in [
-                ("env", env_contents),
-                ("Dockerfile", dockerfile_contents),
-            ] + list(kubernetes_contents.items()):
-                if content is not None:
-
-                    temp_file_path = os.path.join(
-                        os.getenv("file_cache_path"), filename
-                    )
-                    with open(temp_file_path, "w") as f:
-                        f.write(content)
-
-                    new_filename = new_names.get(filename, filename)
-                    dest_file_path = os.path.join(folder_path, new_filename)
-
-                    api_key = os.getenv("MCS_API_KEY")
-                    access_token = os.getenv("MCS_ACCESS_TOKEN")
-                    mcs_api = os.getenv("MCS_API")
-
-                    bucket_client = MCSAPI(api_key, access_token,  mcs_api)
-                    # check if file exist
-                    mcs_file = bucket_client.upload_file(os.getenv("MCS_BUCKET"), dest_file_path, temp_file_path)
-
-                    os.remove(temp_file_path)
-
-                    if mcs_file is None:
-                        raise Exception(f"Failed to upload {new_filename} to MCS.")
-            self.task["random_uuid"] = str(uuid.uuid4())
-            api = os.getenv("ORCHESTRATOR_API")
-            job_source_uri = f"{api}/spaces/{self.task['random_uuid']}"
-            self.task["job_source_uri"] = job_source_uri
+            # Upload file to MCS
+            mcs_client.upload_folder(bucket_name=bucket_name, object_name=obj_name, folder_path=folder_dir)
             return None
-        except:
-            logging.error("An error occurred while executing set_url()")
+        except Exception as e:
+            logging.error(str(e) + '\n' + traceback.format_exc())
             return None
               
     def get_hardware_config(self):
@@ -132,7 +86,7 @@ class SwanAPI(APIClient):
             return None
         
     def deploy_task(self, cfg_name: str, region: str, start_in: int, duration: int, job_source_uri: str, paid: int = 0.0):
-        """Sent deploy space request via orchestrator.
+        """Sent deploy task request via orchestrator.
 
         Args:
             cfg_name: name of cp/hardware configuration set.
@@ -159,9 +113,17 @@ class SwanAPI(APIClient):
                 return result
             else:
                 raise Exception
-        except Exception:
-            logging.error("Failed to deploy space.")
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
             return None
+        
+    def deploy_task_obj(self, task: Task):
+        """Deploy task requestion using Task object. For easy local task info management.
+
+        Args:
+            task: Task object with task details.
+        """
+        pass
         
     def get_deployment_info(self, task_uuid: str):
         """Retrieve deployment info of a deployed space with task_uuid.
@@ -173,13 +135,10 @@ class SwanAPI(APIClient):
             Deployment info.
         """
         try:
-            params = {
-                "task_uuid": task_uuid
-            }
-            response = self._request_with_params(GET, DEPLOYMENT_INFO, SWAN_API, params, self.token, None)
+            response = self._request_without_params(GET, DEPLOYMENT_INFO+task_uuid, SWAN_API, self.token)
             return response
-        except Exception:
-            logging.error("Failed to extract space info.")
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
             return None
 
     def get_payment_info(self):
@@ -207,7 +166,7 @@ class SwanAPI(APIClient):
         """
         hardwares = self.get_hardware_config()
         for hardware in hardwares:
-            if hardware.id == hardware_name:
+            if hardware.name == hardware_name:
                 if region in hardware.region:
                     return True
                 return False

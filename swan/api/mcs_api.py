@@ -9,6 +9,7 @@ import tarfile
 import os
 import json
 import requests
+import traceback
 from contextlib import closing
 from swan.common.utils import object_to_filename
 
@@ -21,9 +22,11 @@ class MCSAPI(APIClient):
         self.token = None
         self.api_key = api_key
         self.access_token = access_token
-        self.MCS_API = MCS_API
+        self.MCS_API = MCS_API if MCS_API else MCS_POLYGON_MAIN_API
+        self.gateway = None
         if login:
             self.api_key_login()
+            self.gateway = self.get_gateway()
 
     def api_key_login(self):
         params = {'apikey': self.api_key}
@@ -33,8 +36,10 @@ class MCSAPI(APIClient):
             self.token = result['data']
             logging.info("\033[32mLogin successful\033[0m")
             return self.token
-        except:
+        except Exception as e:
             logging.error("\033[31m Please check your APIkey.\033[0m")
+            logging.error(str(e) + "\n" + traceback.format_exc())
+            logging.error(result)
             return None
 
     def list_buckets(self):
@@ -109,8 +114,10 @@ class MCSAPI(APIClient):
 
             if result:
                 return File(result['data'], self.gateway)
-        except:
+        except Exception as e:
             logging.error("\033[31mCannot get file\033[0m")
+            logging.error(f'{str(e)} \n {traceback.format_exc()}')
+            logging.error(result)
         return
 
     def create_folder(self, bucket_name, folder_name, prefix=''):
@@ -171,8 +178,9 @@ class MCSAPI(APIClient):
             if bucket_id == '':
                 logging.error("\033[31mCan't find this bucket\033[0m")
                 return None
-        except:
+        except Exception as e:
             logging.error("\033[31mCan't find this bucket\033[0m")
+            logging.error(f"{str(e)} \n {traceback.format_exc()}")
             return None
 
         try:
@@ -187,8 +195,10 @@ class MCSAPI(APIClient):
                     file_info: File = File(file, self.gateway)
                     file_list.append(file_info)
                 return file_list
-        except:
+        except Exception as e:
             logging.error("\033[31mCan't list files\033[0m")
+            logging.error(f"{str(e)} \n {traceback.format_exc()}")
+            logging.error(result)
             return None
 
     def upload_file(self, bucket_name, object_name, file_path, replace=False):
@@ -250,8 +260,9 @@ class MCSAPI(APIClient):
                 return file_info
             logging.error("\033[31mFile already exists\033[0m")
             return None
-        except:
+        except Exception as e:
             logging.error("\033[31mError while uploading file\033[0m")
+            logging.error(f"{str(e)} \n {traceback.format_exc()}")
             return None
 
     def _create_folders(self, bucket_name, path):
@@ -460,6 +471,7 @@ class MCSAPI(APIClient):
                     upload_path, open(file_path, 'rb'))))
 
         return file_dict
+
         
 class Bucket:
     def __init__(self, bucket_data):
