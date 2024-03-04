@@ -65,12 +65,24 @@ class Repository():
         """Initialize repository for swan task.
         """
         self.folder_dir = None
+        self.bucket = None
+        self.path = None
         self.source_uri = None
-        self.mcs_uri = None
 
-    def update_repo_info(self, source_uri: str = None):
+    def update_bucket_info(self, bucket_name: str, object_name: str):
         """
         """
+        self.bucket = bucket_name
+        self.path = object_name
+
+    def update_source_info(self, source_dict=None, source_json=None):
+        """Updated source dict and source json.
+
+        Args:
+        """
+        self.source_dict = source_dict
+        self.source_json = source_json
+
 
     def add_local_dir(self, folder_dir: str):
         """Initialize repository for swan task.
@@ -93,8 +105,9 @@ class Repository():
         if self.folder_dir:
             if mcs_client:
                 self.mcs_connection(mcs_client)
+            self.bucket = bucket_name
+            self.path = obj_name
             upload = mcs_client.upload_folder(bucket_name, obj_name, self.folder_dir)
-            self.mcs_uri = upload
             return upload
         return None
 
@@ -106,10 +119,12 @@ class Repository():
         Returns：
 
         """
-        if self.mcs_uri:
+        if self.bucket and self.path:
             if mcs_client:
                 self.mcs_connection(mcs_client)
                 local_source = SourceFilesInfo()
-                local_source.add_folder(self.mcs_uri)
-                upload = mcs_client.upload_file(bucket_name, obj_name, file_path, replace)
-        return None
+                local_source.add_folder(self.bucket, self.path)
+                with open(file_path, "w") as file:
+                    json.dump(local_source.to_json(), file)
+                res = mcs_client.upload_file(bucket_name, obj_name, file_path, replace)
+                self.source_uri = res.ipfs_url
