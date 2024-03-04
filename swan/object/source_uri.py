@@ -53,10 +53,6 @@ class SourceFilesInfo():
                 ]
             }
         }
-
-    def to_json(self):
-        return json.dump(self, default=lambda o: o.__dict__,
-                         sort_keys=True, indent=4)
     
 
 class Repository():
@@ -123,8 +119,22 @@ class Repository():
             if mcs_client:
                 self.mcs_connection(mcs_client)
                 local_source = SourceFilesInfo()
+                local_source.mcs_connection(mcs_client)
                 local_source.add_folder(self.bucket, self.path)
                 with open(file_path, "w") as file:
-                    json.dump(local_source.to_json(), file)
+                    json.dump(local_source.to_dict(), file)
                 res = mcs_client.upload_file(bucket_name, obj_name, file_path, replace)
                 self.source_uri = res.ipfs_url
+                return res
+            
+    def to_dict(self):
+        return {
+            "folder_dir": self.folder_dir,
+            "bucket_name": self.bucket,
+            "folder_path": self.path,
+            "source_uri": self.source_uri
+        }
+
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4)
