@@ -41,25 +41,6 @@ class SwanAPI(APIClient):
             logging.info("Login Successfully!")
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
-    
-    def prepare_source_uri(self, mcs_client: MCSAPI, bucket_name: str, obj_name: str, folder_dir: str):
-        """Prepare source uri for task deployment using MCS.
-
-        Args:
-            mcs_client: MCSAPI object for mcs connection.
-            bucket_name: bucket_name to upload files to.
-            obj_name: object/folder name on MCS.
-            folder_dir: folder/repo directory for deployment.
-
-        Returns
-        """
-        try:
-            # Upload file to MCS
-            mcs_client.upload_folder(bucket_name=bucket_name, object_name=obj_name, folder_path=folder_dir)
-            return None
-        except Exception as e:
-            logging.error(str(e) + '\n' + traceback.format_exc())
-            return None
               
     def get_hardware_config(self):
         """Query current hardware list object.
@@ -116,14 +97,6 @@ class SwanAPI(APIClient):
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
-        
-    def deploy_task_obj(self, task: Task):
-        """Deploy task requestion using Task object. For easy local task info management.
-
-        Args:
-            task: Task object with task details.
-        """
-        pass
         
     def get_deployment_info(self, task_uuid: str):
         """Retrieve deployment info of a deployed space with task_uuid.

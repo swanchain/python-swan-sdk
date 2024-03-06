@@ -10,14 +10,31 @@ class SourceFilesInfo():
         self.mcs_client = None
         
     def mcs_connection(self, mcs_client: MCSAPI):
+        """Add mcs connection.
+
+        Args:
+            mcs_client: mcs API object.
+        """
         self.mcs_client = mcs_client
 
     def add_folder(self, bucket_name: str, object_name: str):
+        """Add a folder/repo to the source file info.
+
+        Args:
+            bucket_name: bucket name of bucket locating the folder.
+            object_name: folder object_name (directory)
+        """
         folder_file = self.mcs_client._get_full_file_list(bucket_name, object_name)
         self.file_list += self.get_folder_files(bucket_name, folder_file)
         
 
     def add_file(self, bucket_name: str, object_name: str):
+        """Add single file to source file info.
+
+        Args:
+            bucket_name: bucket name of bucket locating the folder.
+            object_name: file object_name (directory + file name)
+        """
         file = self.mcs_client.get_file(bucket_name, object_name)
         list.append(file)
 
@@ -31,6 +48,15 @@ class SourceFilesInfo():
         }
     
     def get_folder_files(self, bucket_name: str, file_list: list):
+        """Retrieve all files under folders.
+
+        Args: 
+            bucket_name: bucket name of bucket locating the folder.
+            file_llist: list of directories (cotain folders).
+        
+        Returns:
+            Updated file_list without folder and all files under given directories.
+        """
         folder_list = []
         exist_folder = False
         for file in file_list:
@@ -54,6 +80,10 @@ class SourceFilesInfo():
             }
         }
     
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4)
+    
 
 class Repository():
 
@@ -66,19 +96,14 @@ class Repository():
         self.source_uri = None
 
     def update_bucket_info(self, bucket_name: str, object_name: str):
-        """
+        """Update the current mcs bucket info on MCS.
+
+        Args:
+            bucket_name: name of bucket.
+            object_name: directory + file_name.
         """
         self.bucket = bucket_name
         self.path = object_name
-
-    def update_source_info(self, source_dict=None, source_json=None):
-        """Updated source dict and source json.
-
-        Args:
-        """
-        self.source_dict = source_dict
-        self.source_json = source_json
-
 
     def add_local_dir(self, folder_dir: str):
         """Initialize repository for swan task.
@@ -89,14 +114,23 @@ class Repository():
         self.folder_dir = folder_dir
 
     def mcs_connection(self, mcs_client: MCSAPI):
+        """Add mcs connection.
+
+        Args:
+            mcs_client: mcs API object.
+        """
         self.mcs_client = mcs_client
 
     def upload_local_to_mcs(self, bucket_name: str, obj_name: str, mcs_client: MCSAPI = None):
         """Upload repository to MCS to create remote source.
 
         Args:
+            bucket_name: bucket to upload repository.
+            obj_name: dir + file_name for repository.
+            mcs_client: mcs API object.
 
         Returns:
+            API response from uploading folder to MCS. Contain info of list of files uploaded.
         """
         if self.folder_dir:
             if mcs_client:
@@ -111,8 +145,14 @@ class Repository():
         """Generate source uri for task using MCS service.
 
         Args:
+            bucket_name: bucket name to store source uri.
+            obj_name: object name (dir + file name) to store source uri.
+            file_path: local file path to store source uri JSON file.
+            replace: replace existing file or not.
+            mcs_client: mcs API object.
 
         Returns：
+            API response from MCS after uploading. Contains file information.
 
         """
         if self.bucket and self.path:

@@ -50,9 +50,9 @@ class SwanContract():
         price = self.hardware_info(hardware_id)[1]
         return price * duration
 
-    def lock_revenue(self, space_id: str, hardware_id: int, duration: int):
+    def lock_revenue(self, task_id: str, hardware_id: int, duration: int):
         nonce = self.w3.eth.get_transaction_count(self.account.address)
-        tx = self.payment_contract.functions.lockRevenue(space_id, hardware_id, duration).build_transaction({
+        tx = self.payment_contract.functions.lockRevenue(task_id, hardware_id, duration).build_transaction({
             'from': self.account.address,
             'nonce': nonce
         })
