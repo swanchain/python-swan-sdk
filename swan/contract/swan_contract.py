@@ -59,7 +59,7 @@ class SwanContract():
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
-        return self.w3.toHex(tx_hash)
+        return self.w3.to_hex(tx_hash)
     
     def _approve_swan_token(self, amount):
         nonce = self.w3.eth.get_transaction_count(self.account.address)
@@ -70,7 +70,7 @@ class SwanContract():
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
-        return self.w3.toHex(tx_hash)
+        return self.w3.to_hex(tx_hash)
     
     def _get_swan_balance(self, address=None):
         """Retrieve swan token balance of any wallet from Swan token contract.
