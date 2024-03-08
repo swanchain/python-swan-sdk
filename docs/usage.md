@@ -42,6 +42,13 @@ api_key = <your_mcs_api_key>
 mcs_api = MCSAPI(api_key)
 ```
 
+### Create MCS Bucket
+Create MCS bucket for all mcs related operation.
+
+```python
+mcs_api.create_bucket(<bucket_name: str>)
+```
+
 ## Generate Task Source URI
 To deploy task on Swan Orchestrator. Remote source is required. Task deployment
 API requires source uri, which should contain a .json file with deployment information.
@@ -61,7 +68,7 @@ repo = Repository()
 repo.add_local_dir('<local_project_directory>')
 
 # Upload Directory to MCS
-repo.upload_local_to_mcs(<str: bucket_name>, <str: object_name/path>, <MCSAPI: mcs_api>)
+repo.upload_local_to_mcs(<bucket_name: str>, <object_name/path: str>, mcs_api)
 ```
 
 ### Upload Task Source .json and Retireve Source URI
@@ -72,7 +79,7 @@ and upload to provided MCS directory.
 
 ```python
 # Upload source
-response = repo.generate_source_uri(<str: bucket_name>, <str: object_name/path>, <str: local_dir_to_store_json>, <MCSAPI: mcs_api>)
+response = repo.generate_source_uri(<bucket_name: str>, <object_name/path: str>, <local_dir_to_store_json: str>, mcs_api)
 
 # Output source URI
 repo.source_uri
@@ -86,13 +93,13 @@ Use SourceFilesInfo() to create Source URI manually with an existing MCS directo
 source = Repository()
 
 # Connect to MCS
-source.mcs_connect(mcs_api)
+source.mcs_connection(mcs_api)
 
 # Add MCS folder
-source.update_bucket_info(<str: bucket_name>, <str: object_name/path>)
+source.update_bucket_info(<bucket_name: str>, <object_name/path: str>)
 
 # Get source URI
-response = repo.generate_source_uri(<str: bucket_name>, <str: object_name/path>, <str: local_dir_to_store_json>, <MCSAPI: mcs_api>)
+response = source.generate_source_uri(<bucket_name: str>, <object_name/path: str>, <local_dir_to_store_json: str>, mcs_api)
 
 # Output source URI
 source.source_uri
@@ -103,21 +110,21 @@ source.source_uri
 ```python
 from swan import SwanContract
 
-contract = SwanContract(<private_key>, <rpc_url>)
+contract = SwanContract(<private_key: str>, <rpc_url: str>)
 
 # Get price of hardware
 # Hardware id can be retrieved from Orchestrator API shown above
-price = contract.hardware_info(<hardware_id>)
+price = contract.hardware_info(<hardware_id: int>)
 
 # Get an estimate of payment in wei
-estimate = contract.estimate_payment(<hardware_id>, <duration>)
+estimate = contract.estimate_payment(<hardware_id: int>, <duration: int>)
 print(estimate*1e-18)
 
 # Approve token
-tx_hash = contract._approve_swan_token(<amount>)
+tx_hash = contract._approve_swan_token(<amount: int>)
 
 # Payment
-tx_hash = contract.lock_revenue(<task_id>, <hardware_id>, <duration>)
+tx_hash = contract.lock_revenue(<task_id: int>, <hardware_id: int>, <duration: int>)
 ```
 
 ## Deploying Task Through Orchestrator
@@ -127,9 +134,9 @@ tx_hash = contract.lock_revenue(<task_id>, <hardware_id>, <duration>)
 To deploy task with source URI to Swan Orchestrator. Use SwanAPI.deploy_task.
 
 ```python
-response = swan_api.deploy_task(cfg_name=<machine_conf_name>, \
-    region=<deployment_region>, start_in=<start_time>, duration=<task_duration>, \
-    job_source_uri=<source_uri>, paid=<paid_amount>)
+response = swan_api.deploy_task(cfg_name=<machine_conf_name: str>, \
+    region=<deployment_region: str>, start_in=<start_time: int>, duration=<task_duration: int>, \
+    job_source_uri=<source_uri: str>, paid=<paid_amount: float>)
 
 task_uuid = response['data']['task']['uuid']
 ```

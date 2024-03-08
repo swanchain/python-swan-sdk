@@ -141,7 +141,7 @@ class Repository():
             return upload
         return None
 
-    def generate_source_uri(self, bucket_name: str, obj_name: str, file_path: str, replace: bool = True, mcs_client: MCSAPI = None):
+    def generate_source_uri(self, bucket_name: str, obj_name: str, file_path: str, mcs_client: MCSAPI = None, replace: bool = True):
         """Generate source uri for task using MCS service.
 
         Args:
