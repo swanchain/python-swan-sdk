@@ -32,7 +32,7 @@ class MCSAPI(APIClient):
         params = {'apikey': self.api_key}
         try:
             result = self._request_with_params(
-                POST, "/api/v2/user/login_by_api_key", self.MCS_API, params, None, None)
+                POST, "/api/v2/user/login_by_api_key", self.MCS_API, params, None, None, json_body=True)
             self.token = result['data']
             logging.info("\033[32mLogin successful\033[0m")
             return self.token
@@ -61,7 +61,7 @@ class MCSAPI(APIClient):
         params = {'bucket_name': bucket_name}
         try:
             result = self._request_with_params(
-                POST, CREATE_BUCKET, self.MCS_API, params, self.token, None)
+                POST, CREATE_BUCKET, self.MCS_API, params, self.token, None, json_body=True)
             if result['status'] == 'success':
                 logging.info("\033[32mBucket created successfully\033[0m")
                 return True
@@ -77,7 +77,7 @@ class MCSAPI(APIClient):
             bucket_id = self._get_bucket_id(bucket_name)
             params = {'bucket_uid': bucket_id}
             result = self._request_with_params(
-                GET, DELETE_BUCKET, self.MCS_API, params, self.token, None)
+                GET, DELETE_BUCKET, self.MCS_API, params, self.token, None, json_body=True)
             if result['status'] == 'success':
                 logging.info("\033[32mBucket delete successfully\033[0m")
                 return True
@@ -110,7 +110,7 @@ class MCSAPI(APIClient):
             params = {"bucket_uid": bucket_id, "object_name": object_name}
 
             result = self._request_with_params(
-                GET, GET_FILE, self.MCS_API, params, self.token, None)
+                GET, GET_FILE, self.MCS_API, params, self.token, None, json_body=True)
 
             if result:
                 return File(result['data'], self.gateway)
@@ -129,7 +129,7 @@ class MCSAPI(APIClient):
             params = {"file_name": folder_name,
                       "prefix": prefix, "bucket_uid": bucket_id}
             result = self._request_with_params(
-                POST, CREATE_FOLDER, self.MCS_API, params, self.token, None)
+                POST, CREATE_FOLDER, self.MCS_API, params, self.token, None, json_body=True)
             if result['status'] == 'success':
                 logging.info("\033[31mFolder created successfully\033[0m")
                 return True
@@ -156,7 +156,7 @@ class MCSAPI(APIClient):
                 logging.error("\033[31mCan't find the file\033[0m")
                 return False
             result = self._request_with_params(
-                GET, DELETE_FILE, self.MCS_API, params, self.token, None)
+                GET, DELETE_FILE, self.MCS_API, params, self.token, None, json_body=True)
             if result['status'] == 'success':
                 logging.info("\033[32mFile delete successfully\033[0m")
                 return True
@@ -187,7 +187,7 @@ class MCSAPI(APIClient):
             params = {'bucket_uid': bucket_id, 'prefix': prefix,
                       'limit': limit, 'offset': offset}
             result = self._request_with_params(
-                GET, FILE_LIST, self.MCS_API, params, self.token, None)
+                GET, FILE_LIST, self.MCS_API, params, self.token, None , json_body=True)
             if result['status'] == 'success':
                 files = result['data']['file_list']
                 file_list = []
@@ -273,7 +273,7 @@ class MCSAPI(APIClient):
                 params = {"file_name": folder_name,
                           "prefix": path, "bucket_uid": bucket_id}
                 self._request_with_params(
-                    POST, CREATE_FOLDER, self.MCS_API, params, self.token, None)
+                    POST, CREATE_FOLDER, self.MCS_API, params, self.token, None, json_body=True)
                 path, folder_name = object_to_filename(path)
             return True
         else:
@@ -317,7 +317,7 @@ class MCSAPI(APIClient):
             form_data = {"folder_name": folder_name,
                          "prefix": prefix, "bucket_uid": bucket_uid}
             res = self._request_with_params(
-                POST, PIN_IPFS, self.MCS_API, form_data, self.token, files)
+                POST, PIN_IPFS, self.MCS_API, form_data, self.token, files, json_body=True)
             if res and res["data"]:
                 self._create_folders(bucket_name, prefix)
                 folder = (File(res["data"], self.gateway))
@@ -384,7 +384,7 @@ class MCSAPI(APIClient):
     def _check_file(self, bucket_id, file_hash, file_name, prefix=''):
         params = {'bucket_uid': bucket_id, 'file_hash': file_hash,
                   'file_name': file_name, 'prefix': prefix}
-        return self._request_with_params(POST, CHECK_UPLOAD, self.MCS_API, params, self.token, None)
+        return self._request_with_params(POST, CHECK_UPLOAD, self.MCS_API, params, self.token, None, json_body=True)
 
     def _upload_chunk(self, file_hash, file_name, chunk):
         params = {'hash': file_hash, 'file': (file_name, chunk)}
@@ -398,7 +398,7 @@ class MCSAPI(APIClient):
     def _merge_file(self, bucket_id, file_hash, file_name, prefix=''):
         params = {'bucket_uid': bucket_id, 'file_hash': file_hash,
                   'file_name': file_name, 'prefix': prefix}
-        return self._request_with_params(POST, MERGE_FILE, self.MCS_API, params, self.token, None)
+        return self._request_with_params(POST, MERGE_FILE, self.MCS_API, params, self.token, None, json_body=True)
 
     def _read_chunks(self, file, chunk_size=10485760):
         while True:
@@ -421,13 +421,13 @@ class MCSAPI(APIClient):
             return None
         params = {'bucket_uid': bucket_id,
                   'prefix': prefix, 'limit': 10, 'offset': 0}
-        count = self._request_with_params(GET, FILE_LIST, self.MCS_API, params, self.token, None)['data'][
+        count = self._request_with_params(GET, FILE_LIST, self.MCS_API, params, self.token, None, json_body=True)['data'][
             'count']
         file_list = []
         for i in range(count // 10 + 1):
             params['offset'] = i * 10
             result = \
-                self._request_with_params(GET, FILE_LIST, self.MCS_API, params, self.token, None)['data'][
+                self._request_with_params(GET, FILE_LIST, self.MCS_API, params, self.token, None, json_body=True)['data'][
                     'file_list']
             for file in result:
                 file_info: File = File(file, self.gateway)
@@ -437,7 +437,7 @@ class MCSAPI(APIClient):
     def _get_file_info(self, file_id):
         params = {'file_id': file_id}
         result = self._request_with_params(
-            GET, FILE_INFO, self.MCS_API, params, self.token, None)
+            GET, FILE_INFO, self.MCS_API, params, self.token, None, json_body=True)
         file_info = File(result['data'], self.gateway)
         return file_info
 

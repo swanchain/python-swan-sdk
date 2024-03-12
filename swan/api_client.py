@@ -13,7 +13,7 @@ from swan.common import utils
 
 class APIClient(object):
 
-    def _request(self, method, request_path, swan_api, params, token, files=False):
+    def _request(self, method, request_path, swan_api, params, token, files=False, json_body=False):
         if method == GET:
             request_path = request_path + utils.parse_params_to_str(params)
         url = swan_api + request_path
@@ -32,7 +32,10 @@ class APIClient(object):
                 body = params
                 response = requests.post(url, data=body, headers=header, files=files)
             else:
-                body = json.dumps(params)
+                if json_body:
+                    body = json.dumps(params)
+                else:
+                    body = params
                 response = requests.post(url, data=body, headers=header)
         elif method == DELETE:
             if params:
@@ -106,8 +109,8 @@ class APIClient(object):
     def _request_without_params(self, method, request_path, swan_api, token):
         return self._request(method, request_path, swan_api, {}, token)
 
-    def _request_with_params(self, method, request_path, swan_api, params, token, files):
-        return self._request(method, request_path, swan_api, params, token, files)
+    def _request_with_params(self, method, request_path, swan_api, params, token, files, json_body=False):
+        return self._request(method, request_path, swan_api, params, token, files, json_body=json_body)
 
 class Previous():
     def __init__(self):
