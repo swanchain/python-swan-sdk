@@ -17,9 +17,8 @@ The SWAN SDK provides a streamlined and efficient interface for interacting with
 
 Install the SDK with ease:
 
-(no ready yet)
 ```bash
-pip install swan-sdk
+pip install orchestrator-sdk
 ```
 
 Install from Github:

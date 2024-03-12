@@ -2,7 +2,12 @@
 
 
 class SwanAPIException(Exception):
-    pass
+    
+    def __init__(self, message: str = ""):
+        self.message = message
+
+    def __str__(self):
+        return 'SwanAPIRequestException: %s' % self.message
 
 
 class SwanRequestException(Exception):

@@ -1,17 +1,14 @@
 import logging
-import os
-import uuid
 import traceback
 
 from swan.api_client import APIClient
-from swan.api.mcs_api import MCSAPI
 from swan.common.constant import *
-from swan.common.utils import list_repo_contents
-from swan.object import HardwareConfig, Task
+from swan.object import HardwareConfig
+from swan.common.exception import SwanAPIException
 
 class SwanAPI(APIClient):
   
-    def __init__(self, api_key: str, login: bool = True, environment: str = ""):
+    def __init__(self, api_key: str, login: bool = True, environment: str = None):
         """Initialize user configuration and login.
 
         Args:
@@ -22,6 +19,10 @@ class SwanAPI(APIClient):
         self.token = None
         self.api_key = api_key
         self.environment = environment
+        if environment == None:
+            self.swan_url = SWAN_API
+        else:
+            self.swan_url = environment
         if login:
             self.api_key_login()
 
@@ -35,10 +36,14 @@ class SwanAPI(APIClient):
         params = {"api_key": self.api_key}
         try:
             result = self._request_with_params(
-                POST, SWAN_APIKEY_LOGIN, SWAN_API, params, None, None
+                POST, SWAN_APIKEY_LOGIN, self.swan_url, params, None, None
             )
+            if result["status"] == "failed":
+                raise SwanAPIException("Login Failed")
             self.token = result["data"] 
             logging.info("Login Successfully!")
+        except SwanAPIException as e:
+            logging.error(e.message)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
               
@@ -59,7 +64,7 @@ class SwanAPI(APIClient):
             }
         """
         try:
-            response = self._request_without_params(GET, GET_CP_CONFIG, SWAN_API, self.token)
+            response = self._request_without_params(GET, GET_CP_CONFIG, self.swan_url, self.token)
             self.all_hardware = [HardwareConfig(hardware) for hardware in response["data"]["hardware"]]
             return self.all_hardware
         except Exception:
@@ -90,7 +95,7 @@ class SwanAPI(APIClient):
                     "tx_hash": None,
                     "job_source_uri": job_source_uri
                 }
-                result = self._request_with_params(POST, DEPLOY_TASK, SWAN_API, params, self.token, None)
+                result = self._request_with_params(POST, DEPLOY_TASK, self.swan_url, params, self.token, None)
                 return result
             else:
                 raise Exception
@@ -108,7 +113,7 @@ class SwanAPI(APIClient):
             Deployment info.
         """
         try:
-            response = self._request_without_params(GET, DEPLOYMENT_INFO+task_uuid, SWAN_API, self.token)
+            response = self._request_without_params(GET, DEPLOYMENT_INFO+task_uuid, self.swan_url, self.token)
             return response
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
@@ -119,7 +124,7 @@ class SwanAPI(APIClient):
         """
         try:
             payment_info = self._request_without_params(
-                GET, PROVIDER_PAYMENTS, SWAN_API, self.token
+                GET, PROVIDER_PAYMENTS, self.swan_url, self.token
             )
             return payment_info
         except:
