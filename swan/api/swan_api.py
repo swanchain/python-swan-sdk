@@ -98,7 +98,7 @@ class SwanAPI(APIClient):
                 result = self._request_with_params(POST, DEPLOY_TASK, self.swan_url, params, self.token, None)
                 return result
             else:
-                raise Exception
+                raise SwanAPIException(f"No {cfg_name} machine in {region}.")
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None

@@ -20,12 +20,39 @@ swan_api = SwanAPI(api_key)
 
 Hardware information can be retrieved from Swan Orchestrator API.
 Task can only be deployed in any region when the choosen hardware is avaliable in that region.
-HardwareConfig.region contains a list of avalibale region for choosen hardware.
+HardwareConfig().region contains a list of avalibale region for choosen hardware.
 
 ```python
+# Returns a list of HardwareConfig() objects
 hardwares = swan_api.get_hardware_config()
 # To get all hardware name and price
 price_list = [(hardware.name, hardware.price) for hardware in hardwares]
+```
+
+HardwareConfig() object contains:
+```python
+{
+    "id": <hardware_id>,
+    "name": <hardware_name>,
+    "description": <hardware_description>,
+    "type": <hardware_type>, # CPU/GPU
+    "reigion": <list_of_valiable_regions>,
+    "price": <price_per_hour>,
+    "status": <current_status>
+}
+```
+
+To retrieve specific hardware infomation
+
+```python
+hardware_attribute = HardwareConfig().<attribute_name>
+```
+
+Dictionary object or JSON object of hardware:
+```python
+HardwareConfig().to_dict()
+
+HardwareConfig().to_json()
 ```
 
 ## Using MCS APIs
