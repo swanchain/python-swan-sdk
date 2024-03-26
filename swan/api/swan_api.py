@@ -71,7 +71,7 @@ class SwanAPI(APIClient):
             logging.error("Failed to fetch hardware configurations.")
             return None
         
-    def deploy_task(self, cfg_name: str, region: str, start_in: int, duration: int, job_source_uri: str, paid: int = 0.0):
+    def deploy_task(self, cfg_name: str, region: str, start_in: int, duration: int, job_source_uri: str, tx_hash: str, paid: int = 0.0):
         """Sent deploy task request via orchestrator.
 
         Args:
@@ -92,7 +92,7 @@ class SwanAPI(APIClient):
                     "cfg_name": cfg_name,
                     "region": region,
                     "start_in": start_in,
-                    "tx_hash": None,
+                    "tx_hash": tx_hash,
                     "job_source_uri": job_source_uri
                 }
                 result = self._request_with_params(POST, DEPLOY_TASK, self.swan_url, params, self.token, None)
