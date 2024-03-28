@@ -102,6 +102,9 @@ def get_contract_abi(abi_name: str):
     
 
 def datetime_to_unixtime(datetime_str: str):
-    datetime_obj = datetime.datetime.strptime(datetime_str, '%Y-%m-%dT%H:%M:%SZ')
-    unix_timestamp = datetime_obj.timestamp()
-    return unix_timestamp
+    try:
+        datetime_obj = datetime.datetime.strptime(datetime_str, '%Y-%m-%dT%H:%M:%SZ')
+        unix_timestamp = datetime_obj.timestamp()
+        return unix_timestamp
+    except:
+        return datetime_str

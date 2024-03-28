@@ -3,7 +3,7 @@ import traceback
 
 from swan.api_client import APIClient
 from swan.common.constant import *
-from swan.object import HardwareConfig
+from swan.object import HardwareConfig, LagrangeSpace
 from swan.common.exception import SwanAPIException
 
 class SwanAPI(APIClient):
@@ -71,7 +71,7 @@ class SwanAPI(APIClient):
             logging.error("Failed to fetch hardware configurations.")
             return None
         
-    def deploy_task(self, cfg_name: str, region: str, start_in: int, duration: int, job_source_uri: str, tx_hash: str, paid: int = 0.0):
+    def deploy_task(self, cfg_name: str, region: str, start_in: int, duration: int, job_source_uri: str, wallet_address: str, tx_hash: str, paid: float = 0.0):
         """Sent deploy task request via orchestrator.
 
         Args:
@@ -80,6 +80,9 @@ class SwanAPI(APIClient):
             start_in: unix timestamp of starting time.
             duration: duration of service runtime in unix time.
             job_source_uri: source uri for space.
+            wallet_address: user wallet address.
+            tx_hash: payment tx_hash swan payment contract.
+            paid: paid amount in Eth.
 
         Returns:
             JSON response from backend server including 'task_uuid'.
@@ -92,6 +95,7 @@ class SwanAPI(APIClient):
                     "cfg_name": cfg_name,
                     "region": region,
                     "start_in": start_in,
+                    "wallet": wallet_address,
                     "tx_hash": tx_hash,
                     "job_source_uri": job_source_uri
                 }
@@ -102,6 +106,42 @@ class SwanAPI(APIClient):
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
+        
+    def deploy_lagrange_space_task(
+            self, 
+            space_user: str, 
+            space_name: str, 
+            cfg_name: str, 
+            region: str, 
+            start_in: int, 
+            duration: int, 
+            wallet_address: str, 
+            tx_hash: str, 
+            paid: float):
+        
+        # To Do: Get CP info
+
+        # To Do: Get Space info
+
+        # To Do: Get Ueser Info
+
+        # To Do: Generate Source URI
+
+        # Call the API for response
+        if self._verify_hardware_region(cfg_name, region):
+                params = {
+                    "paid": paid,
+                    "duration": duration,
+                    "cfg_name": cfg_name,
+                    "region": region,
+                    "start_in": start_in,
+                    "wallet": wallet_address,
+                    "tx_hash": tx_hash,
+                    "job_source_uri": None # place holder
+                }
+                result = self._request_with_params(POST, DEPLOY_TASK, self.swan_url, params, self.token, None)
+                return result
+        pass
         
     def get_deployment_info(self, task_uuid: str):
         """Retrieve deployment info of a deployed space with task_uuid.
@@ -115,6 +155,22 @@ class SwanAPI(APIClient):
         try:
             response = self._request_without_params(GET, DEPLOYMENT_INFO+task_uuid, self.swan_url, self.token)
             return response
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+
+    def get_real_url(self, task_uuid: str):
+        deployment_info = self.get_deployment_info(task_uuid)
+        try:
+            jobs = deployment_info['data']['jobs']
+            deployed_url = []
+            for job in jobs:
+                try:
+                    if job['job_real_uri']:
+                        deployed_url.append(job['job_real_uri'])
+                except:
+                    continue
+            return deployed_url
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None

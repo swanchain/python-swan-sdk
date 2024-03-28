@@ -1,5 +1,3 @@
-markdown
-Copy code
 # SWAN SDK
 
 ## Overview
