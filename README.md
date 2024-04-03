@@ -13,10 +13,12 @@ The SWAN SDK provides a streamlined and efficient interface for interacting with
 
 ## Installation
 
-Install the SDK with ease:
+Install the SDK with ease.
+
+From pypi testnet:
 
 ```bash
-pip install orchestrator-sdk
+pip install -i https://test.pypi.org/simple/ orchestrator-sdk
 ```
 
 Install from Github:

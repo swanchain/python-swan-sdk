@@ -1,5 +1,6 @@
 import logging
 import traceback
+import json
 
 from swan.api_client import APIClient
 from swan.common.constant import *
@@ -143,6 +144,24 @@ class SwanAPI(APIClient):
                 return result
         pass
         
+    def get_deployment_info_json(self, task_uuid: str, file_path: str):
+        """Retrieve deployment info of a deployed space with task_uuid.
+
+        Args:
+            task_uuid: uuid of space task, in deployment response.
+
+        Returns:
+            Deployment info.
+        """
+        try:
+            response = self._request_without_params(GET, DEPLOYMENT_INFO+task_uuid, self.swan_url, self.token)
+            with open(file_path, 'w') as f:
+                json.dump(response, f, indent=2)
+            return True
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return False
+        
     def get_deployment_info(self, task_uuid: str):
         """Retrieve deployment info of a deployed space with task_uuid.
 
@@ -198,6 +217,8 @@ class SwanAPI(APIClient):
             True when hardware exist in given region.
             False when hardware does not exist or do not exit in given region.
         """
+        if region == "Global":
+            return True
         hardwares = self.get_hardware_config()
         for hardware in hardwares:
             if hardware.name == hardware_name:
