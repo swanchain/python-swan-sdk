@@ -20,6 +20,9 @@ DELETE = "DELETE"
 # Contract
 PAYMENT_CONTRACT_ABI = "PaymentContract.json"
 SWAN_TOKEN_ABI = "SwanToken.json"
+CLIENT_CONTRACT_ABI = "ClientPayment.json"
+
+
 
 # Other
 CONTRACT_TIMEOUT = 300
