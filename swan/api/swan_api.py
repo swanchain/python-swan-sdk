@@ -107,6 +107,88 @@ class SwanAPI(APIClient):
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
+            
+
+    def create_task(
+            self,
+            cfg_name: str, 
+            region: str, 
+            start_in: int, 
+            duration: int, 
+            job_source_uri: str, 
+            wallet_address: str, 
+            paid: float = 0.0
+        ):
+        """
+        Create task via orchestrator.
+
+        Args:
+            cfg_name: name of cp/hardware configuration set.
+            region: region of hardware.
+            start_in: unix timestamp of starting time.
+            duration: duration of service runtime (seconds).
+            job_source_uri: source uri for space.
+            wallet_address: user wallet address.
+            paid: paid amount in Eth.
+
+        Returns:
+            JSON response from backend server including 'task_uuid'.
+        """
+        try:
+            if self._verify_hardware_region(cfg_name, region):
+                params = {
+                    "paid": paid,
+                    "duration": duration,
+                    "cfg_name": cfg_name,
+                    "region": region,
+                    "start_in": start_in,
+                    "wallet": wallet_address,
+                    "job_source_uri": job_source_uri
+                }
+                result = self._request_with_params(
+                    POST, 
+                    CREATE_TASK, 
+                    self.swan_url, 
+                    params, 
+                    self.token, 
+                    None
+                )
+                return result
+            else:
+                raise SwanAPIException(f"No {cfg_name} machine in {region}.")
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+
+
+    def validate_payment(
+            self,
+            tx_hash,
+            task_uuid
+        ):
+        
+        try:
+            if tx_hash and task_uuid:
+                params = {
+                    "tx_hash": tx_hash,
+                    "task_uuid": task_uuid
+                }
+                print(params)
+                result = self._request_with_params(
+                    POST, 
+                    '/v2/task_payment_validate', 
+                    self.swan_url, 
+                    params, 
+                    self.token, 
+                    None
+                )
+                return result
+            else:
+                raise SwanAPIException(f"{tx_hash=} or {task_uuid=} invalid")
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+        
         
     def deploy_lagrange_space_task(
             self, 

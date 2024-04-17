@@ -9,6 +9,7 @@ DEPLOYMENT_INFO = "/v1/space_deployment/"
 DEPLOYED_URL = "/v1/space_deploymnet/job_real_url"
 GET_CP_CONFIG = "/cp/machines"
 PROVIDER_PAYMENTS = "/provider/payments"
+CREATE_TASK = "/v2/task_deployment"
 
 # API Syntax
 REST_API_VERSION = "v1"
@@ -22,7 +23,10 @@ PAYMENT_CONTRACT_ABI = "PaymentContract.json"
 SWAN_TOKEN_ABI = "SwanToken.json"
 CLIENT_CONTRACT_ABI = "ClientPayment.json"
 
-
+# Contract Address
+PAYMENT_CONTRACT_ADDRESS = "0xF0F98f476b1a5c1c6EA97eEb23d8796F553246d9"
+TOKEN_CONTRACT_ADDRESS = "0x91B25A65b295F0405552A4bbB77879ab5e38166c"
+CLIENT_CONTRACT_ADDRESS = "0xe356a758fA1748dfBE71E989c876959665a66ddA"
 
 # Other
 CONTRACT_TIMEOUT = 300
