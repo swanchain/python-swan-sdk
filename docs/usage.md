@@ -76,6 +76,29 @@ Create MCS bucket for all mcs related operation.
 mcs_api.create_bucket(<bucket_name: str>)
 ```
 
+## Generate Task Source URI with Lagrange Space
+
+Use Lagrange Space to generate source URI.
+
+Step 1. Upload file to Lagrange Space
+
+Step 2.
+
+```python
+from swan.object.source_uri import LagrangeSpace
+
+lag = LagrangeSpace(<space_owner: str>, <space_name: str>, <public_address: str>, <hardware_for_deployment: HardwareConfig>)
+
+lag.get_space_info()
+
+# Upload Directory to MCS
+response = lag.generate_source_uri(<mcs_bucket_name: str>, <mcs_object_directory: str>, <local_directory_to_store_source_uri_body: str>, mcs_client = <mcs_api: MCSAPI>)
+
+print(lag.source_uri)
+```
+
+The HardwareConfig object can be retrieved using `swan_api.get_hardware_config()` function. Which returns a list of all currently avaliable machine configurations.
+
 ## Generate Task Source URI
 To deploy task on Swan Orchestrator. Remote source is required. Task deployment
 API requires source uri, which should contain a .json file with deployment information.
@@ -150,8 +173,8 @@ print(estimate*1e-18)
 # Approve token
 tx_hash = contract._approve_swan_token(<amount: int>)
 
-# Payment
-tx_hash = contract.lock_revenue(<task_id: int>, <hardware_id: int>, <duration: int>)
+# Payment (Task ID can be anything for reference only)
+tx_hash = contract.lock_revenue(<task_id: str>, <hardware_id: int>, <duration: int>)
 ```
 
 ## Deploying Task Through Orchestrator
@@ -161,14 +184,31 @@ tx_hash = contract.lock_revenue(<task_id: int>, <hardware_id: int>, <duration: i
 To deploy task with source URI to Swan Orchestrator. Use SwanAPI.deploy_task.
 
 ```python
-response = swan_api.deploy_task(cfg_name=<machine_conf_name: str>, \
-    region=<deployment_region: str>, start_in=<start_time: int>, duration=<task_duration: int>, \
-    job_source_uri=<source_uri: str>, paid=<paid_amount: float>)
+response = swan_api.deploy_task(cfg_name=<machine_conf_name: str>,
+    region=<deployment_region: str>, start_in=<start_time: int>, duration=<task_duration: int>, wallet_address=<user_public_address>,
+    job_source_uri=<source_uri: str>, tx_hash=<payment_txhash_from_lock_revenue>,
+    paid=<paid_amount: float>)
 
 task_uuid = response['data']['task']['uuid']
 ```
 
 ### Check Deployment Status
+
+Retrieve deploy information as API response in python dicitonary.
 ```python
 response = swan_api.get_deployment_info(task_uuid)
 ```
+
+Download task information into local .json file.
+```python
+get_deploy_info_json(task_uuid, josn_file_path)
+```
+
+### Retrieve Deployed Task Real URL
+
+Retrieve URI for deployed task.
+```python
+real_url = (task_uuid)
+```
+Return list of URI deployed (from different cp/machine).
+e.g. real_url = ["https://abc.io/123", "https://ade.io/123"]
