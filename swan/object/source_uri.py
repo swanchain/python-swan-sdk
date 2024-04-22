@@ -307,7 +307,7 @@ class GithubRepo():
                     {
                         "cid": file["sha"],
                         "created_at": None,
-                        "name": file["path"],
+                        "name": f"{self.repo_owner}/{self.repo_name}/{self.repo_branch}/{file['path']}",
                         "updated_at": None,
                         "url": f"https://raw.githubusercontent.com/{self.repo_owner}/{self.repo_name}/{self.repo_branch}/{file['path']}"
                     }
