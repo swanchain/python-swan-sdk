@@ -46,7 +46,8 @@ class SwanContract():
             e.g. ['C1ae.medium', 1000000000000000000, True]
             see more detial in ./swan/contract/abi/paymentContract.json
         """
-        hardware_info = self.payment_contract.functions.hardwareInfo(hardware_id).call()
+        # hardware_info = self.payment_contract.functions.hardwareInfo(hardware_id).call()
+        hardware_info = self.client_contract.functions.hardwareInfo(hardware_id).call()
         return hardware_info
     
     def estimate_payment(self, hardware_id: int, duration: int):
@@ -211,6 +212,7 @@ class SwanContract():
         Return:
             float converted value with correct decimal (default swan, 18 decimal).
         """
+        if value == 0: return 0
         return value ** -(decimal)
     
     def _get_swan_gas(self):
