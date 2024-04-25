@@ -9,29 +9,34 @@ from swan.common.utils import get_contract_abi
 
 class SwanContract():
 
-    def __init__(self, private_key: str, rpc_url: str):
+    def __init__(self, private_key: str, contract_info: dict):
         """ Initialize swan contract API connection.
 
         Args:
             private_key: private key for wallet.
             rpc_url: rpc url of swan chain for connection.
         """
+        self.rpc_url = contract_info["rpc_url"]
+        self.swan_token_contract_addr = contract_info["swan_token_contract_address"]
+        self.payment_contract_addr = contract_info["payment_contract_address"]
+        self.client_contract_addr = contract_info["client_contract_address"]
+
         self.account = Account.from_key(private_key)
-        self.w3 = Web3(Web3.HTTPProvider(rpc_url))
+        self.w3 = Web3(Web3.HTTPProvider(self.rpc_url))
         self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
         self.client_contract = self.w3.eth.contract(
-            CLIENT_CONTRACT_ADDRESS,
+            self.client_contract_addr,
             abi=get_contract_abi(CLIENT_CONTRACT_ABI)
         )
 
         self.payment_contract = self.w3.eth.contract(
-            PAYMENT_CONTRACT_ADDRESS, 
+            self.payment_contract_addr, 
             abi=get_contract_abi(PAYMENT_CONTRACT_ABI)
         )
 
         self.token_contract = self.w3.eth.contract(
-            TOKEN_CONTRACT_ADDRESS, 
+            self.swan_token_contract_addr, 
             abi=get_contract_abi(SWAN_TOKEN_ABI)
         )
 
