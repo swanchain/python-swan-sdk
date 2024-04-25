@@ -3,6 +3,9 @@
 import requests
 import json
 import logging
+from tqdm import tqdm
+from pathlib import Path
+from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 
 from swan.common.constant import GET, PUT, POST, DELETE, SWAN_API, APIKEY_LOGIN
 from swan.common import utils
@@ -10,38 +13,7 @@ from swan.common import utils
 
 class APIClient(object):
 
-    def __init__(self, api_key: str, login: bool = True, environment: str = ""):
-        """Initialize user configuration and login.
-
-        Args:
-            api_key: SwanHub API key, generated through website
-            login: Login into Swanhub or Not
-            environment: Selected server 'production/calibration'
-        """
-        self.token = None
-        self.api_key = api_key
-        self.environment = environment
-        if login:
-            self.api_key_login()
-
-    def api_key_login(self):
-        """Login with SwanHub API Key.
-
-        Returns:
-            A str access token for further SwanHub API access in
-            current session.
-        """
-        params = {"api_key": self.api_key}
-        try:
-            result = self._request_with_params(
-                POST, APIKEY_LOGIN, SWAN_API, params, None, None
-            )
-            self.token = result["data"] 
-            logging.info("Login Successfully!")
-        except:
-            logging.error("Login Failed!")
-
-    def _request(self, method, request_path, swan_api, params, token, files=False):
+    def _request(self, method, request_path, swan_api, params, token, files=False, json_body=False):
         if method == GET:
             request_path = request_path + utils.parse_params_to_str(params)
         url = swan_api + request_path
@@ -60,8 +32,11 @@ class APIClient(object):
                 body = params
                 response = requests.post(url, data=body, headers=header, files=files)
             else:
-                # body = json.dumps(params) if method =POST else ""
-                response = requests.post(url, data=params, headers=header)
+                if json_body:
+                    body = json.dumps(params)
+                else:
+                    body = params
+                response = requests.post(url, data=body, headers=header)
         elif method == DELETE:
             if params:
                 body = json.dumps(params)
@@ -70,9 +45,78 @@ class APIClient(object):
                 response = requests.delete(url, headers=header)
 
         return response.json()
+    
+    def _request_stream_upload(self, request_path, mcs_api, params, token):
+        url = mcs_api + request_path
+        header = {}
+        if token:
+            header["Authorization"] = "Bearer " + token
+        # send request
+        path = Path(params['file'][0])
+        size = path.stat().st_size
+        filename = path.name
+        with tqdm(
+                desc=filename,
+                total=size,
+                unit='B',
+                unit_scale=True,
+                unit_divisor=1024,
+        ) as bar:
+            encode = MultipartEncoder(params)
+            body = MultipartEncoderMonitor(
+                encode, lambda monitor: bar.update(monitor.bytes_read - bar.n)
+            )
+            header['Content-Type'] = body.content_type
+            response = requests.post(url, data=body, headers=header)
+
+        # exception handle
+        if not str(response.status_code).startswith('2'):
+            raise Exception
+        json_res = response.json()
+        if str(json_res['status']) == 'error':
+            raise Exception
+
+        return response.json()
+
+    def _request_bucket_upload(self, request_path, mcs_api, params, token):
+        url = mcs_api + request_path
+        header = {}
+        if token:
+            header["Authorization"] = "Bearer " + token
+        # send request
+        encode = MultipartEncoder(params)
+        previous = Previous()
+        body = MultipartEncoderMonitor(
+            encode, lambda monitor: self.bar.update(
+                previous.update(monitor.bytes_read)),
+        )
+        header['Content-Type'] = body.content_type
+        response = requests.post(url, data=body, headers=header)
+
+        # exception handle
+        if not str(response.status_code).startswith('2'):
+            raise Exception
+        json_res = response.json()
+        if str(json_res['status']) == 'error':
+            raise Exception
+
+        return response.json()
+
+    def upload_progress_bar(self, file_name, file_size):
+        self.bar = tqdm(desc=file_name, total=file_size,
+                        unit='B', unit_scale=True, unit_divisor=1024)
 
     def _request_without_params(self, method, request_path, swan_api, token):
         return self._request(method, request_path, swan_api, {}, token)
 
-    def _request_with_params(self, method, request_path, swan_api, params, token, files):
-        return self._request(method, request_path, swan_api, params, token, files)
+    def _request_with_params(self, method, request_path, swan_api, params, token, files, json_body=False):
+        return self._request(method, request_path, swan_api, params, token, files, json_body=json_body)
+
+class Previous():
+    def __init__(self):
+        self.previous = 0
+
+    def update(self, new):
+        self.old = self.previous
+        self.previous = new
+        return self.previous - self.old

@@ -3,6 +3,8 @@ import requests
 import os
 import json
 import re
+import datetime
+import time
 from urllib.parse import urlparse
 # from swan_mcs import BucketAPI
 # from swan.common import mcs_api
@@ -13,6 +15,16 @@ def parse_params_to_str(params):
     for key, value in params.items():
         url = url + str(key) + "=" + str(value) + "&"
     return url[0:-1]
+
+def object_to_filename(object_name):
+    index = object_name.rfind('/')
+    if index == -1:
+        prefix = ''
+        file_name = object_name
+    else:
+        prefix = object_name[0:index]
+        file_name = object_name[index + 1:]
+    return prefix, file_name
 
 
 def list_repo_contents(source_code_url):
@@ -74,21 +86,6 @@ def read_file_from_url(url):
         print("Failed to get file")
         return None
 
-# def upload_file(file_path: str, bucket_name: str, dest_file_path: str) -> File:
-#     """
-#     Upload a file by file path, bucket name and the target path
-#     :rtype: object
-#     :param file_path: the source file path
-#     :param bucket_name: the bucket name user want to upload
-#     :param dest_file_path: the destination of the file you want to store exclude the bucket name
-#     :return: File Object
-#     """
-
-#     bucket_client = BucketAPI(mcs_api)
-#     # check if file exist
-#     file_data = bucket_client.upload_file(bucket_name, dest_file_path, file_path)
-#     return file_data
-
 def get_contract_abi(abi_name: str):
     """Get local contract directory.
 
@@ -102,3 +99,12 @@ def get_contract_abi(abi_name: str):
     with open(parent_path + abi_name, 'r') as abi_file:
         abi_data = json.load(abi_file)
         return json.dumps(abi_data)
+    
+
+def datetime_to_unixtime(datetime_str: str):
+    try:
+        datetime_obj = datetime.datetime.strptime(datetime_str, '%Y-%m-%dT%H:%M:%SZ')
+        unix_timestamp = datetime_obj.timestamp()
+        return unix_timestamp
+    except:
+        return datetime_str

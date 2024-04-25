@@ -19,8 +19,21 @@ class SwanContract():
         self.account = Account.from_key(private_key)
         self.w3 = Web3(Web3.HTTPProvider(rpc_url))
         self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-        self.payment_contract = self.w3.eth.contract("0xF0F98f476b1a5c1c6EA97eEb23d8796F553246d9", abi=get_contract_abi(PAYMENT_CONTRACT_ABI))
-        self.token_contract = self.w3.eth.contract("0x91B25A65b295F0405552A4bbB77879ab5e38166c", abi=get_contract_abi(SWAN_TOKEN_ABI))
+
+        self.client_contract = self.w3.eth.contract(
+            CLIENT_CONTRACT_ADDRESS,
+            abi=get_contract_abi(CLIENT_CONTRACT_ABI)
+        )
+
+        self.payment_contract = self.w3.eth.contract(
+            PAYMENT_CONTRACT_ADDRESS, 
+            abi=get_contract_abi(PAYMENT_CONTRACT_ABI)
+        )
+
+        self.token_contract = self.w3.eth.contract(
+            TOKEN_CONTRACT_ADDRESS, 
+            abi=get_contract_abi(SWAN_TOKEN_ABI)
+        )
 
     def hardware_info(self, hardware_id: int):
         """Retrieve hardware information from payment contract.
@@ -33,7 +46,8 @@ class SwanContract():
             e.g. ['C1ae.medium', 1000000000000000000, True]
             see more detial in ./swan/contract/abi/paymentContract.json
         """
-        hardware_info = self.payment_contract.functions.hardwareInfo(hardware_id).call()
+        # hardware_info = self.payment_contract.functions.hardwareInfo(hardware_id).call()
+        hardware_info = self.client_contract.functions.hardwareInfo(hardware_id).call()
         return hardware_info
     
     def estimate_payment(self, hardware_id: int, duration: int):
@@ -50,27 +64,130 @@ class SwanContract():
         price = self.hardware_info(hardware_id)[1]
         return price * duration
 
-    def lock_revenue(self, space_id: str, hardware_id: int, duration: int):
+
+    def submit_payment(
+            self, 
+            task_uuid: str, 
+            hardware_id: int, 
+            duration: int
+        ):
+        """
+        Submit payment for a task
+
+        Args:
+            task_uuid: unique id returned by `swan_api.create_task`
+            hardware_id: id of cp/hardware configuration set
+            duration: duration of service runtime (seconds).
+
+        Returns:
+            tx_hash
+        """
+
+        # first approve payment
+        amount = int(self.estimate_payment(
+            hardware_id=hardware_id, 
+            duration=duration/3600  # duration in estimate_
+        ))
+        self._approve_payment(amount)
+
         nonce = self.w3.eth.get_transaction_count(self.account.address)
-        tx = self.payment_contract.functions.lockRevenue(space_id, hardware_id, duration).build_transaction({
+        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
+        max_priority_fee_per_gas = self.w3.to_wei(2, 'gwei')
+        max_fee_per_gas = base_fee + max_priority_fee_per_gas
+        if max_fee_per_gas < max_priority_fee_per_gas:
+            max_fee_per_gas = max_priority_fee_per_gas + base_fee
+        tx = self.client_contract.functions.submitPayment(
+            task_uuid, 
+            hardware_id, 
+            duration
+        ).build_transaction({
             'from': self.account.address,
-            'nonce': nonce
+            'nonce': nonce,
+            "maxFeePerGas": max_fee_per_gas,
+            "maxPriorityFeePerGas": max_priority_fee_per_gas,
         })
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
-        return self.w3.toHex(tx_hash)
+        return self.w3.to_hex(tx_hash)
+    
+
+    def _approve_payment(self, amount):
+        """
+        called in submit_payment
+
+        Args:
+            amount: amount in wei
+        """
+        nonce = self.w3.eth.get_transaction_count(self.account.address)
+        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
+        max_priority_fee_per_gas = self.w3.to_wei(2, 'gwei')
+        max_fee_per_gas = base_fee + max_priority_fee_per_gas
+        if max_fee_per_gas < max_priority_fee_per_gas:
+            max_fee_per_gas = max_priority_fee_per_gas + base_fee
+        tx = self.token_contract.functions.approve(
+            self.client_contract.address,
+            amount
+        ).build_transaction({
+            'from': self.account.address,
+            'nonce': nonce,
+            "maxFeePerGas": max_fee_per_gas,
+            "maxPriorityFeePerGas": max_priority_fee_per_gas,
+        })
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
+        return self.w3.to_hex(tx_hash)
+    
+
+    def lock_revenue(self, task_id: str, hardware_id: int, duration: int):
+        """
+        deprecated
+        """
+        nonce = self.w3.eth.get_transaction_count(self.account.address)
+        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
+        max_priority_fee_per_gas = self.w3.to_wei(2, 'gwei')
+        max_fee_per_gas = base_fee + max_priority_fee_per_gas
+        if max_fee_per_gas < max_priority_fee_per_gas:
+            max_fee_per_gas = max_priority_fee_per_gas + base_fee
+        tx = self.payment_contract.functions.lockRevenue(
+            task_id, 
+            hardware_id, 
+            duration
+        ).build_transaction({
+            'from': self.account.address,
+            'nonce': nonce,
+            "maxFeePerGas": max_fee_per_gas,
+            "maxPriorityFeePerGas": max_priority_fee_per_gas,
+        })
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
+        return self.w3.to_hex(tx_hash)
     
     def _approve_swan_token(self, amount):
+        """
+        deprecated
+        """
         nonce = self.w3.eth.get_transaction_count(self.account.address)
-        tx = self.token_contract.functions.approve(self.payment_contract.address, amount).build_transaction({
+        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
+        max_priority_fee_per_gas = self.w3.to_wei(2, 'gwei')
+        max_fee_per_gas = base_fee + max_priority_fee_per_gas
+        if max_fee_per_gas < max_priority_fee_per_gas:
+            max_fee_per_gas = max_priority_fee_per_gas + base_fee
+        tx = self.token_contract.functions.approve(
+            self.payment_contract.address, 
+            amount
+        ).build_transaction({
             'from': self.account.address,
-            'nonce': nonce
+            'nonce': nonce,
+            "maxFeePerGas": max_fee_per_gas,
+            "maxPriorityFeePerGas": max_priority_fee_per_gas,
         })
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
-        return self.w3.toHex(tx_hash)
+        return self.w3.to_hex(tx_hash)
     
     def _get_swan_balance(self, address=None):
         """Retrieve swan token balance of any wallet from Swan token contract.
@@ -95,6 +212,7 @@ class SwanContract():
         Return:
             float converted value with correct decimal (default swan, 18 decimal).
         """
+        if value == 0: return 0
         return value ** -(decimal)
     
     def _get_swan_gas(self):
