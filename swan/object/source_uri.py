@@ -367,3 +367,11 @@ class GithubRepo():
             res = mcs_client.upload_file(bucket_name, obj_name, file_path, replace)
             self.source_uri = res.ipfs_url
             return res
+        
+
+class GitHubAPI:
+
+    GITHUBTREE = "https://api.github.com/repos/{user}/{repository}/git/trees/{branch}"
+    GITHUBTREE_RECURSIVE = "https://api.github.com/repos/{user}/{repository}/git/trees/{branch}?recursive=1"
+
+    GITHUB_RAWFILE = "https://raw.githubusercontent.com/{user}/{repository}/{branch}/{file_path}"
