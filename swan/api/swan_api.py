@@ -2,6 +2,9 @@ import logging
 import traceback
 import json
 
+from eth_account import Account
+from eth_account.messages import encode_defunct
+
 from swan.api_client import APIClient
 from swan.common.constant import *
 from swan.object import HardwareConfig, LagrangeSpace
@@ -9,7 +12,7 @@ from swan.common.exception import SwanAPIException
 
 class SwanAPI(APIClient):
   
-    def __init__(self, api_key: str, login: bool = True, environment: str = None):
+    def __init__(self, api_key: str, login: bool = True, environment: str = None, verification: bool = True):
         """Initialize user configuration and login.
 
         Args:
@@ -19,6 +22,7 @@ class SwanAPI(APIClient):
         """
         self.token = None
         self.api_key = api_key
+        self.contract_info = None
         self.environment = environment
         if environment == None:
             self.swan_url = SWAN_API
@@ -26,6 +30,7 @@ class SwanAPI(APIClient):
             self.swan_url = environment
         if login:
             self.api_key_login()
+            self.get_contract_info(verification)
 
     def api_key_login(self):
         """Login with SwanHub API Key.
@@ -47,7 +52,25 @@ class SwanAPI(APIClient):
             logging.error(e.message)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
-              
+
+    def get_contract_info(self, verification: bool = True):
+        response = self._request_without_params(GET, GET_CONTRACT_INFO, self.swan_url, self.token)
+        if verification:
+            if self.contract_info_verification(response["data"]["contract_info"], response["data"]["signature"]):
+                pass
+            else:
+                return False
+        self.contract_info = response["data"]["contract_info"]["contract_detail"]
+        return True
+    
+    def contract_info_verification(self, contract_info, signature):
+        message_json = json.dumps(contract_info)
+        msghash = encode_defunct(text=message_json)
+        public_address = Account.recover_message(msghash, signature=signature)
+        if public_address == ORCHESTRATOR_PUBLIC_ADDRESS:
+            return True
+        return public_address
+        
     def get_hardware_config(self):
         """Query current hardware list object.
         
