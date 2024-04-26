@@ -12,6 +12,7 @@ PROVIDER_PAYMENTS = "/provider/payments"
 CREATE_TASK = "/v2/task_deployment"
 GET_CONTRACT_INFO = "/contract_info"
 GET_ABI_VERSION = "/abi_version"
+GET_SOURCE_URI = "/v2/get_source_uri"
 
 # API Syntax
 REST_API_VERSION = "v1"

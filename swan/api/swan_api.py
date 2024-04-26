@@ -53,6 +53,28 @@ class SwanAPI(APIClient):
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
 
+    def get_source_uri(
+            self, 
+            repo_uri,
+            hardware_id,
+            wallet_address, 
+            repo_branch=None,
+            repo_owner=None, 
+            repo_name=None,
+        ):
+
+        params = {
+            "repo_owner": repo_owner,
+            "repo_name": repo_name,
+            "repo_branch": repo_branch,
+            "wallet_address": wallet_address,
+            "hardware_id": hardware_id,
+            "repo_uri": repo_uri
+        }
+        response = self._request_with_params(POST, GET_SOURCE_URI, self.swan_url, params, self.token, None)
+        
+        return response
+    
     def get_contract_info(self, verification: bool = True):
         response = self._request_without_params(GET, GET_CONTRACT_INFO, self.swan_url, self.token)
         if verification:
