@@ -1,4 +1,18 @@
-# Using Swan SDK
+# Using Swan SDK V1 APIs
+
+## Table Of Contents
+1. [Swan Orchestrator APIs](#using-swan-orchestrator-apis)
+    - [Login](#login-to-swan-orchestrator-with-api-key)
+    - [Hardware/CP Info](#retrieving-cp-machine-hardware-info)
+2. [MCS APIs](#using-mcs-apis)
+    - [Login](#login-to-mcs-with-api-key)
+    - [MultichainStorage Bucket](#create-mcs-bucket)
+3. [Generate Source URI](#generate-task-source-uri)
+    - [From Github Repo](#use-github-repository)
+    - [From Lagrange Space](#use-lagrange-space)
+    - [From Local Directory (MCS)](#create-new-scource-uri-from-local-directory)
+    - [From Existing MCS File](#create-source-uri-with-exisiting-mcs-directory)
+4. [Delpoy CP Task Through Orchestrator](#deploying-task-through-orchestrator)
 
 ## Using Swan Orchestrator APIs
 
@@ -82,7 +96,60 @@ API requires source uri, which should contain a .json file with deployment infor
 
 Source URI can be generated using Swan SDK.
 
-### Create Repository
+### Use GitHub Repository
+
+#### Create Github Repo Object
+```python
+from swan.object.source_uri import GithubRepo
+
+# Connect to Github Repo
+# Hardware ID can be retrieve from SwanAPI get hardware config
+repo = GithubRepo("<user_name>", "<repo_name>", "<branch>", "<use_wallet_address>", hardware_id:int=1)
+
+# Retrieve structure of Github Repo
+repo.get_github_tree()
+```
+
+#### Upload Source URI to MCS
+
+Use MCS bucket to create a retrivable source URI for CP.
+
+```python
+# Upload Directory to MCS
+response = repo.generate_source_uri(bucket_name="<mcs_bucket_name>", obj_name="<mcs_file_path>", file_path="<local_source_json_path>", mcs_client=mcs_api, replace=True)
+
+print(repo.source_uri)
+```
+
+### Use Lagrange Space
+
+#### Create Lagrange Space Object
+
+```python
+from swan.object.source_uri import LagrangeSpace
+
+# Connect to Lagrange space
+# Hardware ID can be retrieve from SwanAPI get hardware config
+lag = LagrangeSpace('<space_owner>', '<space_name>', "<use_wallet_address>", hardware_id:int=1)
+
+# Retrieve folder structure and file details
+lag.get_space_info()
+```
+
+#### Upload Source URI to MCS
+
+Use MCS bucket to create a retrivable source URI for CP.
+
+```python
+# Upload Directory to MCS
+response = repo.generate_source_uri(bucket_name="<mcs_bucket_name>", obj_name="<mcs_file_path>", file_path="<local_source_json_path>", mcs_client=mcs_api, replace=True)
+
+print(repo.source_uri)
+```
+
+### Create New Scource URI From Local Directory
+
+#### Upload Local Repository
 
 Create an online repository (folder) to store your project on MCS.
 
@@ -98,7 +165,7 @@ repo.add_local_dir('<local_project_directory>')
 repo.upload_local_to_mcs(<bucket_name: str>, <object_name/path: str>, mcs_api)
 ```
 
-### Upload Task Source .json and Retireve Source URI
+#### Upload Task Source .json and Retireve Source URI
 
 To get source URI use MCS with current repository. Simply call generate_source_uri().
 This function will create .json file locally contains all neccessary source information
@@ -112,7 +179,7 @@ response = repo.generate_source_uri(<bucket_name: str>, <object_name/path: str>,
 repo.source_uri
 ```
 
-### Create Source URI Manually
+### Create Source URI with Exisiting MCS Directory
 
 Use SourceFilesInfo() to create Source URI manually with an existing MCS directory.
 
