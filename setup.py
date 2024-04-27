@@ -1,18 +1,14 @@
 """ SwanSDK setup code """
 
 from setuptools import setup, find_packages
-from pathlib import Path
-
-this_directory = Path(__file__).parent
-long_description = (this_directory / "PIPRELEASEDOC.md").read_text()
 
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-        name="orchestrator-sdk",
-        version="0.2.1",
+        name="swan-sdk",
+        version="0.0.1",
         packages=['swan.api', 'swan.common', 'swan.contract', 'swan.object', 'swan.contract.abi'],
         # package_data={'swan.contract.abi': ['swan/contract/abi/PaymentContract.json', 'swan/contract/abi/SwanToken.json']},
         include_package_data=True,
@@ -20,8 +16,8 @@ setup(
         long_description=long_description,
         long_description_content_type="text/markdown",
         url="https://github.com/swanchain/orchestrator-sdk",
-        author="Filswan",
-        author_email="zhchen@nbai.io",
+        author="SwanCloud",
+        author_email="swan.development@nbai.io",
         license="MIT",
         classifiers=[
             "License :: OSI Approved :: MIT License",
