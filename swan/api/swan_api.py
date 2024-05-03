@@ -7,7 +7,7 @@ from eth_account.messages import encode_defunct
 
 from swan.api_client import APIClient
 from swan.common.constant import *
-from swan.object import HardwareConfig, LagrangeSpace
+from swan.object import HardwareConfig
 from swan.common.exception import SwanAPIException
 
 class SwanAPI(APIClient):
