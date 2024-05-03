@@ -1,11 +1,11 @@
-# SWAN SDK
+# PYTHON SWAN SDK
 
 [![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/) 
 [![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/KKGhy8ZqzK)
 
 ## Overview
 
-The SWAN SDK provides a streamlined and efficient interface for interacting with our API. It's tailored for easy creation and management of CP tasks, making it a versatile tool for a wide range of applications.
+The PYTHON SWAN SDK provides a streamlined and efficient interface for interacting with our API. It's tailored for easy creation and management of CP tasks, making it a versatile tool for a wide range of applications.
 
 ## Features
 
