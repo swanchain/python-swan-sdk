@@ -44,7 +44,7 @@ swan_api = SwanAPI(api_key='your_api_key_here')
 hardwares = swan_api.get_hardware_config()
 price_list = [(hardware.name, hardware.price) for hardware in hardwares]
 
-# Deploy a task
+# Create a task
 result = swan_api.deploy_task(cfg_name='config1', region='US', start_in=123, duration=123, job_source_uri='uri', paid=123, tx_hash='tx_hash_here', wallet_address='wallet_address_here')
 print("Deployment Result:", result)
 

@@ -7,8 +7,10 @@ from eth_account.messages import encode_defunct
 
 from swan.api_client import APIClient
 from swan.common.constant import *
-from swan.object import HardwareConfig, LagrangeSpace
+from swan.object import HardwareConfig
 from swan.common.exception import SwanAPIException
+from deprecated import deprecated
+
 
 class SwanAPI(APIClient):
   
@@ -117,6 +119,7 @@ class SwanAPI(APIClient):
             logging.error("Failed to fetch hardware configurations.")
             return None
         
+    @deprecated(version='0.0.2', reason='This API will be removed in the future version.')
     def deploy_task(self, cfg_name: str, region: str, start_in: int, duration: int, job_source_uri: str, wallet_address: str, tx_hash: str, paid: float = 0.0):
         """Sent deploy task request via orchestrator.
 
