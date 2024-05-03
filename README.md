@@ -1,4 +1,4 @@
-# SWAN SDK
+# PYTHON SWAN SDK
 
 [![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/) 
 [![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/KKGhy8ZqzK)
@@ -24,30 +24,29 @@
 
 ## Overview
 
-The SWAN SDK provides a streamlined and efficient interface for interacting with our API. It's tailored for easy creation and management of CP tasks, making it a versatile tool for a wide range of applications.
+The PYTHON SWAN SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API. Tailored for developers, this SDK simplifies the creation and management of computational tasks (CP tasks), making it an indispensable tool for developers working in various tech domains.
 
 ## Features
 
-- **Easy API Integration**: Simplify your workflow with our user-friendly API client.
-- **Data Models**: Leverage our pre-built models for tasks, directory, and source URI.
-- **Service Abstractions**: Gain access to high-level functionalities through our service layer.
-- **Comprehensive Documentation**: Discover detailed guides and references in the `docs/` directory.
+- **API Client Integration**: Streamline your development workflow with our intuitive API client.
+- **Pre-defined Data Models**: Utilize our structured data models for tasks, directories, and source URIs to enhance your application's reliability and scalability.
+- **Service Layer Abstractions**: Access complex functionalities through a simplified high-level interface, improving code maintainability.
+- **Extensive Documentation**: Access a wealth of information through our comprehensive guides and reference materials located in the `docs/` directory.
 
 ## Installation
 
-Install the SDK with ease.
+Setting up the PYTHON SWAN SDK is straightforward.
 
-From pypi testnet:
+**Install via PyPI testnet:**
 
 ```bash
-pip install -i swan-sdk
+pip install swan-sdk
 ```
 
-Install from Github:
+**Clone from GitHub:**
 
 ```bash
 git clone https://github.com/swanchain/orchestrator-sdk.git
-git checkout dev
 ```
 
 ## Quick Start Guide SDK V2
@@ -95,6 +94,7 @@ Hardware config contains an unique hardware ID, hardware name, description, hard
 
 See all avaliable hardware in a python dictionary:
 ```python
+
 hardwares = swan_api.get_hardware_config()
 hardwares_info = [hardware.to_dict() for hardware in hardwares if hardware.status == "available"] 
 hardwares_info
@@ -218,13 +218,16 @@ r = swan_api.get_real_url(task_uuid)
 print(r)
 ```
 
-For more detailed examples, visit the docs/ directory.
+For additional detailed examples, visit the `docs/` directory.
 
 ## Documentation
-For in-depth documentation, including installation guides, usage examples, and API references, refer to the docs/ directory.
+
+For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult the `docs/` directory.
 
 ## Contributions
-We encourage contributions! Please consult our contribution guidelines in **CONTRIBUTING.md**.
+
+We welcome and encourage community contributions! Please refer to our **CONTRIBUTING.md** for guidelines on how to contribute effectively.
 
 ## License
-The SWAN SDK is released under the **MIT-FilSwan** license. For more details, see the LICENSE file.
+
+The PYTHON SWAN SDK is released under the **MIT-FilSwan** license, details of which can be found in the LICENSE file.
