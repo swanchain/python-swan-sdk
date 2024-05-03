@@ -1,95 +1,92 @@
-# SWAN SDK
+# PYTHON SWAN SDK
 
 [![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/) 
 [![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/KKGhy8ZqzK)
 
 ## Overview
 
-The SWAN SDK provides a streamlined and efficient interface for interacting with our API. It's tailored for easy creation and management of CP tasks, making it a versatile tool for a wide range of applications.
+The PYTHON SWAN SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API. Tailored for developers, this SDK simplifies the creation and management of computational tasks (CP tasks), making it an indispensable tool for developers working in various tech domains.
 
 ## Features
 
-- **Easy API Integration**: Simplify your workflow with our user-friendly API client.
-- **Data Models**: Leverage our pre-built models for tasks, directory, and source URI.
-- **Service Abstractions**: Gain access to high-level functionalities through our service layer.
-- **Comprehensive Documentation**: Discover detailed guides and references in the `docs/` directory.
+- **API Client Integration**: Streamline your development workflow with our intuitive API client.
+- **Pre-defined Data Models**: Utilize our structured data models for tasks, directories, and source URIs to enhance your application's reliability and scalability.
+- **Service Layer Abstractions**: Access complex functionalities through a simplified high-level interface, improving code maintainability.
+- **Extensive Documentation**: Access a wealth of information through our comprehensive guides and reference materials located in the `docs/` directory.
 
 ## Installation
 
-Install the SDK with ease.
+Setting up the PYTHON SWAN SDK is straightforward.
 
-From pypi testnet:
+**Install via PyPI testnet:**
 
 ```bash
-pip install -i https://test.pypi.org/simple/ orchestrator-sdk
+[pip install -i https://test.pypi.org/simple/ orchestrator-sdk](https://pypi.org/project/swan-sdk/0.0.2/)
 ```
 
-Install from Github:
+**Clone from GitHub:**
 
 ```bash
 git clone https://github.com/swanchain/orchestrator-sdk.git
-git checkout dev
 ```
 
 ## Quick Start Guide SDK V1
-Jump into using the SDK with this quick example:
+
+Get started quickly with this basic example:
 
 ```python
-
 from swan import SwanAPI
 
-# Initialize the Swan Service
-# Perform verification and retrieve signed contract address store in SWANAPI.contract_info
-swan_api = SwanAPI(api_key='')
+# Initialize the SwanAPI
+swan_api = SwanAPI(api_key='your_api_key_here')
 
-# Retrieve List of Hardwares
+# Fetch available hardware configurations
 hardwares = swan_api.get_hardware_config()
 price_list = [(hardware.name, hardware.price) for hardware in hardwares]
 
-# Deploy task
-# tx_hash from lock_payment from swan payment cotract (see demo code below)
-result = swan_api.deploy_task(cfg_name='', region='', start_in=123, duration=123, job_source_uri='', paid=123, tx_hash='', wallet_address='')
-print(result)
+# Deploy a task
+result = swan_api.deploy_task(cfg_name='config1', region='US', start_in=123, duration=123, job_source_uri='uri', paid=123, tx_hash='tx_hash_here', wallet_address='wallet_address_here')
+print("Deployment Result:", result)
 
-# Check task info
-swan_api.get_deployment_info(task_uuid='')
+# Retrieve deployment information
+deployment_info = swan_api.get_deployment_info(task_uuid='your_task_uuid_here')
+print("Deployment Info:", deployment_info)
 ```
-Lock Swan Token onchain:
+
+**On-chain operations with SwanContract:**
 
 ```python
-swan_contract = SwanContract(private_key='', contract_info=swan_api.contract_info)
+swan_contract = SwanContract(private_key='your_private_key_here', contract_info=swan_api.contract_info)
 
-# Test esimate lock revenue
+# Example: Estimate lock revenue
 estimation = swan_contract.estimate_payment(hardware_id=1, duration=10)
-print(estimation*1e-18)
+print("Estimated Payment:", estimation * 1e-18)  # Convert to readable format
 
-# Test get hardware info
+# Retrieve and display hardware information
 hardware_info = swan_contract.hardware_info(1)
-hardware_info
+print("Hardware Info:", hardware_info)
 
-# Test get swan token balance
-balance = swan_contract._get_swan_balance()
-print(balance*1e-18)
+# Fetch and display Swan token balance
+balance = swan_contract.get_swan_balance()
+print("Swan Token Balance:", balance * 1e-18)  # Convert to readable format
 
-# Test get gas
-gas = swan_contract._get_swan_gas()
-print(gas*1e-18)
-
-# Approve Swan Token
-tx_hash = swan_contract._approve_swan_token(amount=100)
-print(tx_hash)
-
-# Lock payment
-r = swan_contract.lock_revenue(task_id='1', hardware_id=1, duration=0)
+# Approve and lock Swan tokens
+tx_hash = swan_contract.approve_swan_token(amount=100)
+print("Transaction Hash:", tx_hash)
+lock_result = swan_contract.lock_revenue(task_id='1', hardware_id=1, duration=10)
+print("Lock Revenue Result:", lock_result)
 ```
 
-For more detailed examples, visit the docs/ directory.
+For additional detailed examples, visit the `docs/` directory.
 
 ## Documentation
-For in-depth documentation, including installation guides, usage examples, and API references, refer to the docs/ directory.
+
+For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult the `docs/` directory.
 
 ## Contributions
-We encourage contributions! Please consult our contribution guidelines in **CONTRIBUTING.md**.
+
+We welcome and encourage community contributions! Please refer to our **CONTRIBUTING.md** for guidelines on how to contribute effectively.
 
 ## License
-The SWAN SDK is released under the **MIT-FilSwan** license. For more details, see the LICENSE file.
+
+The PYTHON SWAN SDK is released under the **MIT-FilSwan** license, details of which can be found in the LICENSE file.
