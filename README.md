@@ -21,7 +21,7 @@ Setting up the PYTHON SWAN SDK is straightforward.
 **Install via PyPI testnet:**
 
 ```bash
-[pip install -i https://test.pypi.org/simple/ orchestrator-sdk](https://pypi.org/project/swan-sdk/0.0.2/)
+pip install swan-sdk
 ```
 
 **Clone from GitHub:**
