@@ -59,7 +59,7 @@ git checkout release/v0.0.2
 ## Use Python dotenv
 It is recommanded to store your important person information in configuration or as environmental variables. Python dotenv allows loading environment variable from `.env` files for easier access and better security.
 
-python-dotenv package: https://pypi.org/project/python-dotenv/
+python-dotenv package: https://pypi.org/project/python-dotenv/ \
 Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs/configuration.md
 
 ## Quick Start Guide for Swan SDK
