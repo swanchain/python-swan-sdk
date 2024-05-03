@@ -6,8 +6,6 @@ import re
 import datetime
 import time
 from urllib.parse import urlparse
-# from swan_mcs import BucketAPI
-# from swan.common import mcs_api
 from swan.common.file import File
 
 def parse_params_to_str(params):
