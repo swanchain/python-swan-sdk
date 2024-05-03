@@ -7,7 +7,7 @@ from tqdm import tqdm
 from pathlib import Path
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 
-from swan.common.constant import GET, PUT, POST, DELETE, SWAN_API, APIKEY_LOGIN
+from swan.common.constant import GET, PUT, POST, DELETE, SWAN_API
 from swan.common import utils
 
 
@@ -46,8 +46,8 @@ class APIClient(object):
 
         return response.json()
     
-    def _request_stream_upload(self, request_path, mcs_api, params, token):
-        url = mcs_api + request_path
+    def _request_stream_upload(self, request_path, swan_api, params, token):
+        url = swan_api + request_path
         header = {}
         if token:
             header["Authorization"] = "Bearer " + token
@@ -78,8 +78,8 @@ class APIClient(object):
 
         return response.json()
 
-    def _request_bucket_upload(self, request_path, mcs_api, params, token):
-        url = mcs_api + request_path
+    def _request_bucket_upload(self, request_path, swan_api, params, token):
+        url = swan_api + request_path
         header = {}
         if token:
             header["Authorization"] = "Bearer " + token

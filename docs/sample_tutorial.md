@@ -1,69 +1,17 @@
-# PYTHON SWAN SDK
-
-[![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/) 
-[![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/swanchain)
+# Sample Tutorial for Swan SDK
+Jump into using the SDK with this quick example:
 
 ## Table Of Contents
-- [Overview](#overview)
-- [Features](#features)
-- [Installation](#installation)
-- [Use Python dotenv (Optional)](#use-python-dotenv)
-- [Quick Guide](#quick-start-guide-sdk-v2)
-    1. [Get SwanHub API Key](#1-get-swanhub-api-key)
-    2. [Login to SwanHub](#2-login-into-swanhub-through-sdk)
-    3. [Use Swan Payment Contract](#3-connect-to-swan-payment-contract)
-    4. [Retrieve CP Hardware Info](#4-retrieve-avaliable-hardware-informaitons)
-    5. [Get Job Source URI](#5-get-job_source_uri)
-    6. [Esitmate Task Payment](#6-esitmate-payment-amount)
-    7. [Create Task](#7-create-task)
-    8. [Submit Payment](#8-submit-payment)
-    9. [Validate Payment and Delpoy Task](#9-validate-payment-to-deploy-task)
-    10. [Follow Up Deployed Task Status (Optional)](#10-follow-up-task-status-optional)
-- [Executale Example](#examples)
-- [Documentation](#documentation)
-- [Contribution](#contributions)
-- [License](#license)
-
-## Overview
-
-The PYTHON SWAN SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API. Tailored for developers, this SDK simplifies the creation and management of computational tasks (CP tasks), making it an indispensable tool for developers working in various tech domains.
-
-GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2
-
-## Features
-
-- **API Client Integration**: Streamline your development workflow with our intuitive API client.
-- **Pre-defined Data Models**: Utilize our structured data models for tasks, directories, and source URIs to enhance your application's reliability and scalability.
-- **Service Layer Abstractions**: Access complex functionalities through a simplified high-level interface, improving code maintainability.
-- **Extensive Documentation**: Access a wealth of information through our comprehensive guides and reference materials located in the `docs/` directory on Github.
-
-## Installation
-
-Setting up the PYTHON SWAN SDK is straightforward.
-
-To use Python Swan SDK, use Python 3.8 or later. Earlier versions are not supported.
-
-**Install via PyPI testnet:**
-
-```bash
-pip install swan-sdk==0.0.2
-```
-
-**Clone from GitHub:**
-
-```bash
-git clone https://github.com/swanchain/orchestrator-sdk.git
-git checkout release/v0.0.2
-```
-
-## Use Python dotenv
-It is recommanded to store your important person information in configuration or as environmental variables. Python dotenv allows loading environment variable from `.env` files for easier access and better security.
-
-python-dotenv package: https://pypi.org/project/python-dotenv/ \
-Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs/configuration.md
-
-## Quick Start Guide for Swan SDK
-Jump into using the SDK with this quick example:
+1. [Get SwanHub API Key](#1-get-swanhub-api-key)
+2. [Login to SwanHub](#2-login-into-swanhub-through-sdk)
+3. [Use Swan Payment Contract](#3-connect-to-swan-payment-contract)
+4. [Retrieve CP Hardware Info](#4-retrieve-avaliable-hardware-informaitons)
+5. [Get Job Source URI](#5-get-job_source_uri)
+6. [Esitmate Task Payment](#6-esitmate-payment-amount)
+7. [Create Task](#7-create-task)
+8. [Submit Payment](#8-submit-payment)
+9. [Validate Payment and Delpoy Task](#9-validate-payment-to-deploy-task)
+10. [Follow Up Deployed Task Status (Optional)](#10-follow-up-task-status-optional)
 
 ### 1. Get SwanHub API Key
 
@@ -230,14 +178,3 @@ Get the deploy URI to test your task deployment using `SwanAPI().get_real_uri()`
 r = swan_api.get_real_url(task_uuid)
 print(r)
 ```
-
-## Examples
-For executable examples consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/examples
-
-## Documentation
-
-For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs
-
-## License
-
-The PYTHON SWAN SDK is released under the **MIT** license, details of which can be found in the LICENSE file.
