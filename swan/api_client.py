@@ -46,8 +46,8 @@ class APIClient(object):
 
         return response.json()
     
-    def _request_stream_upload(self, request_path, swwan_api, params, token):
-        url = swwan_api + request_path
+    def _request_stream_upload(self, request_path, swan_api, params, token):
+        url = swan_api + request_path
         header = {}
         if token:
             header["Authorization"] = "Bearer " + token
@@ -78,8 +78,8 @@ class APIClient(object):
 
         return response.json()
 
-    def _request_bucket_upload(self, request_path, swwan_api, params, token):
-        url = swwan_api + request_path
+    def _request_bucket_upload(self, request_path, swan_api, params, token):
+        url = swan_api + request_path
         header = {}
         if token:
             header["Authorization"] = "Bearer " + token

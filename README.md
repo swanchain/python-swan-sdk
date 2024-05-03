@@ -49,7 +49,7 @@ pip install swan-sdk
 git clone https://github.com/swanchain/orchestrator-sdk.git
 ```
 
-## Quick Start Guide SDK V2
+## Quick Start Guide for Swan SDK
 Jump into using the SDK with this quick example:
 
 ### 1. Get SwanHub API Key
