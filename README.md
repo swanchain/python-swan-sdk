@@ -4,21 +4,22 @@
 [![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/swanchain)
 
 ## Table Of Contents
+
 - [Overview](#overview)
 - [Features](#features)
 - [Installation](#installation)
 - [Use Python dotenv (Optional)](#use-python-dotenv)
 - [Quick Guide](#quick-start-guide-sdk-v2)
-    1. [Get SwanHub API Key](#1-get-swanhub-api-key)
-    2. [Login to SwanHub](#2-login-into-swanhub-through-sdk)
-    3. [Use Swan Payment Contract](#3-connect-to-swan-payment-contract)
-    4. [Retrieve CP Hardware Info](#4-retrieve-avaliable-hardware-informaitons)
-    5. [Get Job Source URI](#5-get-job_source_uri)
-    6. [Esitmate Task Payment](#6-esitmate-payment-amount)
-    7. [Create Task](#7-create-task)
-    8. [Submit Payment](#8-submit-payment)
-    9. [Validate Payment and Delpoy Task](#9-validate-payment-to-deploy-task)
-    10. [Follow Up Deployed Task Status (Optional)](#10-follow-up-task-status-optional)
+  1. [Get Orchestrator API Key](#1-get-orchestrator-api-key)
+  2. [Login to Orchestrator](#2-login-into-Orchestrator-through-sdk)
+  3. [Use Swan Payment Contract](#3-connect-to-swan-payment-contract)
+  4. [Retrieve CP Hardware Info](#4-retrieve-avaliable-hardware-informaitons)
+  5. [Get Job Source URI](#5-get-job_source_uri)
+  6. [Esitmate Task Payment](#6-esitmate-payment-amount)
+  7. [Create Task](#7-create-task)
+  8. [Submit Payment](#8-submit-payment)
+  9. [Validate Payment and Delpoy Task](#9-validate-payment-to-deploy-task)
+  10. [Follow-Up Deployed Task Status (Optional)](#10-follow-up-task-status-optional)
 - [Executale Example](#examples)
 - [Documentation](#documentation)
 - [Contribution](#contributions)
@@ -35,7 +36,7 @@ GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2
 - **API Client Integration**: Streamline your development workflow with our intuitive API client.
 - **Pre-defined Data Models**: Utilize our structured data models for tasks, directories, and source URIs to enhance your application's reliability and scalability.
 - **Service Layer Abstractions**: Access complex functionalities through a simplified high-level interface, improving code maintainability.
-- **Extensive Documentation**: Access a wealth of information through our comprehensive guides and reference materials located in the `docs/` directory on Github.
+- **Extensive Documentation**: Access a wealth of information through our comprehensive guides and reference materials located in the `docs/` directory on GitHub.
 
 ## Installation
 
@@ -43,7 +44,7 @@ Setting up the PYTHON SWAN SDK is straightforward.
 
 To use Python Swan SDK, use Python 3.8 or later. Earlier versions are not supported.
 
-**Install via PyPI testnet:**
+**Install via PyPI:**
 
 ```bash
 pip install swan-sdk==0.0.2
@@ -57,26 +58,29 @@ git checkout release/v0.0.2
 ```
 
 ## Use Python dotenv
-It is recommanded to store your important person information in configuration or as environmental variables. Python dotenv allows loading environment variable from `.env` files for easier access and better security.
+
+It is recommended to store your important personal information in configuration or as environmental variables. Python dotenv allows loading environment variables from `.env` files for easier access and better security.
 
 python-dotenv package: https://pypi.org/project/python-dotenv/ \
 Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs/configuration.md
 
 ## Quick Start Guide for Swan SDK
+
 Jump into using the SDK with this quick example:
 
-### 1. Get SwanHub API Key
+### 1. Get Orchestrator API Key
 
-To use `swan-sdk` SwanHub API key is required. 
-- Go to Swan Dashboard: https://orchestrator.swanchain.io/provider-status
+To use `swan-sdk`, an Orchestrator API key is required. 
+
+- Go to Orchestrator Dashboard: https://orchestrator.swanchain.io/provider-status
 - Login through MetaMask.
-- Click the user icon on top right.
+- Click the user icon on the top right.
 - Click 'Show API-Key' -> 'New API Key'
 - Store your API Key safely, do not share with others.
 
-### 2. Login into SwanHub Through SDK
+### 2. Login into Orchestrator Through SDK
 
-To use `swan-sdk` you will need to login to SwanHub using API Key. (Wallet login is not supported)
+To use `swan-sdk` you will need to login to Orchestrator using API Key. (Wallet login is not supported)
 
 ```python
 from swan import SwanAPI
@@ -86,43 +90,48 @@ swan_api = SwanAPI(api_key="<your_api_key>")
 
 ### 3. Connect to Swan Payment Contract
 
-Payment of SwanHub deployment is paid through Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
+Payment of Orchestrator deployment is paid through the Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
+
 ```python
 from swan.contract.swan_contract import SwanContract
 
 contract = SwanContract('<your_private_key>', swan_api.contract_info)
 ```
 
-### 4. Retrieve Avaliable Hardware Informaitons
+### 4. Retrieve available hardware information
 
-SwanHub provides selection of Computing Providers with different hardwares.
-Use `SwanAPI().get_hardware_config()` to retrieve all avaliable hardwares on SwanHub.
+Orchestrator provides a selection of Computing Providers with different hardware.
+Use `SwanAPI().get_hardware_config()` to retrieve all available hardware on Orchestrator.
 
 Each hardware is stored in `HardwareConfig()` object.
+
 ```python
-from swan.object import HardwareConfig
+from the swan.object import HardwareConfig
 ```
 
-Hardware config contains an unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, avaliable region and current status.
+Hardware config contains a unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, available region and current status.
 
-See all avaliable hardware in a python dictionary:
+See all available hardware in a Python dictionary:
+
 ```python
-
 hardwares = swan_api.get_hardware_config()
 hardwares_info = [hardware.to_dict() for hardware in hardwares if hardware.status == "available"] 
 hardwares_info
 ```
-`HardwareConfig().status` shows the avalibility of the hardware.
-`HardwareConfig().region` is a list of all region this hardware is avaliable in.
 
-Retrieve the hardware with hardware id 0:
+`HardwareConfig().status` shows the availability of the hardware.
+`HardwareConfig().region` is a list of all regions this hardware is available in.
+
+Retrieve the hardware with hardware ID 0:
+
 ```python
 hardwares = swan_api.get_hardware_config()
-chosen_hardware = [hardware for hardware in hardwares if hardware.id == 0]
+chosen_hardware = [hardware for hardware in hardware if hardware.id == 0]
 chosen_hardware.to_dict()
 ```
 
 Sample output:
+
 ```
 {'id': 0,
  'name': 'C1ae.small',
@@ -140,6 +149,7 @@ Sample output:
 
 Generate a source URI
 A demo tetris docker image on GitHub as repo_uri: 'https://github.com/alphaflows/tetris-docker-image.git'
+
 ```python
 job_source_uri = swan_api.get_source_uri(
     repo_uri='<your_git_hub_link/your_lagrange_space_link>',
@@ -150,8 +160,10 @@ job_source_uri = swan_api.get_source_uri(
 job_source_uri = job_source_uri['data']['job_source_uri']
 ```
 
-### 6. Esitmate Payment Amount
+### 6. Estimate Payment Amount
+
 To estimate the payment required for the deployment. Use `SwanContract().estiamte_payment()`
+
 ```python
 duration_hour = 1 # or duration you want the deployment to run
 amount = contract.estimate_payment(chosen_hardware.id, duration_hour)
@@ -160,7 +172,8 @@ amount # amount is in wei, 18 decimals
 
 ### 7. Create Task
 
-Before paying for the task. First create a task on SwanHub using desired task attributes.
+Before paying for the task. First, create a task on Orchestrator using desired task attributes.
+
 ```python
 import json
 
@@ -182,6 +195,7 @@ print(json.dumps(result, indent=2)) # Print response
 ```
 
 Sample output:
+
 ```
 {
   "data": {
@@ -202,11 +216,12 @@ Sample output:
 }
 ```
 
-The `task['uuid']` will be used in following operations.
+The `task['uuid']` will be used in the following operations.
 
 ### 8. Submit Payment
 
 Use `SwanContract().submit_payment()` to pay for the task. The TX hash is the receipt for the payment.
+
 ```python
 tx_hash = contract.submit_payment(task_uuid, hardware_id, duration)
 ```
@@ -214,6 +229,7 @@ tx_hash = contract.submit_payment(task_uuid, hardware_id, duration)
 ### 9. Validate Payment to Deploy Task
 
 Use `SwanAPI().validate_payment()` to validate the payment using TX hash and deploy the task.
+
 ```python
 swan_api.validate_payment(
     tx_hash=tx_hash,
@@ -221,11 +237,12 @@ swan_api.validate_payment(
 )
 ```
 
-### 10. Follow up Task Status (Optional)
+### 10. Follow-up Task Status (Optional)
 
 #### Show results
 
 Get the deploy URI to test your task deployment using `SwanAPI().get_real_uri()`.
+
 ```python
 r = swan_api.get_real_url(task_uuid)
 print(r)
