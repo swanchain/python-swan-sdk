@@ -7,8 +7,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-        name="swan-sdk",
-        version="0.0.1",
+        name="orchestrator-sdk",
+        version="0.0.2",
         packages=['swan.api', 'swan.common', 'swan.contract', 'swan.object', 'swan.contract.abi'],
         # package_data={'swan.contract.abi': ['swan/contract/abi/PaymentContract.json', 'swan/contract/abi/SwanToken.json']},
         include_package_data=True,
@@ -16,8 +16,8 @@ setup(
         long_description=long_description,
         long_description_content_type="text/markdown",
         url="https://github.com/swanchain/orchestrator-sdk",
-        author="SwanCloud",
-        author_email="swan.development@nbai.io",
+        author="ZihangChenNBAI",
+        author_email="zhchen@nbai.io",
         license="MIT",
         classifiers=[
             "License :: OSI Approved :: MIT License",

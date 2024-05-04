@@ -1,7 +1,7 @@
 # PYTHON SWAN SDK
 
 [![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/) 
-[![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/KKGhy8ZqzK)
+[![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/swanchain)
 
 ## Table Of Contents
 
@@ -29,6 +29,8 @@
 
 The PYTHON SWAN SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API. Tailored for developers, this SDK simplifies the creation and management of computational tasks (CP tasks), making it an indispensable tool for developers working in various tech domains.
 
+GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2
+
 ## Features
 
 - **API Client Integration**: Streamline your development workflow with our intuitive API client.
@@ -45,21 +47,22 @@ To use Python Swan SDK, use Python 3.8 or later. Earlier versions are not suppor
 **Install via PyPI:**
 
 ```bash
-pip install swan-sdk
+pip install swan-sdk==0.0.2
 ```
 
 **Clone from GitHub:**
 
 ```bash
 git clone https://github.com/swanchain/orchestrator-sdk.git
+git checkout release/v0.0.2
 ```
 
 ## Use Python dotenv
 
 It is recommended to store your important personal information in configuration or as environmental variables. Python dotenv allows loading environment variables from `.env` files for easier access and better security.
 
-python-dotenv package: https://pypi.org/project/python-dotenv/
-Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/dev/docs/configuration.md
+python-dotenv package: https://pypi.org/project/python-dotenv/ \
+Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs/configuration.md
 
 ## Quick Start Guide for Swan SDK
 
@@ -246,17 +249,12 @@ print(r)
 ```
 
 ## Examples
-
-For executable examples consult https://github.com/swanchain/python-swan-sdk/tree/dev/examples
+For executable examples consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/examples
 
 ## Documentation
 
-For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult https://github.com/swanchain/python-swan-sdk/tree/dev/docs
-
-## Contributions
-
-We welcome and encourage community contributions! Please refer to our **CONTRIBUTING.md** for guidelines on how to contribute effectively.
+For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs
 
 ## License
 
-The PYTHON SWAN SDK is released under the **MIT-FilSwan** license, details of which can be found in the LICENSE file.
+The PYTHON SWAN SDK is released under the **MIT** license, details of which can be found in the LICENSE file.
