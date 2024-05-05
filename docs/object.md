@@ -27,7 +27,7 @@ class HardwareConfig:
 
 Individual attribute of a hardware can be retrieved from variables within the `HardwareConfig` class.
 
-Hardware Attributes:\
+Hardware Attributes:
 - id: Hardware id on Orchestrator, each hardware have an unique id.
 - name: Hardware name related to the id, e.g. 'C1ae.small'.
 - description: Detailed description of given hardware. 
