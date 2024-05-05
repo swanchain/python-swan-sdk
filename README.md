@@ -99,8 +99,8 @@ See all available hardware in a Python dictionary:
 
 ```python
 hardwares = swan_api.get_hardware_config()
-hardwares_info = [hardware for hardware in hardwares if hardware.status == "available"]
-print(hardwares_info.to_dict())
+hardwares_info = [hardware.to_dict() for hardware in hardwares if hardware.status == "available"] 
+hardwares_info
 ```
 You can use 
 ```python
@@ -246,7 +246,7 @@ swan_api.validate_payment(
 
 #### Show results
 
-Get the deploy URI to test your task deployment using `SwanAPI().get_real_uri()`.
+Get the deploy URI to test your deployed task using `SwanAPI().get_real_uri()`.
 
 ```python
 r = swan_api.get_real_url(task_uuid)
@@ -289,11 +289,11 @@ Simple output
 
 
 ## Examples
-For executable examples consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/examples
+For executable examples consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1/examples
 
 ## Documentation
 
-For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs
+For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1/docs
 
 ## License
 
