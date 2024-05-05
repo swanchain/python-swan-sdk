@@ -29,7 +29,7 @@
 
 The PYTHON SWAN SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API. Tailored for developers, this SDK simplifies the creation and management of computational tasks (CP tasks), making it an indispensable tool for developers working in various tech domains.
 
-GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2
+GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1
 
 ## Features
 
@@ -54,7 +54,7 @@ pip install swan-sdk==0.0.2
 
 ```bash
 git clone https://github.com/swanchain/orchestrator-sdk.git
-git checkout release/v0.0.2
+git checkout release/v0.0.2.post1
 ```
 
 ## Use Python dotenv
@@ -62,7 +62,7 @@ git checkout release/v0.0.2
 It is recommended to store your important personal information in configuration or as environmental variables. Python dotenv allows loading environment variables from `.env` files for easier access and better security.
 
 python-dotenv package: https://pypi.org/project/python-dotenv/ \
-Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs/configuration.md
+Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1/docs/configuration.md
 
 ## Quick Start Guide for Swan SDK
 
@@ -253,11 +253,11 @@ print(r)
 ```
 
 ## Examples
-For executable examples consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/examples
+For executable examples consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1/examples
 
 ## Documentation
 
-For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs
+For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1/docs
 
 ## License
 
