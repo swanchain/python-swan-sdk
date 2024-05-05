@@ -100,7 +100,7 @@ See all available hardware in a Python dictionary:
 ```python
 hardwares = swan_api.get_hardware_config()
 hardwares_info = [hardware.to_dict() for hardware in hardwares if hardware.status == "available"] 
-hardwares_info
+print(hardwares_info)
 ```
 You can use 
 ```python
