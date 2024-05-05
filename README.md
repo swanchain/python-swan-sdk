@@ -12,11 +12,11 @@
 - [Quick Guide](#quick-start-guide-sdk-v2)
   1. [Get Orchestrator API Key](#1-get-orchestrator-api-key)
   2. [Login to Orchestrator](#2-login-into-Orchestrator-through-sdk)
-  3. [Use Swan Payment Contract](#3-connect-to-swan-payment-contract)
-  4. [Retrieve CP Hardware Info](#4-retrieve-avaliable-hardware-informaitons)
-  5. [Get Job Source URI](#5-get-job_source_uri)
-  6. [Esitmate Task Payment](#6-esitmate-payment-amount)
-  7. [Create Task](#7-create-task)
+  3. [Retrieve CP Hardware Info](#3-retrieve-avaliable-hardware-informaitons)
+  4. [Get Job Source URI](#4-get-job_source_uri)
+  5. [Create Task](#5-create-task)
+  6. [Use Swan Payment Contract](#6-connect-to-swan-payment-contract)
+  7. [Esitmate Task Payment](#7-esitmate-payment-amount)
   8. [Submit Payment](#8-submit-payment)
   9. [Validate Payment and Delpoy Task](#9-validate-payment-to-deploy-task)
   10. [Follow-Up Deployed Task Status (Optional)](#10-follow-up-task-status-optional)
@@ -88,17 +88,7 @@ from swan import SwanAPI
 swan_api = SwanAPI(api_key="<your_api_key>")
 ```
 
-### 3. Connect to Swan Payment Contract
-
-Payment of Orchestrator deployment is paid through the Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
-
-```python
-from swan.contract.swan_contract import SwanContract
-
-contract = SwanContract('<your_private_key>', swan_api.contract_info)
-```
-
-### 4. Retrieve available hardware information
+### 3. Retrieve available hardware information
 
 Orchestrator provides a selection of Computing Providers with different hardware.
 Use `SwanAPI().get_hardware_config()` to retrieve all available hardware on Orchestrator.
@@ -143,7 +133,7 @@ Sample output:
 }
 ```
 
-### 5. Get job_source_uri
+### 4. Get job_source_uri
 
 `job_source_uri` can be create through `SwanAPI().get_source_uri()` API.
 
@@ -160,17 +150,7 @@ job_source_uri = swan_api.get_source_uri(
 job_source_uri = job_source_uri['data']['job_source_uri']
 ```
 
-### 6. Estimate Payment Amount
-
-To estimate the payment required for the deployment. Use `SwanContract().estiamte_payment()`
-
-```python
-duration_hour = 1 # or duration you want the deployment to run
-amount = contract.estimate_payment(chosen_hardware.id, duration_hour)
-amount # amount is in wei, 18 decimals
-```
-
-### 7. Create Task
+### 5. Create Task
 
 Before paying for the task. First, create a task on Orchestrator using desired task attributes.
 
@@ -218,6 +198,26 @@ Sample output:
 
 The `task['uuid']` will be used in the following operations.
 
+### 6. Connect to Swan Payment Contract
+
+Payment of Orchestrator deployment is paid through the Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
+
+```python
+from swan.contract.swan_contract import SwanContract
+
+contract = SwanContract('<your_private_key>', swan_api.contract_info)
+```
+
+### 7. Estimate Payment Amount
+
+To estimate the payment required for the deployment. Use `SwanContract().estiamte_payment()`
+
+```python
+duration_hour = 1 # or duration you want the deployment to run
+amount = contract.estimate_payment(chosen_hardware.id, duration_hour)
+amount # amount is in wei, 18 decimals
+```
+
 ### 8. Submit Payment
 
 Use `SwanContract().submit_payment()` to pay for the task. The TX hash is the receipt for the payment.
@@ -247,6 +247,41 @@ Get the deploy URI to test your task deployment using `SwanAPI().get_real_uri()`
 r = swan_api.get_real_url(task_uuid)
 print(r)
 ```
+
+#### Show task details
+Get the task details using `SwanAPI().get_deployment_info()`.
+
+```python
+r = swan_api.get_deployment_info(task_uuid)
+print(r)
+```
+Simple output
+```
+{
+   "data":{
+      "computing_providers":[
+         
+      ],
+      "jobs":[
+         
+      ],
+      "task":{
+         "created_at":"1714877536",
+         "end_at":"1714881125",
+         "leading_job_id":"None",
+         "refund_amount":"None",
+         "status":"accepting_bids",
+         "task_detail_cid":"task_detail_cid",
+         "tx_hash":"None",
+         "updated_at":"1714877801",
+         "uuid":"204cd1be-30b0-4915-a635-4b9dbf1a3b5e"
+      }
+   },
+   "message":"fetch task info for task_uuid='204cd1be-30b0-4915-a635-4b9dbf1a3b5e' successfully",
+   "status":"success"
+}
+```
+
 
 ## Examples
 For executable examples consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/examples
