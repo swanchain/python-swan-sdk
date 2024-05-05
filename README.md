@@ -103,7 +103,7 @@ contract = SwanContract('<your_private_key>', swan_api.contract_info)
 Orchestrator provides a selection of Computing Providers with different hardware.
 Use `SwanAPI().get_hardware_config()` to retrieve all available hardware on Orchestrator.
 
-Each hardware is stored in `HardwareConfig()` object.
+Each hardware is stored as an instance of `HardwareConfig()` object. 
 
 ```python
 from swan.object import HardwareConfig
@@ -142,6 +142,19 @@ Sample output:
  'status': 'available'
 }
 ```
+
+Retrieve individual hardware attributes:
+```python
+print(chosen_hardware.id) # hardware id
+print(chosen_hardware.name) # hardware name
+print(chosen_hardware.description) # hardware description
+print(chosen_hardware.type) # hardware type
+print(chosen_hardware.region) # all avaliable hardware region
+print(chosen_hardware.price) # current hardware price
+print(chosen_hardware.status) # overall hardware avaliablility
+```
+
+More detials go oject documentation: 
 
 ### 5. Get job_source_uri
 
