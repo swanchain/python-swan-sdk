@@ -5,7 +5,7 @@
 - [Use Python dotenv](#use-python-dotenv)
 
 ## Introduction
-Swan SDK requires private information such SwanHub API Key, Wallet Address and Private Key. To safely use Swan SDK avoid putting important informance in code. The recommanded way to use private informaiton is to store as environment variables.
+Swan SDK requires private information such as Orchestrator API Key, Wallet Address and Private Key. To safely use Swan SDK avoid putting important informance in code. The recommanded way to use private informaiton is to store as environment variables.
 
 ## Use Python dotenv
 python-dotenv allow user to write environment variables into `.env` and loaded when needed.

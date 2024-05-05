@@ -29,7 +29,7 @@
 
 The PYTHON SWAN SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API. Tailored for developers, this SDK simplifies the creation and management of computational tasks (CP tasks), making it an indispensable tool for developers working in various tech domains.
 
-GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2
+GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1
 
 ## Features
 
@@ -54,7 +54,7 @@ pip install swan-sdk==0.0.2
 
 ```bash
 git clone https://github.com/swanchain/orchestrator-sdk.git
-git checkout release/v0.0.2
+git checkout release/v0.0.2.post1
 ```
 
 ## Use Python dotenv
@@ -62,7 +62,7 @@ git checkout release/v0.0.2
 It is recommended to store your important personal information in configuration or as environmental variables. Python dotenv allows loading environment variables from `.env` files for easier access and better security.
 
 python-dotenv package: https://pypi.org/project/python-dotenv/ \
-Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs/configuration.md
+Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1/docs/configuration.md
 
 ## Quick Start Guide for Swan SDK
 
@@ -96,7 +96,7 @@ Use `SwanAPI().get_hardware_config()` to retrieve all available hardware on Orch
 Each hardware is stored in `HardwareConfig()` object.
 
 ```python
-from the swan.object import HardwareConfig
+from swan.object import HardwareConfig
 ```
 
 Hardware config contains a unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, available region and current status.
@@ -116,7 +116,7 @@ Retrieve the hardware with hardware ID 0:
 
 ```python
 hardwares = swan_api.get_hardware_config()
-chosen_hardware = [hardware for hardware in hardware if hardware.id == 0]
+chosen_hardware = [hardware for hardware in hardwares if hardware.id == 0][0]
 chosen_hardware.to_dict()
 ```
 
@@ -223,7 +223,11 @@ amount # amount is in wei, 18 decimals
 Use `SwanContract().submit_payment()` to pay for the task. The TX hash is the receipt for the payment.
 
 ```python
-tx_hash = contract.submit_payment(task_uuid, hardware_id, duration)
+tx_hash = contract.submit_payment(
+    task_uuid=task_uuid, 
+    hardware_id=chosen_hardware.id, 
+    duration=duration
+)
 ```
 
 ### 9. Validate Payment to Deploy Task
@@ -241,7 +245,7 @@ swan_api.validate_payment(
 
 #### Show results
 
-Get the deploy URI to test your task deployment using `SwanAPI().get_real_uri()`.
+Get the deploy URI to test your deployed task using `SwanAPI().get_real_uri()`.
 
 ```python
 r = swan_api.get_real_url(task_uuid)
@@ -284,11 +288,11 @@ Simple output
 
 
 ## Examples
-For executable examples consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/examples
+For executable examples consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1/examples
 
 ## Documentation
 
-For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs
+For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1/docs
 
 ## License
 
