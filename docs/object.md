@@ -27,13 +27,13 @@ class HardwareConfig:
 
 Individual attribute of a hardware can be retrieved from variables within the `HardwareConfig` class.
 
-Hardware Attributes:
-id: Hardware id on Orchestrator, each hardware have an unique id.\
-name: Hardware name related to the id, e.g. 'C1ae.small'.\
-description: Detailed description of given hardware.\
-type: There are two hardware type 'CPU' or 'GPU' on Orchestrator.
-region: All the avaliable region stored in python `list[]`.
-price: Currently price per hour.
-status: Avaliability status of a hardware. 
+Hardware Attributes:\
+- id: Hardware id on Orchestrator, each hardware have an unique id.
+- name: Hardware name related to the id, e.g. 'C1ae.small'.
+- description: Detailed description of given hardware. 
+- type: There are two hardware type 'CPU' or 'GPU' on Orchestrator.
+- region: All the avaliable region stored in python `list[]`.
+- price: Currently price per hour.
+- status: Avaliability status of a hardware. 
 
 HardwareConfig contains `to_dict()` and `to_json()` functions to output all attributes in python dictionary or json format.
