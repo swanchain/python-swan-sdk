@@ -154,7 +154,7 @@ print(chosen_hardware.price) # current hardware price
 print(chosen_hardware.status) # overall hardware avaliablility
 ```
 
-More detials go oject documentation: 
+More detials go oject documentation: https://github.com/swanchain/python-swan-sdk/blob/release/v0.0.2.post1/docs/object.md
 
 ### 5. Get job_source_uri
 
