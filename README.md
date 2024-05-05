@@ -29,7 +29,7 @@
 
 The PYTHON SWAN SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API. Tailored for developers, this SDK simplifies the creation and management of computational tasks (CP tasks), making it an indispensable tool for developers working in various tech domains.
 
-GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2
+GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/main
 
 ## Features
 
@@ -42,7 +42,7 @@ GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2
 
 Setting up the PYTHON SWAN SDK is straightforward.
 
-To use Python Swan SDK, use Python 3.8 or later. Earlier versions are not supported.
+To use Python Swan SDK, use **Python 3.8 or later** and **web3.py 6.15 or later**. Earlier versions are not supported.
 
 **Install via PyPI:**
 
@@ -54,7 +54,7 @@ pip install swan-sdk==0.0.2
 
 ```bash
 git clone https://github.com/swanchain/orchestrator-sdk.git
-git checkout release/v0.0.2
+git checkout release/v0.0.2-1
 ```
 
 ## Use Python dotenv
@@ -62,7 +62,7 @@ git checkout release/v0.0.2
 It is recommended to store your important personal information in configuration or as environmental variables. Python dotenv allows loading environment variables from `.env` files for easier access and better security.
 
 python-dotenv package: https://pypi.org/project/python-dotenv/ \
-Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2/docs/configuration.md
+Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2-1/docs/configuration.md
 
 ## Quick Start Guide for Swan SDK
 
@@ -93,31 +93,28 @@ swan_api = SwanAPI(api_key="<your_api_key>")
 Orchestrator provides a selection of Computing Providers with different hardware.
 Use `SwanAPI().get_hardware_config()` to retrieve all available hardware on Orchestrator.
 
-Each hardware is stored in `HardwareConfig()` object.
-
-```python
-from the swan.object import HardwareConfig
-```
-
 Hardware config contains a unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, available region and current status.
 
 See all available hardware in a Python dictionary:
 
 ```python
 hardwares = swan_api.get_hardware_config()
-hardwares_info = [hardware.to_dict() for hardware in hardwares if hardware.status == "available"] 
-hardwares_info
+hardwares_info = [hardware for hardware in hardwares if hardware.status == "available"]
+print(hardwares_info.to_dict())
 ```
+You can use 
+```python
+from swan.object import HardwareConfig
+```
+to check the hardware information like this:
+- `HardwareConfig().status` shows the availability of the hardware.
+- `HardwareConfig().region` is a list of all regions this hardware is available in.
 
-`HardwareConfig().status` shows the availability of the hardware.
-`HardwareConfig().region` is a list of all regions this hardware is available in.
-
-Retrieve the hardware with hardware ID 0:
-
+Useful example: Retrieve the hardware with hardware ID 0:
 ```python
 hardwares = swan_api.get_hardware_config()
-chosen_hardware = [hardware for hardware in hardware if hardware.id == 0]
-chosen_hardware.to_dict()
+chosen_hardware = [hardware for hardware in hardwares if hardware.id == 0][0]
+print(chosen_hardware.to_dict())
 ```
 
 Sample output:
@@ -148,21 +145,44 @@ job_source_uri = swan_api.get_source_uri(
 )
 
 job_source_uri = job_source_uri['data']['job_source_uri']
+print(job_source_uri)
 ```
 
-### 5. Create Task
+### 5. Connect to Swan Payment Contract
+
+Payment of Orchestrator deployment is paid through the Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
+
+```python
+from swan.contract.swan_contract import SwanContract
+
+contract = SwanContract('<your_private_key>', swan_api.contract_info)
+```
+
+### 6. Estimate Payment Amount
+
+To estimate the payment required for the deployment. Use `SwanContract().estiamte_payment()`
+
+```python
+duration_hour = 1 # or duration you want the deployment to run
+amount = contract.estimate_payment(chosen_hardware.id, duration_hour)
+print(amount) # amount is in wei, 18 decimals
+```
+
+### 7. Create Task
 
 Before paying for the task. First, create a task on Orchestrator using desired task attributes.
 
 ```python
 import json
 
+duration_hour = 1
+# Notice that from here, you need to convert the duration to seconds
 duration = 3600*duration_hour
 cfg_name = chosen_hardware.name
 
 result = swan_api.create_task(
     cfg_name=cfg_name, 
-    region='<region_name>', 
+    region='<region_name>', # e.g. 'North Carolina-US' or chosen_hardware.region[0]
     start_in=300,  # in seconds
     duration=duration, 
     job_source_uri=job_source_uri, #repo.source_uri
@@ -196,34 +216,19 @@ Sample output:
 }
 ```
 
-The `task['uuid']` will be used in the following operations.
+**The `task['uuid']` will be used in the following operations.**
 
-### 6. Connect to Swan Payment Contract
 
-Payment of Orchestrator deployment is paid through the Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
-
-```python
-from swan.contract.swan_contract import SwanContract
-
-contract = SwanContract('<your_private_key>', swan_api.contract_info)
-```
-
-### 7. Estimate Payment Amount
-
-To estimate the payment required for the deployment. Use `SwanContract().estiamte_payment()`
-
-```python
-duration_hour = 1 # or duration you want the deployment to run
-amount = contract.estimate_payment(chosen_hardware.id, duration_hour)
-amount # amount is in wei, 18 decimals
-```
 
 ### 8. Submit Payment
+
+- **If you got error about insufficient balance, please make sure you have enough balance in your wallet.**
+- *If you have Error like "to_wei() does not exist", please make sure you have web3.py 6.15 or later.*
 
 Use `SwanContract().submit_payment()` to pay for the task. The TX hash is the receipt for the payment.
 
 ```python
-tx_hash = contract.submit_payment(task_uuid, hardware_id, duration)
+tx_hash = contract.submit_payment(task_uuid, chosen_hardware.id, duration) # duration in seconds
 ```
 
 ### 9. Validate Payment to Deploy Task
