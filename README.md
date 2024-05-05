@@ -126,7 +126,7 @@ Retrieve the hardware with hardware ID 0:
 
 ```python
 hardwares = swan_api.get_hardware_config()
-chosen_hardware = [hardware for hardware in hardware if hardware.id == 0][0]
+chosen_hardware = [hardware for hardware in hardwares if hardware.id == 0][0]
 chosen_hardware.to_dict()
 ```
 
