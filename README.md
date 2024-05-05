@@ -47,14 +47,13 @@ To use Python Swan SDK, use **Python 3.8 or later** and **web3.py 6.15 or later*
 **Install via PyPI:**
 
 ```bash
-pip install swan-sdk==0.0.2
+pip install swan-sdk==0.0.2.post2
 ```
 
 **Clone from GitHub:**
 
 ```bash
 git clone https://github.com/swanchain/orchestrator-sdk.git
-git checkout release/v0.0.2-1
 ```
 
 ## Use Python dotenv
@@ -62,7 +61,7 @@ git checkout release/v0.0.2-1
 It is recommended to store your important personal information in configuration or as environmental variables. Python dotenv allows loading environment variables from `.env` files for easier access and better security.
 
 python-dotenv package: https://pypi.org/project/python-dotenv/ \
-Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2-1/docs/configuration.md
+Detailed instructions: https://github.com/swanchain/python-swan-sdk/tree/main/docs/configuration.md
 
 ## Quick Start Guide for Swan SDK
 
@@ -131,12 +130,12 @@ print(chosen_hardware.id) # hardware id
 print(chosen_hardware.name) # hardware name
 print(chosen_hardware.description) # hardware description
 print(chosen_hardware.type) # hardware type
-print(chosen_hardware.region) # all avaliable hardware region
+print(chosen_hardware.region) # all available hardware region
 print(chosen_hardware.price) # current hardware price
-print(chosen_hardware.status) # overall hardware avaliablility
+print(chosen_hardware.status) # overall hardware availability
 ```
 
-More detials go oject documentation: https://github.com/swanchain/python-swan-sdk/blob/release/v0.0.2.post1/docs/object.md
+For more details go to project documentation: https://github.com/swanchain/python-swan-sdk/blob/main/docs/object.md
 
 Useful example: Retrieve the hardware with hardware ID 0:
 ```python
@@ -189,7 +188,7 @@ print(amount) # amount is in wei, 18 decimals
 
 ### 7. Create Task
 
-Before paying for the task. First, create a task on Orchestrator using desired task attributes.
+Before paying for the task, first, create a task on Orchestrator using desired task attributes.
 
 ```python
 import json
@@ -241,7 +240,7 @@ Sample output:
 
 ### 8. Submit Payment
 
-- **If you got error about insufficient balance, please make sure you have enough balance in your wallet.**
+- **If you got any error about insufficient balance, please make sure you have enough balance in your wallet.**
 - *If you have Error like "to_wei() does not exist", please make sure you have web3.py 6.15 or later.*
 
 Use `SwanContract().submit_payment()` to pay for the task. The TX hash is the receipt for the payment.
