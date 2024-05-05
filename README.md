@@ -13,7 +13,7 @@
   1. [Get Orchestrator API Key](#1-get-orchestrator-api-key)
   2. [Login to Orchestrator](#2-login-into-Orchestrator-through-sdk)
   3. [Use Swan Payment Contract](#3-connect-to-swan-payment-contract)
-  4. [Retrieve CP Hardware Info](#4-retrieve-avaliable-hardware-informaitons)
+  4. [Retrieve CP Hardware Info](#4-retrieve-available-hardware-information)
   5. [Get Job Source URI](#5-get-job_source_uri)
   6. [Esitmate Task Payment](#6-esitmate-payment-amount)
   7. [Create Task](#7-create-task)
