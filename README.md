@@ -12,10 +12,10 @@
 - [Quick Guide](#quick-start-guide-sdk-v2)
   1. [Get Orchestrator API Key](#1-get-orchestrator-api-key)
   2. [Login to Orchestrator](#2-login-into-Orchestrator-through-sdk)
-  3. [Retrieve CP Hardware Info](#3-retrieve-avaliable-hardware-informaitons)
-  4. [Get Job Source URI](#4-get-job_source_uri)
-  5. [Use Swan Payment Contract](#5-connect-to-swan-payment-contract)
-  6. [Estimate Task Payment](#6-esitmate-payment-amount)
+  3. [Use Swan Payment Contract](#3-connect-to-swan-payment-contract)
+  4. [Retrieve CP Hardware Info](#4-retrieve-available-hardware-information)
+  5. [Get Job Source URI](#5-get-job_source_uri)
+  6. [Esitmate Task Payment](#6-esitmate-payment-amount)
   7. [Create Task](#7-create-task)
   8. [Submit Payment](#8-submit-payment)
   9. [Validate Payment and Deploy Task](#9-validate-payment-to-deploy-task)
@@ -87,12 +87,28 @@ from swan import SwanAPI
 
 swan_api = SwanAPI(api_key="<your_api_key>")
 ```
+### 3. Connect to Swan Payment Contract
 
-### 3. Retrieve available hardware information
+Payment of Orchestrator deployment is paid through the Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
+**Notice: This won't be used until you're trying to Estimate Payment Amount, however, it's still recommended to do this step here to make sure that you can get all contract information before you move on**
+
+```python
+from swan.contract.swan_contract import SwanContract
+
+contract = SwanContract('<your_private_key>', swan_api.contract_info)
+```
+
+
+### 4. Retrieve available hardware information
 
 Orchestrator provides a selection of Computing Providers with different hardware.
 Use `SwanAPI().get_hardware_config()` to retrieve all available hardware on Orchestrator.
 
+Each hardware is stored as an instance of `HardwareConfig()` object. 
+
+```python
+from swan.object import HardwareConfig
+```
 Hardware config contains a unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, available region and current status.
 
 See all available hardware in a Python dictionary:
@@ -109,6 +125,18 @@ from swan.object import HardwareConfig
 to check the hardware information like this:
 - `HardwareConfig().status` shows the availability of the hardware.
 - `HardwareConfig().region` is a list of all regions this hardware is available in.
+- Retrieve individual hardware attributes:
+```python
+print(chosen_hardware.id) # hardware id
+print(chosen_hardware.name) # hardware name
+print(chosen_hardware.description) # hardware description
+print(chosen_hardware.type) # hardware type
+print(chosen_hardware.region) # all avaliable hardware region
+print(chosen_hardware.price) # current hardware price
+print(chosen_hardware.status) # overall hardware avaliablility
+```
+
+More detials go oject documentation: https://github.com/swanchain/python-swan-sdk/blob/release/v0.0.2.post1/docs/object.md
 
 Useful example: Retrieve the hardware with hardware ID 0:
 ```python
@@ -130,7 +158,8 @@ Sample output:
 }
 ```
 
-### 4. Get job_source_uri
+
+### 5. Get job_source_uri
 
 `job_source_uri` can be create through `SwanAPI().get_source_uri()` API.
 
@@ -146,16 +175,6 @@ job_source_uri = swan_api.get_source_uri(
 
 job_source_uri = job_source_uri['data']['job_source_uri']
 print(job_source_uri)
-```
-
-### 5. Connect to Swan Payment Contract
-
-Payment of Orchestrator deployment is paid through the Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
-
-```python
-from swan.contract.swan_contract import SwanContract
-
-contract = SwanContract('<your_private_key>', swan_api.contract_info)
 ```
 
 ### 6. Estimate Payment Amount

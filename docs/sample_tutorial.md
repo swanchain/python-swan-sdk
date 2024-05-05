@@ -5,7 +5,7 @@ Jump into using the SDK with this quick example:
 1. [Get Orchestrator API Key](#1-get-orchestrator-api-key)
 2. [Login to Orchestrator](#2-login-into-orchestrator-through-sdk)
 3. [Use Swan Payment Contract](#3-connect-to-swan-payment-contract)
-4. [Retrieve CP Hardware Info](#4-retrieve-avaliable-hardware-informaitons)
+4. [Retrieve CP Hardware Info](#4-retrieve-available-hardware-information)
 5. [Get Job Source URI](#5-get-job_source_uri)
 6. [Esitmate Task Payment](#6-esitmate-payment-amount)
 7. [Create Task](#7-create-task)
@@ -48,7 +48,7 @@ contract = SwanContract('<your_private_key>', swan_api.contract_info)
 Orchestrator provides a selection of Computing Providers with different hardware.
 Use `SwanAPI().get_hardware_config()` to retrieve all available hardware on Orchestrator.
 
-Each hardware is stored in `HardwareConfig()` object.
+Each hardware is stored as an instance of `HardwareConfig()` object. 
 
 ```python
 from swan.object import HardwareConfig
@@ -87,6 +87,19 @@ Sample output:
  'status': 'available'
 }
 ```
+
+Retrieve individual hardware attributes:
+```python
+print(chosen_hardware.id) # hardware id
+print(chosen_hardware.name) # hardware name
+print(chosen_hardware.description) # hardware description
+print(chosen_hardware.type) # hardware type
+print(chosen_hardware.region) # all avaliable hardware region
+print(chosen_hardware.price) # current hardware price
+print(chosen_hardware.status) # overall hardware avaliablility
+```
+
+More detials go oject documentation: https://github.com/swanchain/python-swan-sdk/blob/release/v0.0.2.post1/docs/object.md
 
 ### 5. Get job_source_uri
 
