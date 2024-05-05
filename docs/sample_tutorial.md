@@ -2,8 +2,8 @@
 Jump into using the SDK with this quick example:
 
 ## Table Of Contents
-1. [Get SwanHub API Key](#1-get-swanhub-api-key)
-2. [Login to SwanHub](#2-login-into-swanhub-through-sdk)
+1. [Get Orchestrator API Key](#1-get-orchestrator-api-key)
+2. [Login to Orchestrator](#2-login-into-orchestrator-through-sdk)
 3. [Use Swan Payment Contract](#3-connect-to-swan-payment-contract)
 4. [Retrieve CP Hardware Info](#4-retrieve-avaliable-hardware-informaitons)
 5. [Get Job Source URI](#5-get-job_source_uri)
@@ -13,18 +13,18 @@ Jump into using the SDK with this quick example:
 9. [Validate Payment and Delpoy Task](#9-validate-payment-to-deploy-task)
 10. [Follow Up Deployed Task Status (Optional)](#10-follow-up-task-status-optional)
 
-### 1. Get SwanHub API Key
+### 1. Get Orchestrator API Key
 
-To use `swan-sdk` SwanHub API key is required. 
+To use `swan-sdk` Orchestrator API key is required. 
 - Go to Swan Dashboard: https://orchestrator.swanchain.io/provider-status
 - Login through MetaMask.
 - Click the user icon on top right.
 - Click 'Show API-Key' -> 'New API Key'
 - Store your API Key safely, do not share with others.
 
-### 2. Login into SwanHub Through SDK
+### 2. Login into Orchestrator Through SDK
 
-To use `swan-sdk` you will need to login to SwanHub using API Key. (Wallet login is not supported)
+To use `swan-sdk` you will need to login to Orchestrator using API Key. (Wallet login is not supported)
 
 ```python
 from swan import SwanAPI
@@ -34,7 +34,7 @@ swan_api = SwanAPI(api_key="<your_api_key>")
 
 ### 3. Connect to Swan Payment Contract
 
-Payment of SwanHub deployment is paid through Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
+Payment of Orchestrator deployment is paid through Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
 ```python
 from swan.contract.swan_contract import SwanContract
 
@@ -43,8 +43,8 @@ contract = SwanContract('<your_private_key>', swan_api.contract_info)
 
 ### 4. Retrieve Avaliable Hardware Informaitons
 
-SwanHub provides selection of Computing Providers with different hardwares.
-Use `SwanAPI().get_hardware_config()` to retrieve all avaliable hardwares on SwanHub.
+Orchestrator provides selection of Computing Providers with different hardwares.
+Use `SwanAPI().get_hardware_config()` to retrieve all avaliable hardwares on Orchestrator.
 
 Each hardware is stored in `HardwareConfig()` object.
 ```python
@@ -108,7 +108,7 @@ amount # amount is in wei, 18 decimals
 
 ### 7. Create Task
 
-Before paying for the task. First create a task on SwanHub using desired task attributes.
+Before paying for the task. First create a task on Orchestrator using desired task attributes.
 ```python
 import json
 

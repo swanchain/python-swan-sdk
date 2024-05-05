@@ -126,7 +126,7 @@ Retrieve the hardware with hardware ID 0:
 
 ```python
 hardwares = swan_api.get_hardware_config()
-chosen_hardware = [hardware for hardware in hardware if hardware.id == 0]
+chosen_hardware = [hardware for hardware in hardware if hardware.id == 0][0]
 chosen_hardware.to_dict()
 ```
 
@@ -241,7 +241,7 @@ swan_api.validate_payment(
 
 #### Show results
 
-Get the deploy URI to test your task deployment using `SwanAPI().get_real_uri()`.
+Get the deploy URI to test your deployed task using `SwanAPI().get_real_uri()`.
 
 ```python
 r = swan_api.get_real_url(task_uuid)
