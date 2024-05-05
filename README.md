@@ -106,7 +106,7 @@ Use `SwanAPI().get_hardware_config()` to retrieve all available hardware on Orch
 Each hardware is stored in `HardwareConfig()` object.
 
 ```python
-from the swan.object import HardwareConfig
+from swan.object import HardwareConfig
 ```
 
 Hardware config contains a unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, available region and current status.
