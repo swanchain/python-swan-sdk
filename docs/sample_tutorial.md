@@ -15,10 +15,11 @@ Jump into using the SDK with this quick example:
 
 ### 1. Get Orchestrator API Key
 
-To use `swan-sdk` Orchestrator API key is required. 
-- Go to Swan Dashboard: https://orchestrator.swanchain.io/provider-status
+To use `swan-sdk`, an Orchestrator API key is required. 
+
+- Go to Orchestrator Dashboard: https://orchestrator.swanchain.io/provider-status
 - Login through MetaMask.
-- Click the user icon on top right.
+- Click the user icon on the top right.
 - Click 'Show API-Key' -> 'New API Key'
 - Store your API Key safely, do not share with others.
 
@@ -34,43 +35,48 @@ swan_api = SwanAPI(api_key="<your_api_key>")
 
 ### 3. Connect to Swan Payment Contract
 
-Payment of Orchestrator deployment is paid through Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
+Payment of Orchestrator deployment is paid through the Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
+
 ```python
 from swan.contract.swan_contract import SwanContract
 
 contract = SwanContract('<your_private_key>', swan_api.contract_info)
 ```
 
-### 4. Retrieve Avaliable Hardware Informaitons
+### 4. Retrieve available hardware information
 
-Orchestrator provides selection of Computing Providers with different hardwares.
-Use `SwanAPI().get_hardware_config()` to retrieve all avaliable hardwares on Orchestrator.
+Orchestrator provides a selection of Computing Providers with different hardware.
+Use `SwanAPI().get_hardware_config()` to retrieve all available hardware on Orchestrator.
 
 Each hardware is stored in `HardwareConfig()` object.
+
 ```python
 from swan.object import HardwareConfig
 ```
 
-Hardware config contains an unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, avaliable region and current status.
+Hardware config contains a unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, available region and current status.
 
-See all avaliable hardware in a python dictionary:
+See all available hardware in a Python dictionary:
+
 ```python
-
 hardwares = swan_api.get_hardware_config()
 hardwares_info = [hardware.to_dict() for hardware in hardwares if hardware.status == "available"] 
 hardwares_info
 ```
-`HardwareConfig().status` shows the avalibility of the hardware.
-`HardwareConfig().region` is a list of all region this hardware is avaliable in.
 
-Retrieve the hardware with hardware id 0:
+`HardwareConfig().status` shows the availability of the hardware.
+`HardwareConfig().region` is a list of all regions this hardware is available in.
+
+Retrieve the hardware with hardware ID 0:
+
 ```python
 hardwares = swan_api.get_hardware_config()
-chosen_hardware = [hardware for hardware in hardwares if hardware.id == 0]
+chosen_hardware = [hardware for hardware in hardwares if hardware.id == 0][0]
 chosen_hardware.to_dict()
 ```
 
 Sample output:
+
 ```
 {'id': 0,
  'name': 'C1ae.small',
@@ -88,6 +94,7 @@ Sample output:
 
 Generate a source URI
 A demo tetris docker image on GitHub as repo_uri: 'https://github.com/alphaflows/tetris-docker-image.git'
+
 ```python
 job_source_uri = swan_api.get_source_uri(
     repo_uri='<your_git_hub_link/your_lagrange_space_link>',
@@ -98,8 +105,10 @@ job_source_uri = swan_api.get_source_uri(
 job_source_uri = job_source_uri['data']['job_source_uri']
 ```
 
-### 6. Esitmate Payment Amount
+### 6. Estimate Payment Amount
+
 To estimate the payment required for the deployment. Use `SwanContract().estiamte_payment()`
+
 ```python
 duration_hour = 1 # or duration you want the deployment to run
 amount = contract.estimate_payment(chosen_hardware.id, duration_hour)
@@ -108,7 +117,8 @@ amount # amount is in wei, 18 decimals
 
 ### 7. Create Task
 
-Before paying for the task. First create a task on Orchestrator using desired task attributes.
+Before paying for the task. First, create a task on Orchestrator using desired task attributes.
+
 ```python
 import json
 
@@ -130,6 +140,7 @@ print(json.dumps(result, indent=2)) # Print response
 ```
 
 Sample output:
+
 ```
 {
   "data": {
@@ -150,18 +161,24 @@ Sample output:
 }
 ```
 
-The `task['uuid']` will be used in following operations.
+The `task['uuid']` will be used in the following operations.
 
 ### 8. Submit Payment
 
 Use `SwanContract().submit_payment()` to pay for the task. The TX hash is the receipt for the payment.
+
 ```python
-tx_hash = contract.submit_payment(task_uuid, hardware_id, duration)
+tx_hash = contract.submit_payment(
+    task_uuid=task_uuid, 
+    hardware_id=chosen_hardware.id, 
+    duration=duration
+)
 ```
 
 ### 9. Validate Payment to Deploy Task
 
 Use `SwanAPI().validate_payment()` to validate the payment using TX hash and deploy the task.
+
 ```python
 swan_api.validate_payment(
     tx_hash=tx_hash,
@@ -169,11 +186,12 @@ swan_api.validate_payment(
 )
 ```
 
-### 10. Follow up Task Status (Optional)
+### 10. Follow-up Task Status (Optional)
 
 #### Show results
 
-Get the deploy URI to test your task deployment using `SwanAPI().get_real_uri()`.
+Get the deploy URI to test your deployed task using `SwanAPI().get_real_uri()`.
+
 ```python
 r = swan_api.get_real_url(task_uuid)
 print(r)
