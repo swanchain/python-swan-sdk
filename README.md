@@ -223,7 +223,11 @@ The `task['uuid']` will be used in the following operations.
 Use `SwanContract().submit_payment()` to pay for the task. The TX hash is the receipt for the payment.
 
 ```python
-tx_hash = contract.submit_payment(task_uuid, hardware_id, duration)
+tx_hash = contract.submit_payment(
+    task_uuid=task_uuid, 
+    hardware_id=chosen_hardware.id, 
+    duration=duration
+)
 ```
 
 ### 9. Validate Payment to Deploy Task
