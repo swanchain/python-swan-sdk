@@ -47,7 +47,7 @@ To use Python Swan SDK, use **Python 3.8 or later** and **web3.py 6.15 or later*
 **Install via PyPI:**
 
 ```bash
-pip install swan-sdk==0.0.2.post2
+pip install swan-sdk==0.0.2
 ```
 
 **Clone from GitHub:**
