@@ -16,8 +16,8 @@ class SwanAPI(APIClient):
         """Initialize user configuration and login.
 
         Args:
-            api_key: SwanHub API key, generated through website
-            login: Login into Swanhub or Not
+            api_key: Orchestrator API key, generated through website
+            login: Login into Orchestrator or Not
             environment: Selected server 'production/calibration'
         """
         self.token = None
@@ -33,10 +33,10 @@ class SwanAPI(APIClient):
             self.get_contract_info(verification)
 
     def api_key_login(self):
-        """Login with SwanHub API Key.
+        """Login with Orchestrator API Key.
 
         Returns:
-            A str access token for further SwanHub API access in
+            A str access token for further Orchestrator API access in
             current session.
         """
         params = {"api_key": self.api_key}

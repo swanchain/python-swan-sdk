@@ -8,8 +8,8 @@ with open("README.md", "r") as fh:
 
 setup(
         name="orchestrator-sdk",
-        version="0.0.2",
-        packages=['swan.api', 'swan.common', 'swan.contract', 'swan.object', 'swan.contract.abi'],
+        version="0.0.2.post1",
+        packages=['swan', 'swan.api', 'swan.common', 'swan.contract', 'swan.object', 'swan.contract.abi'],
         # package_data={'swan.contract.abi': ['swan/contract/abi/PaymentContract.json', 'swan/contract/abi/SwanToken.json']},
         include_package_data=True,
         description="A python developer tool kit for Swan Orchestrator services.",

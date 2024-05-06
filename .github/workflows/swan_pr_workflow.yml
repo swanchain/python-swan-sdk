@@ -1,5 +1,5 @@
-# GitHub action file for SwanHub SDK
-name: SwanHub SDK Application Workflow
+# GitHub action file for Swan SDK
+name: Swan SDK Application Workflow
 
 # Triggers the workflow on push or pull request
 on:
@@ -151,7 +151,7 @@ jobs:
           server_port: 587
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: SwanHub SDK PR Review Notification
+          subject: Swan SDK PR Review Notification
           # You can customize the body based on success or failure of previous jobs
           body: |
             body: Build ${{ env.BUILD_STATUS }}. Please review the PR.
