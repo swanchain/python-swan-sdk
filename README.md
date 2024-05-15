@@ -3,9 +3,8 @@
 [![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/) 
 [![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/swanchain)
 
-## Table Of Contents
+## Table Of Contents<!-- omit in toc -->
 
-- [Table Of Contents](#table-of-contents)
 - [Overview](#overview)
 - [Features](#features)
 - [Installation](#installation)
