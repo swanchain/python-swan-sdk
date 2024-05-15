@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
  
 setup(
         name="swan-sdk",
-        version="0.0.3",
+        version="0.0.3.post1",
         packages=['swan', 'swan.api', 'swan.common', 'swan.contract', 'swan.object', 'swan.contract.abi'],
         # package_data={'swan.contract.abi': ['swan/contract/abi/PaymentContract.json', 'swan/contract/abi/SwanToken.json']},
         include_package_data=True,

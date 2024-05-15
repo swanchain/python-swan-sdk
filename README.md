@@ -309,11 +309,11 @@ Simple output
 
 ## Examples
 
-For executable examples consult [examples](./examples/).
+For executable examples consult [examples](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.3.post1/examples).
 
 ## Documentation
 
-For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult [more docs](./docs/)
+For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult [more docs](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.3.post1/docs)
 
 ## License
 
