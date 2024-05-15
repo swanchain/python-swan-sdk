@@ -1,8 +1,8 @@
-# Swan SDK Object Documentation
+# Swan SDK Object Documentation <!-- omit in toc -->
 
-## Table Of Contents
+## Table Of Contents<!-- omit in toc -->
 - [Introduction](#introduction)
-- [Hardware Config](#hardwareconfig)
+- [HardwareConfig](#hardwareconfig)
 
 ## Introduction
 

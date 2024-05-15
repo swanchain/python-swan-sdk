@@ -1,9 +1,9 @@
-# Install Python Swan SDK
+# Install Python Swan SDK<!-- omit in toc -->
 
-## Table Of Contents
-- [Create Virtual Env](#create-virtual-environment)
-- [Install from PyPI](#install-python-swan-sdk)
-- [Clone from GitHub](#clone-from-github)
+## Table Of Contents<!-- omit in toc -->
+- [Create Virtual Environment](#create-virtual-environment)
+- [Install via PyPI](#install-via-pypi)
+- [Clone from Github](#clone-from-github)
 
 
 ## Create Virtual Environment
