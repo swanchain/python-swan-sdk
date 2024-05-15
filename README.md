@@ -1,28 +1,29 @@
-# PYTHON SWAN SDK
+# PYTHON SWAN SDK <!-- omit in toc -->
 
 [![Made by FilSwan](https://img.shields.io/badge/made%20by-FilSwan-green.svg)](https://www.filswan.com/) 
 [![Chat on discord](https://img.shields.io/badge/join%20-discord-brightgreen.svg)](https://discord.com/invite/swanchain)
 
-## Table Of Contents
+## Table Of Contents<!-- omit in toc -->
 
 - [Overview](#overview)
 - [Features](#features)
 - [Installation](#installation)
-- [Use Python dotenv (Optional)](#use-python-dotenv)
-- [Quick Guide](#quick-start-guide-sdk-v2)
-  1. [Get Orchestrator API Key](#1-get-orchestrator-api-key)
-  2. [Login to Orchestrator](#2-login-into-Orchestrator-through-sdk)
-  3. [Use Swan Payment Contract](#3-connect-to-swan-payment-contract)
-  4. [Retrieve CP Hardware Info](#4-retrieve-available-hardware-information)
-  5. [Get Job Source URI](#5-get-job_source_uri)
-  6. [Esitmate Task Payment](#6-esitmate-payment-amount)
-  7. [Create Task](#7-create-task)
-  8. [Submit Payment](#8-submit-payment)
-  9. [Validate Payment and Deploy Task](#9-validate-payment-to-deploy-task)
-  10. [Follow-Up Deployed Task Status (Optional)](#10-follow-up-task-status-optional)
-- [Executable Example](#examples)
+- [Use Python dotenv](#use-python-dotenv)
+- [Quick Start Guide for Swan SDK](#quick-start-guide-for-swan-sdk)
+  - [1. Get Orchestrator API Key](#1-get-orchestrator-api-key)
+  - [2. Login into Orchestrator Through SDK](#2-login-into-orchestrator-through-sdk)
+  - [3. Connect to Swan Payment Contract](#3-connect-to-swan-payment-contract)
+  - [4. Retrieve available hardware information](#4-retrieve-available-hardware-information)
+  - [5. Get job\_source\_uri](#5-get-job_source_uri)
+  - [6. Estimate Payment Amount](#6-estimate-payment-amount)
+  - [7. Create Task](#7-create-task)
+  - [8. Submit Payment](#8-submit-payment)
+  - [9. Validate Payment to Deploy Task](#9-validate-payment-to-deploy-task)
+  - [10. Follow-up Task Status (Optional)](#10-follow-up-task-status-optional)
+    - [Show results](#show-results)
+    - [Show task details](#show-task-details)
+- [Examples](#examples)
 - [Documentation](#documentation)
-- [Contribution](#contributions)
 - [License](#license)
 
 ## Overview
@@ -47,13 +48,13 @@ To use Python Swan SDK, use **Python 3.8 or later** and **web3.py 6.15 or later*
 **Install via PyPI:**
 
 ```bash
-pip install swan-sdk==0.0.2
+pip install swan-sdk
 ```
 
 **Clone from GitHub:**
 
 ```bash
-git clone https://github.com/swanchain/orchestrator-sdk.git
+git clone https://github.com/swanchain/python-swan-sdk.git
 ```
 
 ## Use Python dotenv
@@ -307,11 +308,12 @@ Simple output
 
 
 ## Examples
-For executable examples consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1/examples
+
+For executable examples consult [examples](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.3.post1/examples).
 
 ## Documentation
 
-For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.2.post1/docs
+For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult [more docs](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.3.post1/docs)
 
 ## License
 

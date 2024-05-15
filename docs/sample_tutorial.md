@@ -1,23 +1,24 @@
-# Sample Tutorial for Swan SDK
+# Sample Tutorial for Swan SDK <!-- omit in toc -->
 Jump into using the SDK with this quick example:
 
-## Table Of Contents
-1. [Get Orchestrator API Key](#1-get-orchestrator-api-key)
-2. [Login to Orchestrator](#2-login-into-orchestrator-through-sdk)
-3. [Use Swan Payment Contract](#3-connect-to-swan-payment-contract)
-4. [Retrieve CP Hardware Info](#4-retrieve-available-hardware-information)
-5. [Get Job Source URI](#5-get-job_source_uri)
-6. [Esitmate Task Payment](#6-esitmate-payment-amount)
-7. [Create Task](#7-create-task)
-8. [Submit Payment](#8-submit-payment)
-9. [Validate Payment and Delpoy Task](#9-validate-payment-to-deploy-task)
-10. [Follow Up Deployed Task Status (Optional)](#10-follow-up-task-status-optional)
+## Table Of Contents<!-- omit in toc -->
+- [1. Get Orchestrator API Key](#1-get-orchestrator-api-key)
+- [2. Login into Orchestrator Through SDK](#2-login-into-orchestrator-through-sdk)
+- [3. Connect to Swan Payment Contract](#3-connect-to-swan-payment-contract)
+- [4. Retrieve available hardware information](#4-retrieve-available-hardware-information)
+- [5. Get job\_source\_uri](#5-get-job_source_uri)
+- [6. Estimate Payment Amount](#6-estimate-payment-amount)
+- [7. Create Task](#7-create-task)
+- [8. Submit Payment](#8-submit-payment)
+- [9. Validate Payment to Deploy Task](#9-validate-payment-to-deploy-task)
+- [10. Follow-up Task Status (Optional)](#10-follow-up-task-status-optional)
+  - [Show results](#show-results)
 
 ### 1. Get Orchestrator API Key
 
 To use `swan-sdk`, an Orchestrator API key is required. 
 
-- Go to Orchestrator Dashboard: https://orchestrator.swanchain.io/provider-status
+- Go to [Orchestrator Dashboard](https://orchestrator.swanchain.io/provider-status)
 - Login through MetaMask.
 - Click the user icon on the top right.
 - Click 'Show API-Key' -> 'New API Key'
@@ -99,7 +100,7 @@ print(chosen_hardware.price) # current hardware price
 print(chosen_hardware.status) # overall hardware avaliablility
 ```
 
-More detials go oject documentation: https://github.com/swanchain/python-swan-sdk/blob/release/v0.0.2.post1/docs/object.md
+More detials go [object documentation](./object.md).
 
 ### 5. Get job_source_uri
 
