@@ -1,6 +1,6 @@
-# Swan SDK Configuration
+# Swan SDK Configuration<!-- omit in toc -->
 
-## Table Of Contents
+## Table Of Contents<!-- omit in toc -->
 - [Introduction](#introduction)
 - [Use Python dotenv](#use-python-dotenv)
 
