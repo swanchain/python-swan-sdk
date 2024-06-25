@@ -19,7 +19,7 @@ class HardwareConfig:
             "name": self.name,
             "description": self.description,
             "type": self.type,
-            "reigion": self.region,
+            "region": self.region,
             "price": self.price,
             "status": self.status
         }

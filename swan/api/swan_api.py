@@ -1,6 +1,7 @@
 import logging
 import traceback
 import json
+import os
 
 from eth_account import Account
 from eth_account.messages import encode_defunct
@@ -9,6 +10,7 @@ from swan.api_client import APIClient
 from swan.common.constant import *
 from swan.object import HardwareConfig
 from swan.common.exception import SwanAPIException
+from swan.contract.swan_contract import SwanContract
 
 class SwanAPI(APIClient):
   
@@ -30,7 +32,12 @@ class SwanAPI(APIClient):
             self.swan_url = environment
         if login:
             self.api_key_login()
-            self.get_contract_info(verification)
+            if self.get_contract_info(verification):
+                self.contract = SwanContract(os.getenv('PK'), self.contract_info)
+    
+    def verify_contract(self, verification: bool = True):
+        if self.get_contract_info(verification):
+            self.contract = SwanContract(os.getenv('PK'), self.contract_info)
 
     def api_key_login(self):
         """Login with Orchestrator API Key.
@@ -104,7 +111,7 @@ class SwanAPI(APIClient):
                 'name': 'C1ae.small', 
                 'description': 'CPU only · 2 vCPU · 2 GiB', 
                 'type': 'CPU', 
-                'reigion': ['North Carolina-US'], 
+                'region': ['North Carolina-US'], 
                 'price': '0.0', 
                 'status': 'available'
             }
@@ -152,7 +159,66 @@ class SwanAPI(APIClient):
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
+    
+
+    def terminate_task(self, task_uuid: str):
+        """
+        Terminate a task
+
+        Args:
+            task_uuid: uuid of space task.
+
+        Returns:
+            JSON of terminated successfully or not
+        """
+        try:
+            params = {
+                "task_uuid": task_uuid
+            }
+
+            result = self._request_with_params(
+                    POST, 
+                    TERMINATE_TASK, 
+                    self.swan_url, 
+                    params, 
+                    self.token, 
+                    None
+                )
             
+            return result
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+
+
+    def claim_review(self, task_uuid: str):
+        """
+        Review the uptime of a task
+
+        Args:
+            task_uuid: uuid of space task.
+
+        Returns:
+            JSON of claim successfuly of not
+        """
+        try:
+            params = {
+                "task_uuid": task_uuid
+            }
+
+            result = self._request_with_params(
+                    POST, 
+                    CLAIM_REVIEW, 
+                    self.swan_url, 
+                    params, 
+                    self.token, 
+                    None
+                )
+            
+            return result
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
 
     def create_task(
             self,
@@ -205,12 +271,61 @@ class SwanAPI(APIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
 
+    def estimate_payment(self, hardware_id, duration_hour):
+        """Estimate required funds.
+
+        Args:
+            hardware_id: integer id of hardware, can be retrieve through Swan API.
+            duration: duration in hours for space runtime.
+        
+        Returns:
+            int estimated price in SWAN.
+            e.g. (price = 10 wei, duration = 1 hr) -> 10 SWAN
+        """
+        try:
+            if not self.contract:
+                raise SwanAPIException(f"No contract on record, please verify contract first.")
+            amount = self.contract.estimate_payment(hardware_id, duration_hour)
+            return self.contract._wei_to_swan(amount)
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+    
+    def submit_payment(self, task_uuid, hardware_id, duration):
+        """
+        Submit payment for a task
+
+        Args:
+            task_uuid: unique id returned by `swan_api.create_task`
+            hardware_id: id of cp/hardware configuration set
+            duration: duration of service runtime (seconds).
+
+        Returns:
+            tx_hash
+        """
+        try:
+            if not self.contract:
+                raise SwanAPIException(f"No contract on record, please verify contract first.")
+            return self.contract.submit_payment(task_uuid, hardware_id, duration)
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
 
     def validate_payment(
             self,
             tx_hash,
             task_uuid
         ):
+        """
+        Validate payment for a task on SWAN backend
+
+        Args:
+            tx_hash: tx_hash of submitted payment
+            task_uuid: unique id returned by `swan_api.create_task`
+
+        Returns:
+            JSON response from backend server including 'task_uuid'.
+        """
         
         try:
             if tx_hash and task_uuid:
@@ -233,7 +348,62 @@ class SwanAPI(APIClient):
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
+    
+    def make_payment(self, task_uuid, hardware_id, duration):
+        """
+        Submit payment for a task and validate it on SWAN backend
+
+        Args:
+            task_uuid: unique id returned by `swan_api.create_task`
+            hardware_id: id of cp/hardware configuration set
+            duration: duration of service runtime (seconds).
         
+        Returns:
+            JSON response from backend server including 'task_uuid'.
+        """
+        try:
+            tx_hash = self.submit_payment(task_uuid, hardware_id, duration)
+            res = self.validate_payment(tx_hash, task_uuid)
+            return res
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+    
+    def renew_task(self, task_uuid: str, hardware_id, duration):
+        """
+        Submit payment for a task renewal and renew a task
+
+        Args:
+            task_uuid: unique id returned by `swan_api.create_task`
+            hardware_id: id of cp/hardware configuration set
+            duration: duration of service runtime (seconds).
+        
+        Returns:
+            JSON response from backend server including 'task_uuid'.
+        """
+        try:
+            tx_hash = self.submit_payment(task_uuid, hardware_id, duration)
+            if tx_hash and task_uuid:
+                params = {
+                    "task_uuid": task_uuid,
+                    "duration": duration,
+                    "tx_hash": tx_hash
+                }
+
+                result = self._request_with_params(
+                        POST, 
+                        RENEW_TASK, 
+                        self.swan_url, 
+                        params, 
+                        self.token, 
+                        None
+                    )
+                return result
+            else:
+                raise SwanAPIException(f"{tx_hash=} or {task_uuid=} invalid")
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
         
     def deploy_lagrange_space_task(
             self, 
