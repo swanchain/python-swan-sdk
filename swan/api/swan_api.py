@@ -111,7 +111,7 @@ class SwanAPI(APIClient):
                 'name': 'C1ae.small', 
                 'description': 'CPU only · 2 vCPU · 2 GiB', 
                 'type': 'CPU', 
-                'reigion': ['North Carolina-US'], 
+                'region': ['North Carolina-US'], 
                 'price': '0.0', 
                 'status': 'available'
             }
