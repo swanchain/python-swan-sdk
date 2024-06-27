@@ -1,6 +1,6 @@
 # ./swan/common/constant.py
 
-SWAN_API = "https://orchestrator-api.swanchain.io"
+SWAN_API = "https://swanhub-cali.swanchain.io"
 
 # Swan API
 SWAN_APIKEY_LOGIN = "/login_by_api_key"
@@ -12,7 +12,8 @@ PROVIDER_PAYMENTS = "/provider/payments"
 CREATE_TASK = "/v2/task_deployment"
 TERMINATE_TASK = "/terminate_task"
 CLAIM_REVIEW = "/claim_review"
-RENEW_TASK = "/cp/extend_task"
+RENEW_TASK = "/v2/extend_task"
+PREMADE_IMAGE = "/util/example_code_mapping"
 
 GET_CONTRACT_INFO = "/contract_info"
 GET_ABI_VERSION = "/abi_version"
