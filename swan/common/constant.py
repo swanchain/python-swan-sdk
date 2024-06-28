@@ -4,8 +4,8 @@ SWAN_API = "https://orchestrator-api.swanchain.io"
 
 # Swan API
 SWAN_APIKEY_LOGIN = "/login_by_api_key"
-DEPLOY_TASK = "/v1/space_deployment"
-DEPLOYMENT_INFO = "/v1/space_deployment/"
+DEPLOY_TASK = "/v2/task_deployment"
+DEPLOYMENT_INFO = "/v2/task_deployment/"
 DEPLOYED_URL = "/v1/space_deploymnet/job_real_url"
 GET_CP_CONFIG = "/cp/machines"
 PROVIDER_PAYMENTS = "/provider/payments"

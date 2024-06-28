@@ -1,6 +1,7 @@
 import logging
 import traceback
 import json
+import time
 
 from eth_account import Account
 from eth_account.messages import encode_defunct
@@ -380,13 +381,11 @@ class SwanAPI(APIClient):
                     self.token, 
                     None
                 )
-                print(f" this is task_result {result}")
                 task_uuid = result['data']['task']['uuid']
             else:
                 raise SwanAPIException(f"No {cfg_name} machine in {region}.")
             
             if auto_pay:
-                print(task_uuid)
                 result = self.make_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
 
             result['id'] = task_uuid
@@ -487,13 +486,10 @@ class SwanAPI(APIClient):
                     self.token, 
                     None
                 )
-                print(f"the validate result is {result}")
                 return result
             else:
                 raise SwanAPIException(f"{tx_hash=} or {task_uuid=} invalid")
         except Exception as e:
-            print("here")
-            print(e)
             logging.error(str(e) + traceback.format_exc())
             return None
     
@@ -521,12 +517,9 @@ class SwanAPI(APIClient):
             if not self.contract_info:
                 raise SwanAPIException(f"No contract info on record, please verify contract first.")
             
-            print(f"the parameters before submit is {task_uuid}, {private_key}, {duration}, {hardware_id}")
             tx_hash = self.submit_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
-            print(f"the parameters after submit is {tx_hash}, {task_uuid}")
-            print(f"the parameters type after submit is {type(tx_hash)}, {type(tx_hash)}")
+            time.sleep(3)
             res = self.validate_payment(tx_hash=tx_hash, task_uuid=task_uuid)
-            print(res)
             res['tx_hash'] = tx_hash
             return res
         except Exception as e:

@@ -25,9 +25,6 @@ class APIClient(object):
             # body = json.dumps(params)
             response = requests.put(url, data=params, headers=header)
         elif method == POST:
-            print(url)
-            print(params)
-            print(token)
             if files:
                 body = params
                 response = requests.post(url, data=body, headers=header, files=files)
