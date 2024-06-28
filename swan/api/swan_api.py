@@ -36,7 +36,6 @@ class SwanAPI(APIClient):
         else:
             self.swan_url = url_endpoint
         if login:
-            print('here')
             self.api_key_login()
         if self.token:
             self.get_contract_info(verification)
@@ -284,6 +283,7 @@ class SwanAPI(APIClient):
 
     def create_task(
             self,
+            wallet_address, 
             image_name: str = "",
             job_source_uri: str = "", 
             repo_branch=None,
@@ -293,23 +293,23 @@ class SwanAPI(APIClient):
             region: str = "",
             start_in: int = 300, 
             duration: int = 3600, 
-            wallet_address = None, 
             auto_pay = None,
-            primary_key = None
+            private_key = None,
+            paid = 0.0
         ):
         """
         Create task via orchestrator.
 
         Args:
-            image_name: name of a demo space. 
-            job_source_uri: source uri for space.
+            wallet_address: user wallet address.
+            image_name: name of a demo space. (Default None, either image_name or job_source_uri must be passed in)
+            job_source_uri: source uri for space. (Default None, either image_name or job_source_uri must be passed in)
             hardware_id: id of cp/hardware configuration set. (Default = 0)
             region: region of hardware. (Default global)
             start_in: unix timestamp of starting time. (Default = 300)
             duration: duration of service runtime in seconds (Default = 3600).
-            wallet_address: user wallet address. (Default = "")
             auto_pay: Automatically pays to deploy task. If True, PK and WALLET must be in .env (Default = False)
-            primary_key: Wallet's primary key, only used if auto_pay is True
+            private_key: Wallet's private_key, only used if auto_pay is True
         
         Raises:
             SwanExceptionError: if neither image_name or job_source_uri is provided.
@@ -333,8 +333,8 @@ class SwanAPI(APIClient):
                     raise SwanAPIException(f"Invalid image_name")
                 
             if auto_pay:
-                if not primary_key:
-                    raise SwanAPIException(f"please provide primary_key if using auto_pay")
+                if not private_key:
+                    raise SwanAPIException(f"please provide private_key if using auto_pay")
 
             if hardware_id == -1:
                 hardware_id = self.hardware_id
@@ -360,7 +360,7 @@ class SwanAPI(APIClient):
             except Exception as e:
                 raise SwanAPIException(f"Invalid hardware_id selected")
             
-            paid = self.estimate_payment(duration/3600, hardware_id)
+            paid = self.estimate_payment(duration, hardware_id)
             
             if self._verify_hardware_region(cfg_name, region):
                 params = {
@@ -386,7 +386,7 @@ class SwanAPI(APIClient):
                 raise SwanAPIException(f"No {cfg_name} machine in {region}.")
             
             if auto_pay:
-                result = self.make_payment(task_uuid, duration=duration, primary_key=primary_key, hardware_id=hardware_id)
+                result = self.make_payment(task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
 
             result['id'] = task_uuid
             return result
@@ -395,7 +395,7 @@ class SwanAPI(APIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
 
-    def estimate_payment(self, duration_hour, hardware_id = None):
+    def estimate_payment(self, duration : float = 3600, hardware_id = None):
         """Estimate required funds.
 
         Args:
@@ -417,13 +417,15 @@ class SwanAPI(APIClient):
                     hardware_id = self.hardware_id
                 else:
                     raise SwanAPIException(f"Invalid hardware_id, please provide a hardware_id or set with set_config")
+            
+            duration_hour = duration/3600
             amount = contract.estimate_payment(hardware_id, duration_hour)
             return contract._wei_to_swan(amount)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
     
-    def submit_payment(self, task_uuid, duration, primary_key, hardware_id = None):
+    def submit_payment(self, task_uuid, private_key, duration = 3600, hardware_id = None):
         """
         Submit payment for a task
 
@@ -436,12 +438,12 @@ class SwanAPI(APIClient):
             tx_hash
         """
         try:
-            if not primary_key:
-                raise SwanAPIException(f"No primary_key provided.")
+            if not private_key:
+                raise SwanAPIException(f"No private_key provided.")
             if not self.contract_info:
                 raise SwanAPIException(f"No contract info on record, please verify contract first.")
             
-            contract = SwanContract(primary_key, self.contract_info)
+            contract = SwanContract(private_key, self.contract_info)
         
             if hardware_id == None:
                 if self.hardware_id != None:
@@ -476,7 +478,6 @@ class SwanAPI(APIClient):
                     "tx_hash": tx_hash,
                     "task_uuid": task_uuid
                 }
-                print(params)
                 result = self._request_with_params(
                     POST, 
                     '/v2/task_payment_validate', 
@@ -492,7 +493,7 @@ class SwanAPI(APIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
     
-    def make_payment(self, task_uuid, primary_key, duration=3600, hardware_id = None):
+    def make_payment(self, task_uuid, private_key, duration=3600, hardware_id = None):
         """
         Submit payment for a task and validate it on SWAN backend
 
@@ -511,19 +512,20 @@ class SwanAPI(APIClient):
                 else:
                     hardware_id = 0        
             
-            if not primary_key:
-                raise SwanAPIException(f"No primary_key provided.")
+            if not private_key:
+                raise SwanAPIException(f"No private_key provided.")
             if not self.contract_info:
                 raise SwanAPIException(f"No contract info on record, please verify contract first.")
             
-            tx_hash = self.submit_payment(task_uuid=task_uuid, duration=duration, primary_key=primary_key, hardware_id=hardware_id)
+            tx_hash = self.submit_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
             res = self.validate_payment(tx_hash=tx_hash, task_uuid=task_uuid)
+            res['tx_hash'] = tx_hash
             return res
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
     
-    def renew_task(self, task_uuid: str, duration, primary_key, hardware_id = None):
+    def renew_task(self, task_uuid: str, duration = 3600, tx_hash = "", auto_pay = False, private_key = None, hardware_id = None):
         """
         Submit payment for a task renewal and renew a task
 
@@ -541,8 +543,13 @@ class SwanAPI(APIClient):
                     hardware_id = self.hardware_id
                 else:
                     raise SwanAPIException(f"Invalid hardware_id, please provide a hardware_id or set with set_config")        
+            
+            if not (auto_pay and private_key) and not tx_hash:
+                raise SwanAPIException(f"auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
 
-            tx_hash = self.submit_payment(task_uuid=task_uuid, duration=duration, primary_key=primary_key, hardware_id=hardware_id)
+            if not tx_hash:
+                tx_hash = self.submit_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
+            
             if tx_hash and task_uuid:
                 params = {
                     "task_uuid": task_uuid,

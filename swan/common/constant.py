@@ -1,6 +1,6 @@
 # ./swan/common/constant.py
 
-SWAN_API = "https://swanhub-cali.swanchain.io"
+SWAN_API = "https://orchestrator-api.swanchain.io"
 
 # Swan API
 SWAN_APIKEY_LOGIN = "/login_by_api_key"

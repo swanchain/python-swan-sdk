@@ -43,6 +43,7 @@ class Session:
             current session.
         """
         params = {"api_key": self.api_key}
+        print(self.api_key, self.login_url)
         try:
             result = self.api_client._request_with_params(
                 POST, SWAN_APIKEY_LOGIN, self.login_url, params, None, None
@@ -58,6 +59,8 @@ class Session:
     
     # login = False, because should already be logged into session
     def resource(self, service_name: str, login=False, url_endpoint=None, verification=True):
+        if url_endpoint == None:
+            url_endpoint = self.login_url
         if service_name.lower() == 'orchestrator':
             resource = SwanAPI(api_key=self.api_key, url_endpoint=url_endpoint, token=self.token, login=login, verification=verification)
         

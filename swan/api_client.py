@@ -14,6 +14,8 @@ class APIClient(object):
         if method == GET:
             request_path = request_path + utils.parse_params_to_str(params)
         url = swan_api + request_path
+        print(url)
+        print(params)
         header = {}
         if token:
             header["Authorization"] = "Bearer " + token
