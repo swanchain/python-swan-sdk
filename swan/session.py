@@ -43,7 +43,6 @@ class Session:
             current session.
         """
         params = {"api_key": self.api_key}
-        print(self.api_key, self.login_url)
         try:
             result = self.api_client._request_with_params(
                 POST, SWAN_APIKEY_LOGIN, self.login_url, params, None, None
