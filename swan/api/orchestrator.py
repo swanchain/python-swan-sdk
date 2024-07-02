@@ -238,15 +238,23 @@ class Orchestrator(APIClient):
             return None
     
     def get_premade_image(self, name: str = ""):
-        params = {"name": name}
-        return self._request_with_params(
-                    GET, 
-                    PREMADE_IMAGE, 
-                    self.swan_url, 
-                    params, 
-                    self.token, 
-                    None
-                )
+        if not name:
+            return self._request_without_params(
+                GET, 
+                PREMADE_IMAGE, 
+                self.swan_url, 
+                self.token
+            )
+        else:
+            params = {"name": name}
+            return self._request_with_params(
+                GET, 
+                PREMADE_IMAGE, 
+                self.swan_url, 
+                params, 
+                self.token, 
+                None
+            )
 
     def create_task(
             self,
@@ -561,59 +569,6 @@ class Orchestrator(APIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
         
-    def deploy_lagrange_space_task(
-            self, 
-            space_user: str, 
-            space_name: str, 
-            cfg_name: str, 
-            region: str, 
-            start_in: int, 
-            duration: int, 
-            wallet_address: str, 
-            tx_hash: str, 
-            paid: float):
-        
-        # To Do: Get CP info
-
-        # To Do: Get Space info
-
-        # To Do: Get Ueser Info
-
-        # To Do: Generate Source URI
-
-        # Call the API for response
-        if self._verify_hardware_region(cfg_name, region):
-                params = {
-                    "paid": paid,
-                    "duration": duration,
-                    "cfg_name": cfg_name,
-                    "region": region,
-                    "start_in": start_in,
-                    "wallet": wallet_address,
-                    "tx_hash": tx_hash,
-                    "job_source_uri": None # place holder
-                }
-                result = self._request_with_params(POST, DEPLOY_TASK, self.swan_url, params, self.token, None)
-                return result
-        pass
-        
-    def get_deployment_info_json(self, task_uuid: str, file_path: str):
-        """Retrieve deployment info of a deployed space with task_uuid.
-
-        Args:
-            task_uuid: uuid of space task, in deployment response.
-
-        Returns:
-            Deployment info.
-        """
-        try:
-            response = self._request_without_params(GET, DEPLOYMENT_INFO+task_uuid, self.swan_url, self.token)
-            with open(file_path, 'w') as f:
-                json.dump(response, f, indent=2)
-            return True
-        except Exception as e:
-            logging.error(str(e) + traceback.format_exc())
-            return False
         
     def get_deployment_info(self, task_uuid: str):
         """Retrieve deployment info of a deployed space with task_uuid.

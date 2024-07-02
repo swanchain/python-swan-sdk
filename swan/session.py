@@ -61,7 +61,7 @@ class Session:
             logging.error(str(e) + traceback.format_exc())
     
     # login = False, because should already be logged into session
-    def resource(self, service_name: str, network='testnet', login=False, url_endpoint=None, verification=True):
+    def resource(self, service_name: str, network=None, login=False, url_endpoint=None, verification=True):
         if service_name.lower() == 'orchestrator':
             resource = Orchestrator(
                 api_key=self.api_key, 
