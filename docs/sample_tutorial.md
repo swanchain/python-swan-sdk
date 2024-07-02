@@ -17,7 +17,8 @@ Jump into using the SDK with this quick example:
   - [7c. Make Payment (Optional)](#7c-make-payment-optional)
   - [8c. Validate Payment to Deploy Task](#8c-validate-payment-to-deploy-task)
   - [9c. Renew task without private_key](#9c-renew-task-without-private_key-optional)
-- [10. Follow-up Task Status (Optional)](#10-follow-up-task-status-optional)
+- [10. Terminate Task (Optional)](#10-terminate-task-optional)
+- [11. Follow-up Task Status (Optional)](#11-follow-up-task-status-optional)
   - [Show results](#show-results)
 
 ### 1. Get Orchestrator API Key
@@ -151,26 +152,32 @@ Sample output:
   "id": "21d3fc99-d4ea-4a42-bdad-797ec15b42de"
 }
 ```
-This is the end of this path A, go to Step 11
+To see how to renew this task, visit step 7b.
+This is the end of this path A, go to Step 10
 
 
 ### 6b. Create Task with Auto Pay
 Auto-pay is on for this tutorial path, if you do no want to auto-pay, visit path C.
 Create, pay, and deploy a task all in one with auto_pay
 
+**job_source_uri only supports GitHub URL or Lagrange Space URL and repo must contain a dockerfile**
+
 ```python
 import json
 
-job_source_uri = '<url of code repo to be deployed. Repo must contain a dockerfile or deploy.yaml file>'
+job_source_uri = '<url of code repo (GitHub URL or Lagrange Space URL) to be deployed. Repo must contain a dockerfile>'
+
 result = swan_orchestrator.create_task(
     wallet_address=wallet_address,
     job_source_uri=job_source_uri,
     auto_pay=True, # Optional: Defaults to false, but in this section's path, set to True
-    private_key=private_key, 
+    private_key=private_key, # Wallet's private key
     hardware_id=0, # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
     region='global', # Optional: Defaults to region set in set_default_task_config or global if not set
     duration=duration, # Optional: Defaults to 3600 seconds
 )
+
+# To get the task_uuid, check line below
 task_uuid = result['id']
 
 print(json.dumps(result, indent=2)) # Print response
@@ -226,11 +233,15 @@ if renew_task and renew_task['status'] == 'success':
 This is the end of this path B, go to Step 11
 
 ### 6c. Deploy a task without auto_pay (no private_key)
+Create a task using the SDK. task_uuid can be used to pay and deploy task using methods other than SDK.
+
+**job_source_uri only supports GitHub URL or Lagrange Space URL and repo must contain a dockerfile**
 
 ```python
 import json
 
-job_source_uri = '<url of code repo to be deployed. Repo must contain a dockerfile or deploy.yaml file>'
+job_source_uri = '<url of code repo (GitHub URL or Lagrange Space URL) to be deployed. Repo must contain a dockerfile>'
+
 result = swan_orchestrator.create_task(
     wallet_address=wallet_address,
     job_source_uri=job_source_uri,
@@ -323,13 +334,30 @@ else:
     print(f"Unable to renew {task_uuid}")
 ```
 
-### 10. Follow-up Task Status (Optional)
+### 10. Terminate task (Optional)
+
+Terminate the task `task_uuid` and get a refund for remaining time
+
+```python
+terminate_status = swan_orchestrator.terminate_task(task_uuid)
+if terminate_status['status'] == 'success':
+    print(f"Terminated {task_uuid} successfully")
+else:
+    print(f"Failed to terminate {task_uuid}")
+```
+
+### 11. Follow-up Task Status (Optional)
 
 #### Show results
 
-Get the deploy URI to test your deployed task using `swan_orchestrator.get_real_uri()`.
+Get the deploy URI to test your deployed task on the web using `swan_orchestrator.get_real_uri()`.
 
 ```python
 r = swan_orchestrator.get_real_url(task_uuid)
 print(r)
+```
+
+Sample Output:
+```
+['https://real_url_link']
 ```
