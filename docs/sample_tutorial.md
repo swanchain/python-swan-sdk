@@ -35,10 +35,19 @@ To use `swan-sdk`, an Orchestrator API key is required.
 
 To use `swan-sdk` you will need to login to Orchestrator using API Key. (Wallet login is not supported)
 
+**By default, the backend system will be the testnet. To use the mainnet, set `network='mainnet'`. To use another backend, set `url_endpoint='target_backend_url'`.
+
 ```python
 import swan
 
+# To use testnet
 swan_orchestrator = swan.resource(api_key="<your_api_key>", service_name='Orchestrator')
+
+# To use mainnet
+swan_orchestrator = swan.resource(api_key="<your_api_key>", network='mainnet', service_name='Orchestrator')
+
+# To use other backend
+swan_orchestrator = swan.resource(api_key="<your_api_key>", url_endpoint='<url_endpoint>', service_name='Orchestrator')
 ```
 
 ### 3. Retrieve available hardware information
