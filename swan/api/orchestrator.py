@@ -262,32 +262,33 @@ class Orchestrator(APIClient):
             repo_owner=None, 
             repo_name=None,
             private_key = None,
-            start_in: int = 300, 
-            paid = 0.0
+            start_in: int = 300,
+            paid = None
         ):
         """
-        Create task via orchestrator.
+        Create a task via the orchestrator.
 
         Args:
-            wallet_address: user wallet address.
-            hardware_id: id of cp/hardware configuration set. (Default = 0)
-            region: region of hardware. (Default global)
-            duration: duration of service runtime in seconds (Default = 3600).
-            app_repo_image: optional. name of a demo space. (Default None, either app_repo_image or job_source_uri must be passed in)
-            job_source_uri: optional. job source uri to be deployed. (Default None, if job_source_uri given, app_repo_image and repo* will be ignored)
-            repo_uri: optional. uri of the repo to be deployed. if job_source_uri and app_repo_image are not provided, this is required.
-            repo_branch: optional. branch of the repo to be deployed.
-            repo_owner: optional. owner of the repo to be deployed.
-            repo_name: optional. name of the repo to be deployed.
-            start_in: unix timestamp of starting time. (Default = 300)
-            auto_pay: Automatically pays to deploy task. If True, PK and WALLET must be in .env (Default = False)
-            private_key: Wallet's private_key, only used if auto_pay is True
+            wallet_address: The user's wallet address.
+            hardware_id: The ID of the hardware configuration set. (Default = 0)
+            region: The region of the hardware. (Default: global)
+            duration: The duration of the service runtime in seconds. (Default = 3600)
+            app_repo_image: Optional. The name of a demo space.
+            job_source_uri: Optional. The job source URI to be deployed. If this is provided, app_repo_image and repo_uri are ignored.
+            repo_uri: Optional. The URI of the repo to be deployed. If job_source_uri and app_repo_image are not provided, this is required.
+            repo_branch: Optional. The branch of the repo to be deployed.
+            repo_owner: Optional. The owner of the repo to be deployed.
+            repo_name: Optional. The name of the repo to be deployed.
+            start_in: Optional. The starting time (expected time for the app to be deployed, not mandatory). (Default = 300)
+            auto_pay: Optional. Automatically call the submit payment method on the contract and validate payment to get the task deployed. 
+            If True, the private key and wallet must be in .env (Default = False). Otherwise, the user must call the submit payment method on the contract and validate payment.
+            private_key: Optional. The wallet's private key, only used if auto_pay is True.
         
         Raises:
-            SwanExceptionError: if neither app_repo_image or job_source_uri is provided.
+            SwanExceptionError: If neither app_repo_image nor job_source_uri is provided.
             
         Returns:
-            JSON response from backend server including 'task_uuid'.
+            JSON response from the backend server including the 'task_uuid'.
         """
         try:
             if not wallet_address:
@@ -333,7 +334,8 @@ class Orchestrator(APIClient):
             except Exception as e:
                 raise SwanAPIException(f"Invalid hardware_id selected")
             
-            paid = self.estimate_payment(duration, hardware_id)
+            if paid is None:
+                paid = self.estimate_payment(duration, hardware_id)
             
             if self._verify_hardware_region(cfg_name, region):
                 params = {
