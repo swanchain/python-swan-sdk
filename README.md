@@ -28,8 +28,6 @@
   - [10. Terminate Task (Optional)](#10-terminate-task-optional)
   - [11. Follow-up Task Status (Optional)](#11-follow-up-task-status-optional)
     - [Show results](#show-results)
-  - [Key Functions Details](#key-functions-details)
-    - [create_task Function Details](#create-task-function0-details)
 - [Examples](#examples)
 - [Documentation](#documentation)
 - [License](#license)
@@ -176,7 +174,7 @@ amount
 Auto-pay is on for this tutorial path, if you do no want to auto-pay, visit path C.
 Create, pay, and deploy a prebuilt image from the swan repository. Will default to using free computing providers.
 
-For more information about the [create_task Function Details](#create-task-function0-details)
+For more information about the [create_task Function](#create_task-function-details).
 
 ```python
 import json
@@ -226,16 +224,18 @@ This is the end of this path A, go to Step 10
 Auto-pay is on for this tutorial path, if you do no want to auto-pay, visit path C.
 Create, pay, and deploy a task all in one with auto_pay
 
-**job_source_uri only supports GitHub URL or Lagrange Space URL and repo must contain a dockerfile**
+For more information about the [create_task Function](#create_task-function-details).
+
+**repo_uri must contain a dockerfile**
 
 ```python
 import json
 
-job_source_uri = '<url of code repo (GitHub URL or Lagrange Space URL) to be deployed. Repo must contain a dockerfile>'
+repo_uri = '<GitHub URL to be deployed. Repo must contain a dockerfile>'
 
 result = swan_orchestrator.create_task(
     wallet_address=wallet_address,
-    job_source_uri=job_source_uri,
+    repo_uri=repo_uri,
     auto_pay=True, # Optional: Defaults to false, but in this section's path, set to True
     private_key=private_key, # Wallet's private key
     hardware_id=0, # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
@@ -301,16 +301,18 @@ This is the end of this path B, go to Step 11
 ### 6c. Deploy a task without auto_pay (no private_key)
 Create a task using the SDK. task_uuid can be used to pay and deploy task using methods other than SDK.
 
-**job_source_uri only supports GitHub URL or Lagrange Space URL and repo must contain a dockerfile**
+For more information about the [create_task Function](#create_task-function-details).
+
+**repo_uri must contain a dockerfile**
 
 ```python
 import json
 
-job_source_uri = '<url of code repo (GitHub URL or Lagrange Space URL) to be deployed. Repo must contain a dockerfile>'
+repo_uri = '<url of code repo GitHub URL to be deployed. Repo must contain a dockerfile>'
 
 result = swan_orchestrator.create_task(
     wallet_address=wallet_address,
-    job_source_uri=job_source_uri,
+    repo_uri=repo_uri,
     hardware_id=hardware_id, # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
     region='global', # Optional: Defaults to region set in set_default_task_config or global if not set
     duration=duration, # Optional: Defaults to 3600 seconds
