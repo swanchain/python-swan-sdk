@@ -14,7 +14,7 @@ from swan.contract.swan_contract import SwanContract
 
 class Orchestrator(APIClient):
   
-    def __init__(self, api_key: str, login: bool = True, url_endpoint: str = None, verification: bool = True, token = None):
+    def __init__(self, api_key: str, login: bool = True, network="testnet", verification: bool = True, token = None, url_endpoint: str = None):
         """Initialize user configuration and login.
 
         Args:
@@ -32,14 +32,18 @@ class Orchestrator(APIClient):
         self.region = "global"
         self.all_hardware = None
 
-        if url_endpoint == None:
-            self.swan_url = SWAN_API
-        else:
+        if url_endpoint:
             self.swan_url = url_endpoint
+        elif network == "mainnet":
+            self.swan_url = ORCHESTRATOR_API_MAINNET
+        else:
+            self.swan_url = ORCHESTRATOR_API_TESTNET
+
         if login:
             self.api_key_login()
         if self.token:
-            self.get_contract_info(verification)
+            pub_addr = ORCHESTRATOR_PUBLIC_ADDRESS_MAINNET if network == "mainnet" else ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET
+            self.get_contract_info(verification, orchestrator_public_address=pub_addr)
         
         self.get_hardware_config()
 
@@ -100,23 +104,30 @@ class Orchestrator(APIClient):
             return None
 
 
-    def get_contract_info(self, verification: bool = True):
+    def get_contract_info(self, verification: bool = True, orchestrator_public_address = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET):
         response = self._request_without_params(GET, GET_CONTRACT_INFO, self.swan_url, self.token)
         if verification:
-            if self.contract_info_verification(response["data"]["contract_info"], response["data"]["signature"]):
-                pass
-            else:
+            if not self.contract_info_verified(
+                response["data"]["contract_info"], 
+                response["data"]["signature"], 
+                orchestrator_public_address
+            ):
                 return False
         self.contract_info = response["data"]["contract_info"]["contract_detail"]
         return True
     
-    def contract_info_verification(self, contract_info, signature):
+    def contract_info_verified(
+            self, 
+            contract_info, 
+            signature, 
+            orchestrator_public_address = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET
+        ):
         message_json = json.dumps(contract_info)
         msghash = encode_defunct(text=message_json)
         public_address = Account.recover_message(msghash, signature=signature)
-        if public_address == ORCHESTRATOR_PUBLIC_ADDRESS:
+        if public_address == orchestrator_public_address:
             return True
-        return public_address
+        return False
         
     def get_hardware_config(self, available = True):
         """Query current hardware list object.
@@ -166,51 +177,6 @@ class Orchestrator(APIClient):
                     "region": self.region
                 }
         return current_config
-        
-    def deploy_task(self, start_in: int, duration: int, job_source_uri: str, wallet_address: str, tx_hash: str, cfg_name: str = "", region: str = "", paid: float = 0.0):
-        """Sent deploy task request via orchestrator.
-
-        Args:
-            cfg_name: name of cp/hardware configuration set.
-            region: region of hardware.
-            start_in: unix timestamp of starting time.
-            duration: duration of service runtime in unix time.
-            job_source_uri: source uri for space.
-            wallet_address: user wallet address.
-            tx_hash: payment tx_hash swan payment contract.
-            paid: paid amount in Eth.
-
-        Returns:
-            JSON response from backend server including 'task_uuid'.
-        """
-        try:
-            if not cfg_name:
-                cfg_name = self.cfg_name
-            if not region:
-                region = self.region
-            
-            if not cfg_name or not region:
-                raise SwanAPIException(f"No cfg_name or region supplied. Please pass in cfg_name and region, or set them with set_config")
-
-            if self._verify_hardware_region(cfg_name, region):
-                params = {
-                    "paid": paid,
-                    "duration": duration,
-                    "cfg_name": cfg_name,
-                    "region": region,
-                    "start_in": start_in,
-                    "wallet": wallet_address,
-                    "tx_hash": tx_hash,
-                    "job_source_uri": job_source_uri
-                }
-                result = self._request_with_params(POST, DEPLOY_TASK, self.swan_url, params, self.token, None)
-                return result
-            else:
-                raise SwanAPIException(f"No {cfg_name} machine in {region}.")
-        except Exception as e:
-            logging.error(str(e) + traceback.format_exc())
-            return None
-    
 
     def terminate_task(self, task_uuid: str):
         """
@@ -285,17 +251,18 @@ class Orchestrator(APIClient):
     def create_task(
             self,
             wallet_address, 
-            image_name: str = "",
+            hardware_id: int = -1, 
+            region: str = "",
+            duration: int = 3600, 
+            app_repo_image: str = "",
+            auto_pay = None,
             job_source_uri: str = "", 
+            repo_uri=None,
             repo_branch=None,
             repo_owner=None, 
             repo_name=None,
-            hardware_id: int = -1, 
-            region: str = "",
-            start_in: int = 300, 
-            duration: int = 3600, 
-            auto_pay = None,
             private_key = None,
+            start_in: int = 300, 
             paid = 0.0
         ):
         """
@@ -303,36 +270,53 @@ class Orchestrator(APIClient):
 
         Args:
             wallet_address: user wallet address.
-            image_name: name of a demo space. (Default None, either image_name or job_source_uri must be passed in)
-            job_source_uri: source uri for space. (Default None, either image_name or job_source_uri must be passed in)
             hardware_id: id of cp/hardware configuration set. (Default = 0)
             region: region of hardware. (Default global)
-            start_in: unix timestamp of starting time. (Default = 300)
             duration: duration of service runtime in seconds (Default = 3600).
+            app_repo_image: optional. name of a demo space. (Default None, either app_repo_image or job_source_uri must be passed in)
+            job_source_uri: optional. job source uri to be deployed. (Default None, if job_source_uri given, app_repo_image and repo* will be ignored)
+            repo_uri: optional. uri of the repo to be deployed. if job_source_uri and app_repo_image are not provided, this is required.
+            repo_branch: optional. branch of the repo to be deployed.
+            repo_owner: optional. owner of the repo to be deployed.
+            repo_name: optional. name of the repo to be deployed.
+            start_in: unix timestamp of starting time. (Default = 300)
             auto_pay: Automatically pays to deploy task. If True, PK and WALLET must be in .env (Default = False)
             private_key: Wallet's private_key, only used if auto_pay is True
         
         Raises:
-            SwanExceptionError: if neither image_name or job_source_uri is provided.
+            SwanExceptionError: if neither app_repo_image or job_source_uri is provided.
             
         Returns:
             JSON response from backend server including 'task_uuid'.
         """
         try:
-            if not image_name and not job_source_uri:
-                raise SwanAPIException(f"No image_name, or job_source_uri provided")
-            
-            if image_name:
-                if auto_pay == None:
-                    auto_pay = True
-                job_source_uri = self.get_premade_image(image_name)
-                if job_source_uri and job_source_uri.get("status", "") == "success":
-                    job_source_uri = job_source_uri.get("data", {}).get("url", "")
-                    if job_source_uri == "":
-                        raise SwanAPIException(f"Invalid image_name url")
+            if not wallet_address:
+                raise SwanAPIException(f"No wallet_address provided, please pass in a wallet_address")
+
+            if not job_source_uri:
+                if app_repo_image:
+                    if auto_pay == None:
+                        auto_pay = True
+                    repo_res = self.get_premade_image(app_repo_image)
+                    if repo_res and repo_res.get("status", "") == "success":
+                        repo_uri = repo_res.get("data", {}).get("url", "")
+                        if repo_uri == "":
+                            raise SwanAPIException(f"Invalid app_repo_image url")
+                    else:
+                        raise SwanAPIException(f"Invalid app_repo_image")
+
+                if repo_uri:
+                    job_source_uri = self.get_source_uri(
+                            repo_uri=repo_uri,
+                            wallet_address=wallet_address, 
+                            hardware_id=hardware_id,
+                            repo_branch=repo_branch,
+                            repo_owner=repo_owner,
+                            repo_name=repo_name
+                        )
                 else:
-                    raise SwanAPIException(f"Invalid image_name")
-                
+                    raise SwanAPIException(f"Please provide app_repo_image, or job_source_uri, or repo_uri")
+
             if auto_pay:
                 if not private_key:
                     raise SwanAPIException(f"please provide private_key if using auto_pay")
@@ -343,18 +327,6 @@ class Orchestrator(APIClient):
             if not region:
                 region = self.region
     
-            if not wallet_address:
-                raise SwanAPIException(f"No wallet_address provided, please pass in a wallet_address")
-
-            job_source_uri = self.get_source_uri(
-                    repo_uri=job_source_uri,
-                    wallet_address=wallet_address, 
-                    hardware_id=hardware_id,
-                    repo_branch=repo_branch,
-                    repo_owner=repo_owner,
-                    repo_name=repo_name
-                )
-                
             try:
                 hardware = [hardware for hardware in self.all_hardware if hardware.id == hardware_id][0]
                 cfg_name = hardware.name
@@ -386,9 +358,15 @@ class Orchestrator(APIClient):
                 raise SwanAPIException(f"No {cfg_name} machine in {region}.")
             
             if auto_pay:
-                result = self.make_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
+                result = self.make_payment(
+                    task_uuid=task_uuid, 
+                    duration=duration, 
+                    private_key=private_key, 
+                    hardware_id=hardware_id
+                )
 
-            result['id'] = task_uuid
+            if result and isinstance(result, dict):
+                result['id'] = task_uuid
             return result
 
         except Exception as e:
@@ -517,14 +495,22 @@ class Orchestrator(APIClient):
             if not self.contract_info:
                 raise SwanAPIException(f"No contract info on record, please verify contract first.")
             
-            tx_hash = self.submit_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
-            time.sleep(3)
-            res = self.validate_payment(tx_hash=tx_hash, task_uuid=task_uuid)
-            res['tx_hash'] = tx_hash
-            return res
+            if tx_hash := self.submit_payment(
+                task_uuid=task_uuid, 
+                duration=duration, 
+                private_key=private_key, 
+                hardware_id=hardware_id
+            ):
+                time.sleep(3)
+                if res := self.validate_payment(
+                    tx_hash=tx_hash, 
+                    task_uuid=task_uuid
+                ):
+                    res['tx_hash'] = tx_hash
+                    return res
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
-            return None
+        return None
     
     def renew_task(self, task_uuid: str, duration = 3600, tx_hash = "", auto_pay = False, private_key = None, hardware_id = None):
         """

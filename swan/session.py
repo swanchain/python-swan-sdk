@@ -2,7 +2,7 @@ import os
 import logging
 import traceback
 
-from swan.api.swan_api import Orchestrator
+from swan.api.orchestrator import Orchestrator
 from swan.api_client import APIClient
 from swan.common.constant import *
 from swan.common.exception import SwanAPIException
@@ -15,6 +15,7 @@ class Session:
     def __init__(
         self,
         api_key: str = None,
+        network: str = "testnet",
         login_url: str = None,
         login: bool = True, 
     ):
@@ -27,8 +28,11 @@ class Session:
         
         if login_url:
             self.login_url = login_url
+        elif network == "mainnet":
+            self.login_url = ORCHESTRATOR_API_MAINNET
         else:
-            self.login_url = SWAN_API
+            self.login_url = ORCHESTRATOR_API_TESTNET
+
         self.api_client = APIClient()
         self.login = login
         if login:
@@ -57,11 +61,15 @@ class Session:
             logging.error(str(e) + traceback.format_exc())
     
     # login = False, because should already be logged into session
-    def resource(self, service_name: str, login=False, url_endpoint=None, verification=True):
-        if url_endpoint == None:
-            url_endpoint = self.login_url
+    def resource(self, service_name: str, network='testnet', login=False, url_endpoint=None, verification=True):
         if service_name.lower() == 'orchestrator':
-            resource = Orchestrator(api_key=self.api_key, url_endpoint=url_endpoint, token=self.token, login=login, verification=verification)
-        
-        return resource
+            resource = Orchestrator(
+                api_key=self.api_key, 
+                network=network, 
+                url_endpoint=url_endpoint, 
+                token=self.token, 
+                login=login, 
+                verification=verification
+            )
+            return resource
         
