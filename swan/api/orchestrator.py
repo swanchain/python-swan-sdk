@@ -12,7 +12,7 @@ from swan.object import HardwareConfig
 from swan.common.exception import SwanAPIException
 from swan.contract.swan_contract import SwanContract
 
-class SwanAPI(APIClient):
+class Orchestrator(APIClient):
   
     def __init__(self, api_key: str, login: bool = True, url_endpoint: str = None, verification: bool = True, token = None):
         """Initialize user configuration and login.

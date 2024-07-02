@@ -2,7 +2,7 @@ import os
 import logging
 import traceback
 
-from swan.api.swan_api import SwanAPI
+from swan.api.swan_api import Orchestrator
 from swan.api_client import APIClient
 from swan.common.constant import *
 from swan.common.exception import SwanAPIException
@@ -61,7 +61,7 @@ class Session:
         if url_endpoint == None:
             url_endpoint = self.login_url
         if service_name.lower() == 'orchestrator':
-            resource = SwanAPI(api_key=self.api_key, url_endpoint=url_endpoint, token=self.token, login=login, verification=verification)
+            resource = Orchestrator(api_key=self.api_key, url_endpoint=url_endpoint, token=self.token, login=login, verification=verification)
         
         return resource
         

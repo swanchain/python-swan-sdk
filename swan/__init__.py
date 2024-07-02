@@ -1,6 +1,6 @@
 # ./swan/__init__.py
 
-from swan.api.swan_api import SwanAPI
+from swan.api.swan_api import Orchestrator
 from swan.api_client import APIClient
 from swan.contract.swan_contract import SwanContract
 from swan.session import Session
