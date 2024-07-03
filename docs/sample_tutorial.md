@@ -121,7 +121,7 @@ amount
 Auto-pay is on for this tutorial path, if you do no want to auto-pay, visit path C.
 Create, pay, and deploy a prebuilt image from the swan repository. Will default to using free computing providers.
 
-For more information about the [create_task Function](key_functions#create_task-function-details).
+For more information about the [create_task Function](key_functions.md#create_task-function-details).
 
 ```python
 import json
@@ -171,7 +171,7 @@ This is the end of this path A, go to Step 10
 Auto-pay is on for this tutorial path, if you do no want to auto-pay, visit path C.
 Create, pay, and deploy a task all in one with auto_pay
 
-For more information about the [create_task Function](key_functions#create_task-function-details).
+For more information about the [create_task Function](key_functions.md#create_task-function-details).
 
 **repo_uri must contain a dockerfile**
 
@@ -248,7 +248,7 @@ This is the end of this path B, go to Step 11
 ### 6c. Deploy a task without auto_pay (no private_key)
 Create a task using the SDK. task_uuid can be used to pay and deploy task using methods other than SDK.
 
-For more information about the [create_task Function](key_functions#create_task-function-details).
+For more information about the [create_task Function](key_functions.md#create_task-function-details).
 
 **repo_uri must contain a dockerfile**
 
