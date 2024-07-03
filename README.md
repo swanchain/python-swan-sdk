@@ -13,19 +13,16 @@
   - [1. Get Orchestrator API Key](#1-get-orchestrator-api-key)
   - [2. Login into Orchestrator Through SDK](#2-login-into-orchestrator-through-sdk)
   - [3. Retrieve available hardware information](#3-retrieve-available-hardware-information)
-  - [4. Select hardware_id and region (Optional)](#4-Select-hardware_id-and-region-Optional)
+  - [4. Select hardware\_id and region (Optional)](#4-select-hardware_id-and-region-optional)
   - [5. Estimate Payment Amount (Optional)](#5-estimate-payment-amount-optional)
-  - Path A: Using Default Images
-    - [6a. Create Task with Default Image](#6a-create-task-with-prebuilt-image)
-  - Path B: Using auto-pay
-    - [6b. Create Task with Auto Pay](#6b-create-task-with-auto-pay)
-    - [7b. Renew Task with Auto Pay (Optional)](#7b-renew-task-with-auto-pay-optional)
-  - Path C: No Private Key
-    - [6c. Deploy a task without auto_pay (no private_key)](#6c-deploy-a-task-without-auto_pay-no-private_key)
-    - [7c. Make Payment (Optional)](#7c-make-payment-optional)
-    - [8c. Validate Payment to Deploy Task](#8c-validate-payment-to-deploy-task)
-    - [9c. Renew task without private_key](#9c-renew-task-without-private_key-optional)
-  - [10. Terminate Task (Optional)](#10-terminate-task-optional)
+  - [6a. Create Task with prebuilt image](#6a-create-task-with-prebuilt-image)
+  - [6b. Create Task with Auto Pay](#6b-create-task-with-auto-pay)
+  - [6c. Renew Task with Auto Pay (optional)](#6c-renew-task-with-auto-pay-optional)
+  - [6d. Deploy a task without auto\_pay (no private\_key)](#6d-deploy-a-task-without-auto_pay-no-private_key)
+  - [7. Make Payment (Optional)](#7-make-payment-optional)
+  - [8. Validate Payment to Deploy Task (Optional)](#8-validate-payment-to-deploy-task-optional)
+  - [9. Renew task without private\_key (Optional)](#9-renew-task-without-private_key-optional)
+  - [10. Terminate task (Optional)](#10-terminate-task-optional)
   - [11. Follow-up Task Status (Optional)](#11-follow-up-task-status-optional)
     - [Show results](#show-results)
 - [Examples](#examples)
@@ -41,7 +38,6 @@ GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/main
 ## Features
 
 - **API Client Integration**: Streamline your development workflow with our intuitive API client.
-- **Pre-defined Data Models**: Utilize our structured data models for tasks, directories, and source URIs to enhance your application's reliability and scalability.
 - **Service Layer Abstractions**: Access complex functionalities through a simplified high-level interface, improving code maintainability.
 - **Extensive Documentation**: Access a wealth of information through our comprehensive guides and reference materials located in the `docs/` directory on GitHub.
 
@@ -78,7 +74,7 @@ Jump into using the SDK with this quick example:
 
 To use `swan-sdk`, an Orchestrator API key is required. 
 
-- Go to [Orchestrator Dashboard](https://orchestrator.swanchain.io/provider-status)
+- Go to [Orchestrator Dashboard](https://orchestrator.swanchain.io/provider-status), you can switch network between Testnet (Proxima) and Mainnet.
 - Login through MetaMask.
 - Click the user icon on the top right.
 - Click 'Show API-Key' -> 'New API Key'
@@ -88,7 +84,7 @@ To use `swan-sdk`, an Orchestrator API key is required.
 
 To use `swan-sdk` you will need to login to Orchestrator using API Key. (Wallet login is not supported)
 
-**By default, the backend system will be the testnet. To use the mainnet, set `network='mainnet'`. To use another backend, set `url_endpoint='target_backend_url'`.**
+**By default, the backend system will be the testnet. To use the mainnet, set `network='mainnet'`. To use another backend (for example dev environment on Testnet), set `url_endpoint='<target_backend_url>'`.**
 
 ```python
 import swan
@@ -169,8 +165,14 @@ amount
 ```
 
 ### 6a. Create Task with prebuilt image
-Auto-pay is on for this tutorial path, if you do no want to auto-pay, visit path C.
-Create, pay, and deploy a prebuilt image from the swan repository. Will default to using free computing providers.
+
+Auto-pay is on for this tutorial path, in which case task creation, payment, and deployment are all in one. If you do no want to auto-pay, `make_payment` method is available.
+
+A list of prebuilt app images can be accessed from backend, then choose one of the names as `app_repo_image` in creating task.
+
+```python
+swan_orchestrator.get_app_repo_image()
+```
 
 For more information about the [create_task Function](/docs/key_functions.md#create_task-function-details).
 
@@ -219,8 +221,8 @@ This is the end of this path A, go to Step 10
 
 
 ### 6b. Create Task with Auto Pay
-Auto-pay is on for this tutorial path, if you do no want to auto-pay, visit path C.
-Create, pay, and deploy a task all in one with auto_pay
+
+If you want to deploy a application from a GitHub repo or Lagrange Space repo, and also don't want to set up payment manually, you can set `auto_pay=True` expilicitly in `create_task`.
 
 For more information about the [create_task Function](/docs/key_functions.md#create_task-function-details).
 
@@ -234,7 +236,7 @@ repo_uri = '<GitHub URL to be deployed. Repo must contain a dockerfile>'
 result = swan_orchestrator.create_task(
     wallet_address=wallet_address,
     repo_uri=repo_uri,
-    auto_pay=True, # Optional: Defaults to false, but in this section's path, set to True
+    auto_pay=True, # 
     private_key=private_key, # Wallet's private key
     hardware_id=0, # Optional: Defaults to 0 (free tier)
     region='global', # Optional: Defaults to global
@@ -277,7 +279,7 @@ Sample output:
 }
 ```
 
-### 7b. Renew Task with Auto Pay (optional)
+### 6c. Renew Task with Auto Pay (optional)
 
 Extend `task_uuid` by `duration`. Using auto pay automatically makes a transaction to SWAN contract and extends the task.
 
@@ -296,8 +298,9 @@ if renew_task and renew_task['status'] == 'success':
 
 This is the end of this path B, go to Step 11
 
-### 6c. Deploy a task without auto_pay (no private_key)
-Create a task using the SDK. task_uuid can be used to pay and deploy task using methods other than SDK.
+### 6d. Deploy a task without auto_pay (no private_key)
+
+Create (initialize) a task and then pay the task by yourself. `task_uuid`, `hardware_id`, `duration` are required to submit a payment.
 
 For more information about the [create_task Function](/docs/key_functions.md#create_task-function-details).
 
@@ -359,9 +362,9 @@ Sample output:
 
 The `task['id']` will be used in the following operations.
 
-### 7c. Make Payment (Optional)
+### 7. Make Payment (Optional)
 
-Use `swan_orchestrator.make_payment()` to pay and deploy the task. If you do not want to use private_key, please move to 8c. If you are following this step, ignore 8c.
+Use `swan_orchestrator.make_payment()` to pay and deploy the task, which combines `submit_payment` and `validate_payment`. 
 
 ```python
 swan_orchestrator.make_payment(
@@ -372,9 +375,9 @@ swan_orchestrator.make_payment(
 )
 ```
 
-### 8c. Validate Payment to Deploy Task
+### 8. Validate Payment to Deploy Task (Optional)
 
-Use `swan_orchestrator.validate_payment()` to validate the payment using TX hash of payment to swan contract and deploy the task.
+If you have already submitted payment, you can use the `tx_hash` with `validate_payment()` to validate the payment to let the task can be deployed.
 
 ```python
 swan_orchestrator.validate_payment(
@@ -383,8 +386,9 @@ swan_orchestrator.validate_payment(
 )
 ```
 
-### 9c. Renew task without private_key (Optional)
-Extend a task using tx_hash of payment to SWAN contract for task_uuid
+### 9. Renew task without private_key (Optional)
+
+If you have already submitted payment for the renewal of a task, you can use the `tx_hash` with `renew_task` to extend the task.
 
 ```python
 renew_task = swan_orchestrator.renew_task(
@@ -402,7 +406,7 @@ else:
 
 ### 10. Terminate task (Optional)
 
-Terminate the task `task_uuid` and get a refund for remaining time
+Early terminate a task.
 
 ```python
 terminate_status = swan_orchestrator.terminate_task(task_uuid)

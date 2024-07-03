@@ -24,7 +24,7 @@ response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').
   repo_owner="string", 
   repo_name="string",
   start_in=300, 
-  auto_pay=False,
+  auto_pay=None,
   private_key="string"
 )
 
