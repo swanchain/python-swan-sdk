@@ -313,8 +313,8 @@ class Orchestrator(APIClient):
                 self.hardware_id_free = None
 
             if cfg_name := self.get_cfg_name(hardware_id):
-                logging.info(f"Using {cfg_name} machine")
-                print(f"Using {cfg_name} machine")
+                logging.info(f"Using {cfg_name} machine, {hardware_id=} {region=}")
+                print(f"Using {cfg_name} machine, {hardware_id=} {region=}")
             else:
                 raise SwanAPIException(f"Invalid hardware_id selected")
             
