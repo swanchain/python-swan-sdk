@@ -48,6 +48,50 @@ PARAMETERS:
 - **private_key** (string) - Wallet's private_key, only used if auto_pay is True
 
 
+### submit_payment Details
+
+```python
+swan.resource(api_key="<your_api_key>", service_name='Orchestrator').submit_payment(**kwargs)
+```
+
+Submit a payment to SWAN contract for a task
+
+#### Request Syntax
+submit_payment(self, task_uuid, private_key, duration = 3600, hardware_id = None)
+```python
+response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').submit_payment(
+  task_uuid="string",
+  private_key="string", 
+  duration = 3600, 
+  hardware_id = -1
+)
+```
+PARAMETERS:
+- **task_uuid** (string) **[REQUIRED]** - task_uuid of task being paid for
+- **private_key** (string) **[REQUIRED]** - Wallet's private_key
+- **duration** (integer) - duration of service runtime in seconds. Defaults to 3600 seconds (1 hour).
+- **hardware_id** (integer) - id of cp/hardware configuration set. Defaults to 0 (Free tier).
+
+### validate_payment Details
+```python
+swan.resource(api_key="<your_api_key>", service_name='Orchestrator').validate_payment(**kwargs)
+```
+
+Deploy task on orchestrator with proof of payment
+
+#### Request Syntax
+submit_payment(self, task_uuid, private_key, duration = 3600, hardware_id = None)
+```python
+response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').validate_payment(
+  tx_hash="string",
+  task_uuid="string"
+)
+```
+PARAMETERS:
+- **tx_hash** (string) **[REQUIRED]** - tx_hash/receipt of payment to SWAN contract for task with task_uuid 
+- **task_uuid** (string) **[REQUIRED]** - task_uuid of task being extended
+
+
 ### get_app_repo_image Details
 
 ```python
