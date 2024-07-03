@@ -27,7 +27,7 @@ class Orchestrator(APIClient):
         self.contract_info = None
         self.url_endpoint = url_endpoint
         self.cfg_name = None
-        self.hardware_id = 0
+        self.hardware_id_free = 0
         self.wallet_address = None
         self.region = "global"
         self.all_hardware = None
@@ -80,10 +80,10 @@ class Orchestrator(APIClient):
         ):
         try:
             if hardware_id == None:
-                hardware_id = self.hardware_id
+                raise SwanAPIException(f"No hardware_id provided")
             
             if not wallet_address:
-                raise SwanAPIException(f"No wallet_address provided, please pass in as parameter")
+                raise SwanAPIException(f"No wallet_address provided")
 
             params = {
                 "repo_owner": repo_owner,
@@ -157,22 +157,19 @@ class Orchestrator(APIClient):
             logging.error("Failed to fetch hardware configurations.")
             return None
     
-    def set_default_task_config(self, hardware_id=0, region="global"):
+    def get_cfg_name(self, hardware_id=0):
         try:
-            if not self.all_hardware:
-                self.get_hardware_config()
+            self.get_hardware_config()  # make sure all_hardware is updated all the time
             hardware = [hardware for hardware in self.all_hardware if hardware.id == hardware_id][0]
-            self.hardware_id = hardware.id
-            self.cfg_name = hardware.name
-            self.region = region
-            return True
+            cfg_name = hardware.name
+            return cfg_name
         except:
             logging.error("Failed to set hardware configurations.")
-            return False
+            return None
     
     def get_config(self):
         current_config = {
-                    "hardware_id": self.hardware_id,
+                    "hardware_id": self.hardware_id_free,
                     "cfg_name": self.cfg_name,
                     "region": self.region
                 }
@@ -237,7 +234,7 @@ class Orchestrator(APIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
     
-    def get_premade_image(self, name: str = ""):
+    def get_app_repo_image(self, name: str = ""):
         if not name:
             return self._request_without_params(
                 GET, 
@@ -259,8 +256,8 @@ class Orchestrator(APIClient):
     def create_task(
             self,
             wallet_address, 
-            hardware_id: int = -1, 
-            region: str = "",
+            hardware_id: int = None, 
+            region: str = "global",
             duration: int = 3600, 
             app_repo_image: str = "",
             auto_pay = None,
@@ -302,11 +299,33 @@ class Orchestrator(APIClient):
             if not wallet_address:
                 raise SwanAPIException(f"No wallet_address provided, please pass in a wallet_address")
 
+            if auto_pay:
+                if not private_key:
+                    raise SwanAPIException(f"please provide private_key if using auto_pay")
+
+            if not region:
+                region = 'global'
+
+            if hardware_id is None:
+                hardware_id = 0
+                self.hardware_id_free = 0  # to save the default hardware_id for possible task renewals
+            else:
+                self.hardware_id_free = None
+
+            if cfg_name := self.get_cfg_name(hardware_id):
+                logging.info(f"Using {cfg_name} machine")
+                print(f"Using {cfg_name} machine")
+            else:
+                raise SwanAPIException(f"Invalid hardware_id selected")
+            
+            if paid is None:
+                paid = self.estimate_payment(duration, hardware_id)
+            
             if not job_source_uri:
                 if app_repo_image:
                     if auto_pay == None:
                         auto_pay = True
-                    repo_res = self.get_premade_image(app_repo_image)
+                    repo_res = self.get_app_repo_image(app_repo_image)
                     if repo_res and repo_res.get("status", "") == "success":
                         repo_uri = repo_res.get("data", {}).get("url", "")
                         if repo_uri == "":
@@ -326,25 +345,6 @@ class Orchestrator(APIClient):
                 else:
                     raise SwanAPIException(f"Please provide app_repo_image, or job_source_uri, or repo_uri")
 
-            if auto_pay:
-                if not private_key:
-                    raise SwanAPIException(f"please provide private_key if using auto_pay")
-
-            if hardware_id == -1:
-                hardware_id = self.hardware_id
-            
-            if not region:
-                region = self.region
-    
-            try:
-                hardware = [hardware for hardware in self.all_hardware if hardware.id == hardware_id][0]
-                cfg_name = hardware.name
-            except Exception as e:
-                raise SwanAPIException(f"Invalid hardware_id selected")
-            
-            if paid is None:
-                paid = self.estimate_payment(duration, hardware_id)
-            
             if self._verify_hardware_region(cfg_name, region):
                 params = {
                     "paid": paid,
@@ -395,17 +395,14 @@ class Orchestrator(APIClient):
             e.g. (price = 10 SWAN, duration = 1 hr) -> 10 SWAN
         """
         try:
+            if hardware_id is None:
+                raise SwanAPIException(f"Invalid hardware_id")
+            
             if not self.contract_info:
                 raise SwanAPIException(f"No contract info on record, please verify contract first.")
             
             contract = SwanContract("", self.contract_info)
 
-            if hardware_id == None:
-                if self.hardware_id != None:
-                    hardware_id = self.hardware_id
-                else:
-                    raise SwanAPIException(f"Invalid hardware_id, please provide a hardware_id or set with set_config")
-            
             duration_hour = duration/3600
             amount = contract.estimate_payment(hardware_id, duration_hour)
             return contract._wei_to_swan(amount)
@@ -426,6 +423,9 @@ class Orchestrator(APIClient):
             tx_hash
         """
         try:
+            if hardware_id is None:
+                raise SwanAPIException(f"Invalid hardware_id")
+            
             if not private_key:
                 raise SwanAPIException(f"No private_key provided.")
             if not self.contract_info:
@@ -433,12 +433,6 @@ class Orchestrator(APIClient):
             
             contract = SwanContract(private_key, self.contract_info)
         
-            if hardware_id == None:
-                if self.hardware_id != None:
-                    hardware_id = self.hardware_id
-                else:
-                    raise SwanAPIException(f"Invalid hardware_id, please provide a hardware_id or set with set_config")        
-
             return contract.submit_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
@@ -494,11 +488,8 @@ class Orchestrator(APIClient):
             JSON response from backend server including 'task_uuid'.
         """
         try:
-            if hardware_id == None:
-                if self.hardware_id != None:
-                    hardware_id = self.hardware_id
-                else:
-                    hardware_id = 0        
+            if hardware_id is None:
+                raise SwanAPIException(f"Invalid hardware_id") 
             
             if not private_key:
                 raise SwanAPIException(f"No private_key provided.")
@@ -522,6 +513,7 @@ class Orchestrator(APIClient):
             logging.error(str(e) + traceback.format_exc())
         return None
     
+
     def renew_task(self, task_uuid: str, duration = 3600, tx_hash = "", auto_pay = False, private_key = None, hardware_id = None):
         """
         Submit payment for a task renewal and renew a task
@@ -535,11 +527,10 @@ class Orchestrator(APIClient):
             JSON response from backend server including 'task_uuid'.
         """
         try:
-            if hardware_id == None:
-                if self.hardware_id != None:
-                    hardware_id = self.hardware_id
-                else:
-                    raise SwanAPIException(f"Invalid hardware_id, please provide a hardware_id or set with set_config")        
+            if hardware_id is None:
+                hardware_id = self.hardware_id_free
+                if hardware_id is None:
+                    raise SwanAPIException(f"Invalid hardware_id")
             
             if not (auto_pay and private_key) and not tx_hash:
                 raise SwanAPIException(f"auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
@@ -625,12 +616,9 @@ class Orchestrator(APIClient):
             True when hardware exist in given region.
             False when hardware does not exist or do not exit in given region.
         """
-        if region == "Global":
-            return True
-        self.get_hardware_config()
+        self.get_hardware_config()  # make sure all_hardware is updated all the time
         for hardware in self.all_hardware:
             if hardware.name == hardware_name:
-                if region in hardware.region or region == 'global':
+                if region in hardware.region or (region.lower() == 'global' and hardware.status == 'available'):
                     return True
-                return False
         return False

@@ -7,7 +7,7 @@ class SwanAPIException(Exception):
         self.message = message
 
     def __str__(self):
-        return 'SwanAPIRequestException: %s' % self.message
+        return f'SwanAPIRequestException: {self.message}\n'
 
 
 class SwanRequestException(Exception):
