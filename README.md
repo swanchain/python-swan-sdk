@@ -435,11 +435,11 @@ Sample Output:
 
 ## Examples
 
-For executable examples consult [examples](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.3.post1/examples).
+For executable examples consult [examples](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.4/examples).
 
 ## Documentation
 
-For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult [more docs](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.3.post1/docs)
+For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult [more docs](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.4/docs)
 
 ## License
 
