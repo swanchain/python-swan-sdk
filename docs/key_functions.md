@@ -45,4 +45,4 @@ PARAMETERS:
 - **repo_name** (string) - name of the repo to be deployed.
 - **start_in** (integer) - unix timestamp of starting time. Defaults to 300 seconds (5 minutes)
 - **auto_pay** (Boolean) - Automatically pays to deploy task if set to True. If True, private_key must be provided.
-- **private_key** Wallet's private_key, only used if auto_pay is True
+- **private_key** (string) - Wallet's private_key, only used if auto_pay is True
