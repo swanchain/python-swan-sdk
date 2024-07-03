@@ -5,7 +5,7 @@ Jump into using the SDK with this quick example:
 - [1. Get Orchestrator API Key](#1-get-orchestrator-api-key)
 - [2. Login into Orchestrator Through SDK](#2-login-into-orchestrator-through-sdk)
 - [3. Retrieve available hardware information](#3-retrieve-available-hardware-information)
-- [4. Set Default Task Settings (Optional)](#4-set-default-task-settings-optional)
+- [4. Select hardware_id and region (Optional)](#4-Select-hardware_id-and-region-Optional)
 - [5. Estimate Payment Amount (Optional)](#5-estimate-payment-amount-optional)
 - Path A: Using Default Images
   - [6a. Create Task with Default Image](#6a-create-task-with-prebuilt-image)
@@ -20,8 +20,6 @@ Jump into using the SDK with this quick example:
 - [10. Terminate Task (Optional)](#10-terminate-task-optional)
 - [11. Follow-up Task Status (Optional)](#11-follow-up-task-status-optional)
   - [Show results](#show-results)
-- [Key Functions Details](#key-functions-details)
-  - [create_task Function Details](#create_task-function-details)
 
 ### 1. Get Orchestrator API Key
 
@@ -43,13 +41,25 @@ To use `swan-sdk` you will need to login to Orchestrator using API Key. (Wallet 
 import swan
 
 # To use testnet
-swan_orchestrator = swan.resource(api_key="<your_api_key>", service_name='Orchestrator')
+swan_orchestrator = swan.resource(
+  api_key="<your_api_key>", 
+  service_name='Orchestrator'
+)
 
 # To use mainnet
-swan_orchestrator = swan.resource(api_key="<your_api_key>", network='mainnet', service_name='Orchestrator')
+swan_orchestrator = swan.resource(
+  api_key="<your_api_key>", 
+  network='mainnet',
+  service_name='Orchestrator'
+)
 
 # To use other backend
-swan_orchestrator = swan.resource(api_key="<your_api_key>", url_endpoint='<url_endpoint>', service_name='Orchestrator')
+swan_orchestrator = swan.resource(
+  api_key=api_key, 
+  login_url='<url_endpoint>',
+  url_endpoint='<url_endpoint>',
+  service_name='Orchestrator'
+)
 ```
 
 ### 3. Retrieve available hardware information
@@ -58,8 +68,6 @@ Orchestrator provides a selection of Computing Providers with different hardware
 Use `swan_orchestrator.get_hardware_config()` to retrieve all available hardware on Orchestrator.
 
 Hardware config contains a unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, available region and current status.
-
-See all available hardware in a Python dictionary:
 
 ```python
 hardwares = swan_orchestrator.get_hardware_config()
@@ -99,40 +107,44 @@ print(chosen_hardware['price']) # current hardware price
 print(chosen_hardware['status']) # overall hardware avaliablility
 ```
 
-### 4. Set Default Task Settings (Optional)
-Set a default hardware with its hardware id and region. Set default `hardware_id` and `region` will be used in the steps to deploy task if not provided as parameters in future functions
+### 4. Select hardware_id and region (Optional)
+choose a hardware with its hardware id and region. If no hardware_id is provided in future functions, it will default to free tier, and it no region is provided, it will default to global.
 
 ```python
-hardware_id = 0 # 'C1ae.medium'
+hardware_id = 0
 region = 'global'
-if swan_orchestrator.set_default_task_config(hardware_id, region):
-    print("Successfully set up default task configuration")
 ```
 
 ### 5. Estimate Payment Amount (Optional)
 
-To estimate the payment required for the deployment. Use `SwanContract().estiamte_payment()`
+To estimate the payment required for the deployment. Use `swan_orchestrator.estiamte_payment()`
 
 ```python
-duration = 3600 # or duration you want the deployment to run, this field is in seconds
-amount = swan_orchestrator.estimate_payment(chosen_hardware.id, duration_seconds)
-amount
+duration = 3600 # 1 hour or 3600 seconds
+
+amount = swan_orchestrator.estimate_payment(
+    duration=duration, # Optional: Defaults to 3600 seconds or 1 hour
+    hardware_id=hardware_id, # Optional: Defaults to 0 (free tier)
+)
+
+print(amount)
 ```
 
 ### 6a. Create Task with prebuilt image
 Auto-pay is on for this tutorial path, if you do no want to auto-pay, visit path C.
 Create, pay, and deploy a prebuilt image from the swan repository. Will default to using free computing providers.
 
-For more information about the [create_task Function](#create_task-function-details).
+For more information about the [create_task Function](key_functions.md#create_task-function-details).
 
 ```python
 import json
 
-result = swan_orchestrator.create_task(
-    app_repo_image="hello-world",
+result = orchestrator.create_task(
     wallet_address=wallet_address,
+    app_repo_image='tetris',
     private_key=private_key
 )
+
 print(json.dumps(result, indent=2))
 task_uuid = result['id']
 ```
@@ -173,7 +185,7 @@ This is the end of this path A, go to Step 10
 Auto-pay is on for this tutorial path, if you do no want to auto-pay, visit path C.
 Create, pay, and deploy a task all in one with auto_pay
 
-For more information about the [create_task Function](#create_task-function-details).
+For more information about the [create_task Function](key_functions.md#create_task-function-details).
 
 **repo_uri must contain a dockerfile**
 
@@ -187,9 +199,9 @@ result = swan_orchestrator.create_task(
     repo_uri=repo_uri,
     auto_pay=True, # Optional: Defaults to false, but in this section's path, set to True
     private_key=private_key, # Wallet's private key
-    hardware_id=0, # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
-    region='global', # Optional: Defaults to region set in set_default_task_config or global if not set
-    duration=duration, # Optional: Defaults to 3600 seconds
+    hardware_id=0, # Optional: Defaults to 0 (free tier)
+    region='global', # Optional: Defaults to global
+    duration=3600, # Optional: Defaults to 3600 seconds
 )
 
 # To get the task_uuid, check line below
@@ -237,8 +249,8 @@ renew_task = swan_orchestrator.renew_task(
     task_uuid=task_uuid, 
     duration=3600, # Optional: Defaults to 3600 seconds (1 hour)
     auto_pay=True, # Optional: Defaults to False, in this demo path set to True
-    private_key=private_key,
-    hardware_id=hardware_id # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
+    private_key="<wallet's private key>",
+    hardware_id=hardware_id # Optional: Defaults to 0 (free tier)
 )
 
 if renew_task and renew_task['status'] == 'success':
@@ -250,7 +262,7 @@ This is the end of this path B, go to Step 11
 ### 6c. Deploy a task without auto_pay (no private_key)
 Create a task using the SDK. task_uuid can be used to pay and deploy task using methods other than SDK.
 
-For more information about the [create_task Function](#create_task-function-details).
+For more information about the [create_task Function](key_functions.md#create_task-function-details).
 
 **repo_uri must contain a dockerfile**
 
@@ -262,9 +274,9 @@ repo_uri = '<url of code repo GitHub URL to be deployed. Repo must contain a doc
 result = swan_orchestrator.create_task(
     wallet_address=wallet_address,
     repo_uri=repo_uri,
-    hardware_id=hardware_id, # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
-    region='global', # Optional: Defaults to region set in set_default_task_config or global if not set
-    duration=duration, # Optional: Defaults to 3600 seconds
+    hardware_id=hardware_id, # Optional: Defaults to 0 (free tier)
+    region='global', # Optional: Defaults to global
+    duration=3600, # Optional: Defaults to 3600 seconds
     auto_pay=False, # Optional: Defaults to false
 )
 
@@ -319,7 +331,7 @@ swan_orchestrator.make_payment(
     task_uuid=task_uuid,
     private_key=private_key,
     duration=3600, # Optional: Defaults to 3600 seconds (1 hour)
-    hardware_id=hardware_id # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
+    hardware_id=hardware_id # Optional: Defaults to 0 (free tier)
 )
 ```
 
@@ -342,7 +354,7 @@ renew_task = swan_orchestrator.renew_task(
     task_uuid=task_uuid, 
     duration=60, # Optional: Defaults to 3600 seconds (1 hour)
     tx_hash=tx_hash, # tx_hash of payment to swan contract for this task
-    hardware_id=hardware_id # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
+    hardware_id=hardware_id # Optional: Defaults to 0 (free tier)
 )
 
 if renew_task and renew_task['status'] == 'success':
@@ -378,58 +390,3 @@ Sample Output:
 ```
 ['https://real_url_link']
 ```
-
-** This is the end of the walkthrough **
-
-
-## Key Functions Details
-
-### create_task Function Details
-
-```python
-swan.resource(api_key="<your_api_key>", service_name='Orchestrator').create_task(**kwargs)
-```
-
-Creates task on SWAN orchestrator.
-
-#### Request Syntax
-
-```python
-response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').create_task(
-  wallet_address="string", 
-  hardware_id=-1, 
-  region="string",
-  duration=3600,
-  app_repo_image="string",
-  job_source_uri="string",
-  repo_uri="string"
-  repo_branch="string",
-  repo_owner="string", 
-  repo_name="string",
-  start_in=300, 
-  auto_pay=False,
-  private_key="string"
-)
-
-# To get task_uuid
-response['id']
-```
-
-PARAMETERS:
-- **wallet_address** (string) **[REQUIRED]** - The wallet address to be asscioated with newly create task
-- **hardware_id** (integer) - id of cp/hardware configuration set. Defaults to hardware chosen in set_default_task_config. If hardware not set, will default to 0 (Free tier).
-- **region** (string) - region of hardware. Defaults to global.
-- **duration** (integer) - duration of service runtime in seconds. Defaults to 3600 seconds (1 hour).
-- **app_repo_image** (string) - The name of a demo space. If app_repo_image is used, auto_pay will be True by default. To learn more about auto_pay, check out auto_pay parameter. If you want turn auto_pay off, set auto_pay to False
-- **job_source_uri** (string) - The job source URI to be deployed. If this is provided, app_repo_image and repo_uri are ignored. The repository must contain a dockerfile
-- **repo_uri** (string) - The The URI of the repo to be deployed. The repository must contain a dockerfile \
-**IMPORTANT** Only one of job_source_uri, app_repo_image, and repo_uri will be used at a time, but at least 1 must be provided. The priority is job_source_uri. If job_source_uri is not provided, app_repo_image will be used. If app_repo_image is not provided, then repo_uri will be used.
-- **repo_branch** (string) - branch of the repo to be deployed.
-- **repo_owner** (string) - owner of the repo to be deployed.
-- **repo_name** (string) - name of the repo to be deployed.
-- **start_in** (integer) - unix timestamp of starting time. Defaults to 300 seconds (5 minutes)
-- **auto_pay** (Boolean) - Automatically pays to deploy task if set to True. If True, private_key must be provided.
-- **private_key** Wallet's private_key, only used if auto_pay is True
-
-```
-
