@@ -5,7 +5,7 @@ Jump into using the SDK with this quick example:
 - [1. Get Orchestrator API Key](#1-get-orchestrator-api-key)
 - [2. Login into Orchestrator Through SDK](#2-login-into-orchestrator-through-sdk)
 - [3. Retrieve available hardware information](#3-retrieve-available-hardware-information)
-- [4. Set Default Task Settings (Optional)](#4-set-default-task-settings-optional)
+- [4. Select hardware_id and region (Optional)](#4-Select-hardware_id-and-region-Optional)
 - [5. Estimate Payment Amount (Optional)](#5-estimate-payment-amount-optional)
 - Path A: Using Default Images
   - [6a. Create Task with Default Image](#6a-create-task-with-prebuilt-image)
@@ -107,14 +107,12 @@ print(chosen_hardware['price']) # current hardware price
 print(chosen_hardware['status']) # overall hardware avaliablility
 ```
 
-### 4. Set Default Task Settings (Optional)
-Set a default hardware with a hardware id and region. The default `hardware_id` and `region` set will be used in the steps to deploy task if not provided as parameters in future functions
+### 4. Select hardware_id and region (Optional)
+choose a hardware with its hardware id and region. If no hardware_id is provided in future functions, it will default to free tier, and it no region is provided, it will default to global.
 
 ```python
-hardware_id = 0 # 'C1ae.medium'
+hardware_id = 0
 region = 'global'
-if swan_orchestrator.set_default_task_config(hardware_id, region):
-    print("Successfully set up default task configuration")
 ```
 
 ### 5. Estimate Payment Amount (Optional)
@@ -126,7 +124,7 @@ duration = 3600 # 1 hour or 3600 seconds
 
 amount = swan_orchestrator.estimate_payment(
     duration=duration, # Optional: Defaults to 3600 seconds or 1 hour
-    hardware_id=hardware_id, # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
+    hardware_id=hardware_id, # Optional: Defaults to 0 (free tier)
 )
 
 print(amount)
@@ -201,8 +199,8 @@ result = swan_orchestrator.create_task(
     repo_uri=repo_uri,
     auto_pay=True, # Optional: Defaults to false, but in this section's path, set to True
     private_key=private_key, # Wallet's private key
-    hardware_id=0, # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
-    region='global', # Optional: Defaults to region set in set_default_task_config or global if not set
+    hardware_id=0, # Optional: Defaults to 0 (free tier)
+    region='global', # Optional: Defaults to global
     duration=3600, # Optional: Defaults to 3600 seconds
 )
 
@@ -252,7 +250,7 @@ renew_task = swan_orchestrator.renew_task(
     duration=3600, # Optional: Defaults to 3600 seconds (1 hour)
     auto_pay=True, # Optional: Defaults to False, in this demo path set to True
     private_key="<wallet's private key>",
-    hardware_id=hardware_id # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
+    hardware_id=hardware_id # Optional: Defaults to 0 (free tier)
 )
 
 if renew_task and renew_task['status'] == 'success':
@@ -276,8 +274,8 @@ repo_uri = '<url of code repo GitHub URL to be deployed. Repo must contain a doc
 result = swan_orchestrator.create_task(
     wallet_address=wallet_address,
     repo_uri=repo_uri,
-    hardware_id=hardware_id, # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
-    region='global', # Optional: Defaults to region set in set_default_task_config or global if not set
+    hardware_id=hardware_id, # Optional: Defaults to 0 (free tier)
+    region='global', # Optional: Defaults to global
     duration=3600, # Optional: Defaults to 3600 seconds
     auto_pay=False, # Optional: Defaults to false
 )
@@ -333,7 +331,7 @@ swan_orchestrator.make_payment(
     task_uuid=task_uuid,
     private_key=private_key,
     duration=3600, # Optional: Defaults to 3600 seconds (1 hour)
-    hardware_id=hardware_id # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
+    hardware_id=hardware_id # Optional: Defaults to 0 (free tier)
 )
 ```
 
@@ -356,7 +354,7 @@ renew_task = swan_orchestrator.renew_task(
     task_uuid=task_uuid, 
     duration=60, # Optional: Defaults to 3600 seconds (1 hour)
     tx_hash=tx_hash, # tx_hash of payment to swan contract for this task
-    hardware_id=hardware_id # Optional: Defaults to hardware_id set in set_default_task_config or 0 (free) if not set
+    hardware_id=hardware_id # Optional: Defaults to 0 (free tier)
 )
 
 if renew_task and renew_task['status'] == 'success':

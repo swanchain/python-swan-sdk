@@ -33,7 +33,7 @@ response['id']
 ```
 PARAMETERS:
 - **wallet_address** (string) **[REQUIRED]** - The wallet address to be asscioated with newly create task
-- **hardware_id** (integer) - id of cp/hardware configuration set. Defaults to hardware chosen in set_default_task_config. If hardware not set, will default to 0 (Free tier).
+- **hardware_id** (integer) - id of cp/hardware configuration set. Defaults to 0 (Free tier).
 - **region** (string) - region of hardware. Defaults to global.
 - **duration** (integer) - duration of service runtime in seconds. Defaults to 3600 seconds (1 hour).
 - **app_repo_image** (string) - The name of a demo space. If app_repo_image is used, auto_pay will be True by default. To learn more about auto_pay, check out auto_pay parameter. If you want turn auto_pay off, set auto_pay to False
