@@ -19,12 +19,12 @@ response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').
   duration=3600,
   app_repo_image="string",
   job_source_uri="string",
-  repo_uri="string"
+  repo_uri="string",
   repo_branch="string",
   repo_owner="string", 
   repo_name="string",
   start_in=300, 
-  auto_pay=False,
+  auto_pay=None,
   private_key="string"
 )
 
@@ -46,3 +46,177 @@ PARAMETERS:
 - **start_in** (integer) - unix timestamp of starting time. Defaults to 300 seconds (5 minutes)
 - **auto_pay** (Boolean) - Automatically pays to deploy task if set to True. If True, private_key must be provided.
 - **private_key** (string) - Wallet's private_key, only used if auto_pay is True
+
+
+### submit_payment Details
+
+```python
+swan.resource(api_key="<your_api_key>", service_name='Orchestrator').submit_payment(**kwargs)
+```
+
+Submit a payment to SWAN contract for a task
+
+#### Request Syntax
+submit_payment(self, task_uuid, private_key, duration = 3600, hardware_id = None)
+```python
+response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').submit_payment(
+  task_uuid="string",
+  private_key="string", 
+  duration = 3600, 
+  hardware_id = -1
+)
+```
+PARAMETERS:
+- **task_uuid** (string) **[REQUIRED]** - task_uuid of task being paid for
+- **private_key** (string) **[REQUIRED]** - Wallet's private_key
+- **duration** (integer) - duration of service runtime in seconds. Defaults to 3600 seconds (1 hour).
+- **hardware_id** (integer) - id of cp/hardware configuration set. Defaults to 0 (Free tier).
+
+### validate_payment Details
+```python
+swan.resource(api_key="<your_api_key>", service_name='Orchestrator').validate_payment(**kwargs)
+```
+
+Deploy task on orchestrator with proof of payment
+
+#### Request Syntax
+submit_payment(self, task_uuid, private_key, duration = 3600, hardware_id = None)
+```python
+response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').validate_payment(
+  tx_hash="string",
+  task_uuid="string"
+)
+```
+PARAMETERS:
+- **tx_hash** (string) **[REQUIRED]** - tx_hash/receipt of payment to SWAN contract for task with task_uuid 
+- **task_uuid** (string) **[REQUIRED]** - task_uuid of task being extended
+
+
+### get_app_repo_image Details
+
+```python
+swan.resource(api_key="<your_api_key>", service_name='Orchestrator').get_app_repo_image(**kwargs)
+```
+
+Finds repository image of pre-defined applications
+
+#### Request Syntax
+
+```python
+response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').get_app_repo_image(
+  name="string"
+)
+```
+PARAMETERS:
+- **name** (string) - If name is provided, it will return the repository image of pre-defined applications. If name is not provided, returns all repository image of pre-defined applications.
+
+### get_source_uri Details
+```python
+swan.resource(api_key="<your_api_key>", service_name='Orchestrator').get_source_uri(**kwargs)
+```
+
+Creates a returns a lagrange image of github repository.
+
+```python
+response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').get_source_uri(
+  repo_uri="string",
+  wallet_address="string", 
+  hardware_id=-1, 
+  repo_branch="string",
+  repo_owner="string", 
+  repo_name="string",
+)
+```
+
+PARAMETERS:
+- **wallet_address** (string) **[REQUIRED]** - The wallet address to be asscioated with newly create task
+- **hardware_id** (integer) **[REQUIRED]** - id of cp/hardware configuration set. Defaults to 0 (Free tier).
+- **repo_uri** (string) **[REQUIRED]** - The The URI of the repo to be deployed.
+- **repo_branch** (string) - branch of the repo to be deployed.
+- **repo_owner** (string) - owner of the repo to be deployed.
+- **repo_name** (string) - name of the repo to be deployed.
+
+
+### renew_task Details
+```python
+swan.resource(api_key="<your_api_key>", service_name='Orchestrator').renew_task(**kwargs)
+```
+
+Renews a task
+
+```python
+response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').renew_task(
+  task_uuid="string"
+  duration=3600, 
+  tx_hash="string", 
+  auto_pay = False, 
+  private_key="string", 
+  hardware_id=-1
+)
+```
+
+PARAMETERS:
+- **task_uuid** (string) **[REQUIRED]** - The task_uuid to be extended
+- **duration** (integer) - id of cp/hardware configuration set. Defaults to 0 (Free tier).
+- **tx_hash** (string) - The tx_hash of payment
+- **auto_pay** (Boolean) - Automatically pays to extend task if set to True. If True, private_key must be provided.
+**IMPORTANT** If auto_pay if False, tx_hash must be provided
+- **private_key** (string) - Wallet's private_key, only used if auto_pay is True
+- **hardware_id** (integer) - id of cp/hardware configuration set. Defaults to 0 (Free tier).
+
+
+## terminate_task Details
+
+```python
+swan.resource(api_key="<your_api_key>", service_name='Orchestrator').terminate_task(**kwargs)
+```
+
+Terminates a task and gives a refund based on time remaining
+
+#### Request Syntax
+
+```python
+response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').terminate_task(
+  task_uuid="string"
+)
+```
+PARAMETERS:
+- **task_uuid** (string) **[REQUIRED]** - The task_uuid to be terminates
+
+
+## get_deployment_info Details
+
+```python
+swan.resource(api_key="<your_api_key>", service_name='Orchestrator').get_deployment_info(**kwargs)
+```
+
+Get deployment information about a task
+
+#### Request Syntax
+
+```python
+response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').get_deployment_info(
+  task_uuid="string"
+)
+```
+PARAMETERS:
+- **task_uuid** (string) **[REQUIRED]** - The task_uuid to get status of.
+
+
+## get_real_url Details
+
+```python
+swan.resource(api_key="<your_api_key>", service_name='Orchestrator').get_real_url(**kwargs)
+```
+
+Get real url of task
+
+#### Request Syntax
+
+```python
+response = swan.resource(api_key="<your_api_key>", service_name='Orchestrator').get_real_url(
+  task_uuid="string"
+)
+```
+PARAMETERS:
+- **task_uuid** (string) **[REQUIRED]** - Get real url of task at task_uuid
