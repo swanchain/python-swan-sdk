@@ -43,8 +43,8 @@ orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orchestrato
 
 result = orchestrator.create_task(
     app_repo_image='hello-world',
-    wallet_address='WALLET_ADDRESS',
-    private_key='PRIVATE_KEY',
+    wallet_address='<WALLET_ADDRESS>',
+    private_key='<PRIVATE_KEY>',
 )
 ```
 
