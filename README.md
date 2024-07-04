@@ -5,10 +5,10 @@
 
 ## Table Of Contents<!-- omit in toc -->
 
+- [Installation](#installation)
 - [Quick Start](#quick-start)
 - [Overview](#overview)
 - [Features](#features)
-- [Installation](#installation)
 - [Use Python dotenv](#use-python-dotenv)
 - [Quick Start Guide for Swan SDK](#quick-start-guide-for-swan-sdk)
   - [1. Get Orchestrator API Key](#1-get-orchestrator-api-key)
@@ -30,6 +30,22 @@
 - [Documentation](#documentation)
 - [License](#license)
 
+## Installation
+
+To use Python Swan SDK, use **Python 3.8 or later** and **web3.py 6.15 or later**. Earlier versions are not supported.
+
+**Install via PyPI:**
+
+```bash
+pip install swan-sdk
+```
+
+**Clone from GitHub:**
+
+```bash
+git clone https://github.com/swanchain/python-swan-sdk.git
+```
+
 ## Quick Start
 
 To deploy a hello world application with Swan SDK:
@@ -37,7 +53,6 @@ To deploy a hello world application with Swan SDK:
 ```python
 import os
 import swan
-
 
 orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orchestrator')
 
@@ -82,24 +97,6 @@ GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/main
 - **API Client Integration**: Streamline your development workflow with our intuitive API client.
 - **Service Layer Abstractions**: Access complex functionalities through a simplified high-level interface, improving code maintainability.
 - **Extensive Documentation**: Access a wealth of information through our comprehensive guides and reference materials located in the `docs/` directory on GitHub.
-
-## Installation
-
-Setting up the PYTHON SWAN SDK is straightforward.
-
-To use Python Swan SDK, use **Python 3.8 or later** and **web3.py 6.15 or later**. Earlier versions are not supported.
-
-**Install via PyPI:**
-
-```bash
-pip install swan-sdk
-```
-
-**Clone from GitHub:**
-
-```bash
-git clone https://github.com/swanchain/python-swan-sdk.git
-```
 
 ## Use Python dotenv
 
