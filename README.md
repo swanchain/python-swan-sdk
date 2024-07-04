@@ -12,16 +12,19 @@
 - [Quick Start Guide for Swan SDK](#quick-start-guide-for-swan-sdk)
   - [1. Get Orchestrator API Key](#1-get-orchestrator-api-key)
   - [2. Login into Orchestrator Through SDK](#2-login-into-orchestrator-through-sdk)
-  - [3. Connect to Swan Payment Contract](#3-connect-to-swan-payment-contract)
-  - [4. Retrieve available hardware information](#4-retrieve-available-hardware-information)
-  - [5. Get job\_source\_uri](#5-get-job_source_uri)
-  - [6. Estimate Payment Amount](#6-estimate-payment-amount)
-  - [7. Create Task](#7-create-task)
-  - [8. Submit Payment](#8-submit-payment)
-  - [9. Validate Payment to Deploy Task](#9-validate-payment-to-deploy-task)
-  - [10. Follow-up Task Status (Optional)](#10-follow-up-task-status-optional)
+  - [3. Retrieve available hardware information](#3-retrieve-available-hardware-information)
+  - [4. Select hardware\_id and region (Optional)](#4-select-hardware_id-and-region-optional)
+  - [5. Estimate Payment Amount (Optional)](#5-estimate-payment-amount-optional)
+  - [6a. Create Task with prebuilt image](#6a-create-task-with-prebuilt-image)
+  - [6b. Create Task with Auto Pay](#6b-create-task-with-auto-pay)
+  - [6c. Renew Task with Auto Pay (optional)](#6c-renew-task-with-auto-pay-optional)
+  - [6d. Deploy a task without auto\_pay (no private\_key)](#6d-deploy-a-task-without-auto_pay-no-private_key)
+  - [7. Make Payment (Optional)](#7-make-payment-optional)
+  - [8. Validate Payment to Deploy Task (Optional)](#8-validate-payment-to-deploy-task-optional)
+  - [9. Renew task without private\_key (Optional)](#9-renew-task-without-private_key-optional)
+  - [10. Terminate task (Optional)](#10-terminate-task-optional)
+  - [11. Follow-up Task Status (Optional)](#11-follow-up-task-status-optional)
     - [Show results](#show-results)
-    - [Show task details](#show-task-details)
 - [Examples](#examples)
 - [Documentation](#documentation)
 - [License](#license)
@@ -35,7 +38,6 @@ GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/main
 ## Features
 
 - **API Client Integration**: Streamline your development workflow with our intuitive API client.
-- **Pre-defined Data Models**: Utilize our structured data models for tasks, directories, and source URIs to enhance your application's reliability and scalability.
 - **Service Layer Abstractions**: Access complex functionalities through a simplified high-level interface, improving code maintainability.
 - **Extensive Documentation**: Access a wealth of information through our comprehensive guides and reference materials located in the `docs/` directory on GitHub.
 
@@ -72,7 +74,7 @@ Jump into using the SDK with this quick example:
 
 To use `swan-sdk`, an Orchestrator API key is required. 
 
-- Go to Orchestrator Dashboard: https://orchestrator.swanchain.io/provider-status
+- Go to [Orchestrator Dashboard](https://orchestrator.swanchain.io/provider-status), you can switch network between Testnet (Proxima) and Mainnet.
 - Login through MetaMask.
 - Click the user icon on the top right.
 - Click 'Show API-Key' -> 'New API Key'
@@ -82,67 +84,42 @@ To use `swan-sdk`, an Orchestrator API key is required.
 
 To use `swan-sdk` you will need to login to Orchestrator using API Key. (Wallet login is not supported)
 
-```python
-from swan import SwanAPI
-
-swan_api = SwanAPI(api_key="<your_api_key>")
-```
-### 3. Connect to Swan Payment Contract
-
-Payment of Orchestrator deployment is paid through the Swan Payment Contract. To navigate the contract ABIs. First create a `SwanContract()` instance:
-**Notice: This won't be used until you're trying to Estimate Payment Amount, however, it's still recommended to do this step here to make sure that you can get all contract information before you move on**
+**By default, the backend system will be the testnet. To use the mainnet, set `network='mainnet'`. To use another backend (for example dev environment on Testnet), set `url_endpoint='<target_backend_url>'`.**
 
 ```python
-from swan.contract.swan_contract import SwanContract
+import swan
 
-contract = SwanContract('<your_private_key>', swan_api.contract_info)
+# To use testnet
+swan_orchestrator = swan.resource(api_key="<your_api_key>", service_name='Orchestrator')
+
+# To use mainnet
+swan_orchestrator = swan.resource(api_key="<your_api_key>", network='mainnet', service_name='Orchestrator')
+
+# To use other backend
+swan_orchestrator = swan.resource(api_key="<your_api_key>", url_endpoint='<url_endpoint>', service_name='Orchestrator')
 ```
 
-
-### 4. Retrieve available hardware information
+### 3. Retrieve available hardware information
 
 Orchestrator provides a selection of Computing Providers with different hardware.
-Use `SwanAPI().get_hardware_config()` to retrieve all available hardware on Orchestrator.
+Use `swan_orchestrator.get_hardware_config()` to retrieve all available hardware on Orchestrator.
 
-Each hardware is stored as an instance of `HardwareConfig()` object. 
-
-```python
-from swan.object import HardwareConfig
-```
 Hardware config contains a unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, available region and current status.
 
 See all available hardware in a Python dictionary:
 
 ```python
-hardwares = swan_api.get_hardware_config()
-hardwares_info = [hardware.to_dict() for hardware in hardwares if hardware.status == "available"] 
-print(hardwares_info)
-```
-You can use 
-```python
-from swan.object import HardwareConfig
-```
-to check the hardware information like this:
-- `HardwareConfig().status` shows the availability of the hardware.
-- `HardwareConfig().region` is a list of all regions this hardware is available in.
-- Retrieve individual hardware attributes:
-```python
-print(chosen_hardware.id) # hardware id
-print(chosen_hardware.name) # hardware name
-print(chosen_hardware.description) # hardware description
-print(chosen_hardware.type) # hardware type
-print(chosen_hardware.region) # all available hardware region
-print(chosen_hardware.price) # current hardware price
-print(chosen_hardware.status) # overall hardware availability
+hardwares = swan_orchestrator.get_hardware_config()
 ```
 
-For more details go to project documentation: https://github.com/swanchain/python-swan-sdk/blob/main/docs/object.md
+`hardwares[idx]["status"]` shows the availability of the hardware.
+`hardwares[idx]["region"]` is a list of all regions this hardware is available in.
 
-Useful example: Retrieve the hardware with hardware ID 0:
+Retrieve the hardware with hardware ID 0:
+
 ```python
-hardwares = swan_api.get_hardware_config()
-chosen_hardware = [hardware for hardware in hardwares if hardware.id == 0][0]
-print(chosen_hardware.to_dict())
+hardwares = swan_orchestrator.get_hardware_config()
+chosen_hardware = [hardware for hardware in hardwares if hardware['id'] == 0][0]
 ```
 
 Sample output:
@@ -158,57 +135,192 @@ Sample output:
 }
 ```
 
-
-### 5. Get job_source_uri
-
-`job_source_uri` can be create through `SwanAPI().get_source_uri()` API.
-
-Generate a source URI
-A demo tetris docker image on GitHub as repo_uri: 'https://github.com/alphaflows/tetris-docker-image.git'
-
+Retrieve individual hardware attributes:
 ```python
-job_source_uri = swan_api.get_source_uri(
-    repo_uri='<your_git_hub_link/your_lagrange_space_link>',
-    hardware_id=chosen_hardware.id,
-    wallet_address='<your_wallet_address>'
-)
-
-job_source_uri = job_source_uri['data']['job_source_uri']
-print(job_source_uri)
+print(chosen_hardware['id']) # hardware id
+print(chosen_hardware['name']) # hardware name
+print(chosen_hardware['description']) # hardware description
+print(chosen_hardware['type']) # hardware type
+print(chosen_hardware['region']) # all avaliable hardware region
+print(chosen_hardware['price']) # current hardware price
+print(chosen_hardware['status']) # overall hardware avaliablility
 ```
 
-### 6. Estimate Payment Amount
+### 4. Select hardware_id and region (Optional)
+choose a hardware with its hardware id and region. If no hardware_id is provided in future functions, it will default to free tier, and it no region is provided, it will default to global.
+
+```python
+hardware_id = 0
+region = 'global'
+```
+
+### 5. Estimate Payment Amount (Optional)
 
 To estimate the payment required for the deployment. Use `SwanContract().estiamte_payment()`
 
 ```python
-duration_hour = 1 # or duration you want the deployment to run
-amount = contract.estimate_payment(chosen_hardware.id, duration_hour)
-print(amount) # amount is in wei, 18 decimals
+duration = 3600 # or duration you want the deployment to run, this field is in seconds
+amount = swan_orchestrator.estimate_payment(chosen_hardware.id, duration_seconds)
+amount
 ```
 
-### 7. Create Task
+### 6a. Create Task with prebuilt image
 
-Before paying for the task, first, create a task on Orchestrator using desired task attributes.
+Auto-pay is on for this tutorial path, in which case task creation, payment, and deployment are all in one. If you do no want to auto-pay, `make_payment` method is available.
+
+A list of prebuilt app images can be accessed from backend, then choose one of the names as `app_repo_image` in creating task.
+
+```python
+swan_orchestrator.get_app_repo_image()
+```
+
+For more information about the [create_task Function](/docs/key_functions.md#create_task-function-details).
 
 ```python
 import json
 
-duration_hour = 1
-# Notice that from here, you need to convert the duration to seconds
-duration = 3600*duration_hour
-cfg_name = chosen_hardware.name
-
-result = swan_api.create_task(
-    cfg_name=cfg_name, 
-    region='<region_name>', # e.g. 'North Carolina-US' or chosen_hardware.region[0]
-    start_in=300,  # in seconds
-    duration=duration, 
-    job_source_uri=job_source_uri, #repo.source_uri
-    paid=contract._wei_to_swan(amount), # from wei to swan amount/1e18
-    wallet_address='<your_wallet_address>',
+result = swan_orchestrator.create_task(
+    app_repo_image="hello-world",
+    wallet_address=wallet_address,
+    private_key=private_key
 )
-task_uuid = result['data']['task']['uuid']
+print(json.dumps(result, indent=2))
+task_uuid = result['id']
+```
+
+Sample output:
+```
+{
+  "data": {
+    "config_id": 1,
+    "created_at": 1719591738,
+    "duration": 3600,
+    "ended_at": null,
+    "error_code": null,
+    "id": 2439,
+    "order_type": "Creation",
+    "refund_tx_hash": null,
+    "region": "global",
+    "space_id": null,
+    "start_in": 300,
+    "started_at": 1719591738,
+    "status": "pending_payment_confirm",
+    "task_uuid": "21d3fc99-d4ea-4a42-bdad-797ec15b42de",
+    "tx_hash": "0x32596b525c574847a00e477b1cc463a43dd841b085da7de715b4ff0da1db6400",
+    "updated_at": 1719591746,
+    "uuid": "5b0e098d-284a-46cd-9ef9-d0ca6008785f"
+  },
+  "message": "Query order status success.",
+  "status": "success",
+  "tx_hash": "0x32596b525c574847a00e477b1cc463a43dd841b085da7de715b4ff0da1db6400",
+  "id": "21d3fc99-d4ea-4a42-bdad-797ec15b42de"
+}
+```
+To see how to renew this task, visit step 7b.
+This is the end of this path A, go to Step 10
+
+
+### 6b. Create Task with Auto Pay
+
+If you want to deploy a application from a GitHub repo or Lagrange Space repo, and also don't want to set up payment manually, you can set `auto_pay=True` expilicitly in `create_task`.
+
+For more information about the [create_task Function](/docs/key_functions.md#create_task-function-details).
+
+**repo_uri must contain a dockerfile**
+
+```python
+import json
+
+repo_uri = '<GitHub URL to be deployed. Repo must contain a dockerfile>'
+
+result = swan_orchestrator.create_task(
+    wallet_address=wallet_address,
+    repo_uri=repo_uri,
+    auto_pay=True, # 
+    private_key=private_key, # Wallet's private key
+    hardware_id=0, # Optional: Defaults to 0 (free tier)
+    region='global', # Optional: Defaults to global
+    duration=duration, # Optional: Defaults to 3600 seconds
+)
+
+# To get the task_uuid, check line below
+task_uuid = result['id']
+
+print(json.dumps(result, indent=2)) # Print response
+```
+
+Sample output:
+
+```
+{
+  "data": {
+    "config_id": 2,
+    "created_at": 1719606062,
+    "duration": 3600,
+    "ended_at": null,
+    "error_code": null,
+    "id": 2453,
+    "order_type": "Creation",
+    "refund_tx_hash": null,
+    "region": "North Carolina-US",
+    "space_id": null,
+    "start_in": 300,
+    "started_at": 1719606062,
+    "status": "pending_payment_confirm",
+    "task_uuid": "00000000-cfaf-4a00-acd8-fe929414cd84",
+    "tx_hash": "0x0000000000000000000000000000000000000000000000000",
+    "updated_at": 1719606070,
+    "uuid": "d4f61285-655a-4f61-a4e0-e6160619c975"
+  },
+  "message": "Query order status success.",
+  "status": "success",
+  "tx_hash": "0x0000000000000000000000000000000000000000000000000",
+  "id": "00000000-cfaf-4a00-acd8-fe929414cd84"
+}
+```
+
+### 6c. Renew Task with Auto Pay (optional)
+
+Extend `task_uuid` by `duration`. Using auto pay automatically makes a transaction to SWAN contract and extends the task.
+
+```python
+renew_task = swan_orchestrator.renew_task(
+    task_uuid=task_uuid, 
+    duration=3600, # Optional: Defaults to 3600 seconds (1 hour)
+    auto_pay=True, # Optional: Defaults to False, in this demo path set to True
+    private_key=private_key,
+    hardware_id=hardware_id # Optional: Defaults to 0 (free tier)
+)
+
+if renew_task and renew_task['status'] == 'success':
+    print(f"successfully renewed task")
+```
+
+This is the end of this path B, go to Step 11
+
+### 6d. Deploy a task without auto_pay (no private_key)
+
+Create (initialize) a task and then pay the task by yourself. `task_uuid`, `hardware_id`, `duration` are required to submit a payment.
+
+For more information about the [create_task Function](/docs/key_functions.md#create_task-function-details).
+
+**repo_uri must contain a dockerfile**
+
+```python
+import json
+
+repo_uri = '<url of code repo GitHub URL to be deployed. Repo must contain a dockerfile>'
+
+result = swan_orchestrator.create_task(
+    wallet_address=wallet_address,
+    repo_uri=repo_uri,
+    hardware_id=hardware_id, # Optional: Defaults to 0 (free tier)
+    region='global', # Optional: Defaults to global
+    duration=duration, # Optional: Defaults to 3600 seconds
+    auto_pay=False, # Optional: Defaults to false
+)
+
+task_uuid = result['id']
 
 print(json.dumps(result, indent=2)) # Print response
 ```
@@ -219,101 +331,115 @@ Sample output:
 {
   "data": {
     "task": {
-      "created_at": "1714254304",
-      "end_at": "1714257898",
+      "comments": null,
+      "created_at": 1719606552,
+      "end_at": 1719610152,
+      "id": 1,
       "leading_job_id": null,
       "refund_amount": null,
+      "refund_wallet": "0x000000",
+      "source": "v2",
+      "start_at": 1719606552,
+      "start_in": 300,
       "status": "initialized",
-      "task_detail_cid": "https://data.mcs.lagrangedao.org/ipfs/QmXLSaBqtoWZWAUoiYxM3EDxh14kkhpUiYkVjZSK3BhfKj",
-      "tx_hash": null,
-      "updated_at": "1714254304",
-      "uuid": "f4799212-4dc2-4c0b-9209-c0ac7bc48442"
-    }
-  },
+      "task_detail": {
+        "amount": 1.0,
+        "bidder_limit": 3,
+        "created_at": 1719606552,
+        "duration": 3600,
+        "end_at": 1719610152,
+        "hardware": "C1ae.medium",
+        "job_result_uri": null,
+        "job_source_uri": "https://job-source-uri",
+        "price_per_hour": "1.0",
+        "requirements": {
+...
   "message": "Task_uuid initialized.",
-  "status": "success"
+  "status": "success",
+  "id": "0000000-f395-484f-8ef8-2d4bc5a31e42"
 }
 ```
 
-**The `task['uuid']` will be used in the following operations.**
+The `task['id']` will be used in the following operations.
 
+### 7. Make Payment (Optional)
 
-
-### 8. Submit Payment
-
-- **If you got any error about insufficient balance, please make sure you have enough balance in your wallet.**
-- *If you have Error like "to_wei() does not exist", please make sure you have web3.py 6.15 or later.*
-
-Use `SwanContract().submit_payment()` to pay for the task. The TX hash is the receipt for the payment.
+Use `swan_orchestrator.make_payment()` to pay and deploy the task, which combines `submit_payment` and `validate_payment`. 
 
 ```python
-tx_hash = contract.submit_payment(task_uuid, chosen_hardware.id, duration) # duration in seconds
+swan_orchestrator.make_payment(
+    task_uuid=task_uuid,
+    private_key=private_key,
+    duration=3600, # Optional: Defaults to 3600 seconds (1 hour)
+    hardware_id=hardware_id # Optional: Defaults to 0 (free tier)
+)
 ```
 
-### 9. Validate Payment to Deploy Task
+### 8. Validate Payment to Deploy Task (Optional)
 
-Use `SwanAPI().validate_payment()` to validate the payment using TX hash and deploy the task.
+If you have already submitted payment, you can use the `tx_hash` with `validate_payment()` to validate the payment to let the task can be deployed.
 
 ```python
-swan_api.validate_payment(
+swan_orchestrator.validate_payment(
     tx_hash=tx_hash,
     task_uuid=task_uuid
 )
 ```
 
-### 10. Follow-up Task Status (Optional)
+### 9. Renew task without private_key (Optional)
+
+If you have already submitted payment for the renewal of a task, you can use the `tx_hash` with `renew_task` to extend the task.
+
+```python
+renew_task = swan_orchestrator.renew_task(
+    task_uuid=task_uuid, 
+    duration=60, # Optional: Defaults to 3600 seconds (1 hour)
+    tx_hash=tx_hash, # tx_hash of payment to swan contract for this task
+    hardware_id=hardware_id # Optional: Defaults to 0 (free tier)
+)
+
+if renew_task and renew_task['status'] == 'success':
+    print(f"successfully renewed {task_uuid}")
+else:
+    print(f"Unable to renew {task_uuid}")
+```
+
+### 10. Terminate task (Optional)
+
+Early terminate a task.
+
+```python
+terminate_status = swan_orchestrator.terminate_task(task_uuid)
+if terminate_status['status'] == 'success':
+    print(f"Terminated {task_uuid} successfully")
+else:
+    print(f"Failed to terminate {task_uuid}")
+```
+
+### 11. Follow-up Task Status (Optional)
 
 #### Show results
 
-Get the deploy URI to test your deployed task using `SwanAPI().get_real_uri()`.
+Get the deploy URI to test your deployed task on the web using `swan_orchestrator.get_real_uri()`.
 
 ```python
-r = swan_api.get_real_url(task_uuid)
+r = swan_orchestrator.get_real_url(task_uuid)
 print(r)
 ```
 
-#### Show task details
-Get the task details using `SwanAPI().get_deployment_info()`.
-
-```python
-r = swan_api.get_deployment_info(task_uuid)
-print(r)
+Sample Output:
 ```
-Simple output
-```
-{
-   "data":{
-      "computing_providers":[
-         
-      ],
-      "jobs":[
-         
-      ],
-      "task":{
-         "created_at":"1714877536",
-         "end_at":"1714881125",
-         "leading_job_id":"None",
-         "refund_amount":"None",
-         "status":"accepting_bids",
-         "task_detail_cid":"task_detail_cid",
-         "tx_hash":"None",
-         "updated_at":"1714877801",
-         "uuid":"204cd1be-30b0-4915-a635-4b9dbf1a3b5e"
-      }
-   },
-   "message":"fetch task info for task_uuid='204cd1be-30b0-4915-a635-4b9dbf1a3b5e' successfully",
-   "status":"success"
-}
+['https://real_url_link']
 ```
 
 
 ## Examples
 
-For executable examples consult [examples](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.3.post1/examples).
+For executable examples consult [examples](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.4/examples).
 
 ## Documentation
 
-For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult [more docs](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.3.post1/docs)
+For comprehensive documentation, including detailed installation guides, usage examples, and complete API references, please consult [more docs](https://github.com/swanchain/python-swan-sdk/tree/release/v0.0.4/docs)
 
 ## License
 
