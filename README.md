@@ -46,15 +46,15 @@ result = orchestrator.create_task(
     wallet_address='<WALLET_ADDRESS>',
     private_key='<PRIVATE_KEY>',
 )
-```
-
-To follow up task status and get deployed url:
-
-```python
 task_uuid = result['id']
-# follow up task info
+# Get task info
 task_info = orchestrator.get_deployment_info(task_uuid=task_uuid)
 print(task_info)
+```
+
+It may take up to 5 minutes to get the deployment result:
+
+```python
 # check the deployed url
 result_url = orchestrator.get_real_url(task_uuid)
 print(result_url)
