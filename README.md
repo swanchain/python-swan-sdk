@@ -5,6 +5,7 @@
 
 ## Table Of Contents<!-- omit in toc -->
 
+- [Quick Start](#quick-start)
 - [Overview](#overview)
 - [Features](#features)
 - [Installation](#installation)
@@ -28,6 +29,26 @@
 - [Examples](#examples)
 - [Documentation](#documentation)
 - [License](#license)
+
+## Quick Start
+
+To deploy a hello world application with Swan SDK:
+
+```python
+import os
+from dotenv import load_dotenv
+import swan
+
+load_dotenv()
+
+orchestrator = swan.resource(api_key=os.getenv('API_KEY'), service_name='Orchestrator')
+
+result = orchestrator.create_task(
+    app_repo_image='hello-world',
+    wallet_address=os.getenv('WALLET'),
+    private_key=os.getenv('PK'),
+)
+```
 
 ## Overview
 
