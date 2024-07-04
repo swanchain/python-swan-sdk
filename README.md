@@ -59,6 +59,17 @@ It may take up to 5 minutes to get the deployment result:
 result_url = orchestrator.get_real_url(task_uuid)
 print(result_url)
 ```
+A sample output:
+
+```
+['https://krfswstf2g.anlu.loveismoney.fun', 'https://l2s5o476wf.cp162.bmysec.xyz', 'https://e2uw19k9uq.cp5.node.study']
+```
+
+It shows the hello-world task has been deployed to 3 computing providers,open anylink in the browser it shows：
+
+```
+Hello World
+```
 
 ## Overview
 
