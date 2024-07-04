@@ -48,7 +48,7 @@ git clone https://github.com/swanchain/python-swan-sdk.git
 
 ## Quick Start
 
-To deploy a hello world application with Swan SDK:
+To deploy a hello world application with Swan SDK (see [How to get API KEY](#1-get-orchestrator-api-key)):
 
 ```python
 import os
