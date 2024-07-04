@@ -50,6 +50,18 @@ result = orchestrator.create_task(
 )
 ```
 
+To follow up task status and get deployed url:
+
+```python
+task_uuid = result['id']
+# follow up task info
+task_info = orchestrator.get_deployment_info(task_uuid=task_uuid)
+print(task_info)
+# check the deployed url
+result_url = orchestrator.get_real_url(task_uuid)
+print(result_url)
+```
+
 ## Overview
 
 The PYTHON SWAN SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API. Tailored for developers, this SDK simplifies the creation and management of computational tasks (CP tasks), making it an indispensable tool for developers working in various tech domains.
