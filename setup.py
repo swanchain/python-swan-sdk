@@ -26,10 +26,9 @@ setup(
             "Programming Language :: Python :: 3",
         ],
         install_requires=[
-            "requests==2.28.1",
-            "requests-toolbelt==0.10.1",
-            "web3==6.15.1",
-            "tqdm==4.64.1"
+            "requests>=2.28.1",
+            "requests-toolbelt>=0.10.1",
+            "web3>=6.15.1"
             ],
         entry_points={
             # placeholder
