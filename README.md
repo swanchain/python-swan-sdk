@@ -5,9 +5,10 @@
 
 ## Table Of Contents<!-- omit in toc -->
 
+- [Installation](#installation)
+- [Quick Start](#quick-start)
 - [Overview](#overview)
 - [Features](#features)
-- [Installation](#installation)
 - [Use Python dotenv](#use-python-dotenv)
 - [Quick Start Guide for Swan SDK](#quick-start-guide-for-swan-sdk)
   - [1. Get Orchestrator API Key](#1-get-orchestrator-api-key)
@@ -29,21 +30,7 @@
 - [Documentation](#documentation)
 - [License](#license)
 
-## Overview
-
-The PYTHON SWAN SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API. Tailored for developers, this SDK simplifies the creation and management of computational tasks (CP tasks), making it an indispensable tool for developers working in various tech domains.
-
-GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/main
-
-## Features
-
-- **API Client Integration**: Streamline your development workflow with our intuitive API client.
-- **Service Layer Abstractions**: Access complex functionalities through a simplified high-level interface, improving code maintainability.
-- **Extensive Documentation**: Access a wealth of information through our comprehensive guides and reference materials located in the `docs/` directory on GitHub.
-
 ## Installation
-
-Setting up the PYTHON SWAN SDK is straightforward.
 
 To use Python Swan SDK, use **Python 3.8 or later** and **web3.py 6.15 or later**. Earlier versions are not supported.
 
@@ -58,6 +45,58 @@ pip install swan-sdk
 ```bash
 git clone https://github.com/swanchain/python-swan-sdk.git
 ```
+
+## Quick Start
+
+To deploy a hello world application with Swan SDK (see [How to get API KEY](#1-get-orchestrator-api-key), SDK using Proxima(Testnet) as the default network):
+
+```python
+import os
+import swan
+
+orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orchestrator')
+
+result = orchestrator.create_task(
+    app_repo_image='hello-world',
+    wallet_address='<WALLET_ADDRESS>',
+    private_key='<PRIVATE_KEY>',
+)
+task_uuid = result['id']
+# Get task info
+task_info = orchestrator.get_deployment_info(task_uuid=task_uuid)
+print(task_info)
+```
+
+It may take up to 5 minutes to get the deployment result:
+
+```python
+# check the deployed url
+result_url = orchestrator.get_real_url(task_uuid)
+print(result_url)
+```
+A sample output:
+
+```
+['https://krfswstf2g.anlu.loveismoney.fun', 'https://l2s5o476wf.cp162.bmysec.xyz', 'https://e2uw19k9uq.cp5.node.study']
+```
+
+It shows the hello-world task has been deployed to 3 computing providers,open anylink in the browser it shows：
+
+```
+Hello World
+```
+
+## Overview
+
+The PYTHON SWAN SDK is a comprehensive toolkit designed to facilitate seamless interactions with the SwanChain API. Tailored for developers, this SDK simplifies the creation and management of computational tasks (CP tasks), making it an indispensable tool for developers working in various tech domains.
+
+GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/main
+
+## Features
+
+- **API Client Integration**: Streamline your development workflow with our intuitive API client.
+- **Service Layer Abstractions**: Access complex functionalities through a simplified high-level interface, improving code maintainability.
+- **Extensive Documentation**: Access a wealth of information through our comprehensive guides and reference materials located in the `docs/` directory on GitHub.
 
 ## Use Python dotenv
 
@@ -304,7 +343,7 @@ Create (initialize) a task and then pay the task by yourself. `task_uuid`, `hard
 
 For more information about the [create_task Function](/docs/key_functions.md#create_task-function-details).
 
-**repo_uri must contain a dockerfile**
+**repo_uri must contain a `Dockerfile`**
 
 ```python
 import json
