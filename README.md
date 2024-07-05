@@ -48,7 +48,7 @@ git clone https://github.com/swanchain/python-swan-sdk.git
 
 ## Quick Start
 
-To deploy a hello world application with Swan SDK (see [How to get API KEY](#1-get-orchestrator-api-key)):
+To deploy a hello world application with Swan SDK (see [How to get API KEY](#1-get-orchestrator-api-key), SDK using Proxima(Testnet) as the default network):
 
 ```python
 import os
@@ -343,7 +343,7 @@ Create (initialize) a task and then pay the task by yourself. `task_uuid`, `hard
 
 For more information about the [create_task Function](/docs/key_functions.md#create_task-function-details).
 
-**repo_uri must contain a dockerfile**
+**repo_uri must contain a `Dockerfile`**
 
 ```python
 import json
