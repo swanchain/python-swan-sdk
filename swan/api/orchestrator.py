@@ -31,13 +31,16 @@ class Orchestrator(APIClient):
         self.wallet_address = None
         self.region = "global"
         self.all_hardware = None
-
+    
         if url_endpoint:
             self.swan_url = url_endpoint
+            logging.info(f"Using {url_endpoint}")
         elif network == "mainnet":
             self.swan_url = ORCHESTRATOR_API_MAINNET
+            logging.info("Using Mainnet")
         else:
             self.swan_url = ORCHESTRATOR_API_TESTNET
+            logging.info("Using Testnet")
 
         if login:
             self.api_key_login()
@@ -313,8 +316,7 @@ class Orchestrator(APIClient):
                 self.hardware_id_free = None
 
             if cfg_name := self.get_cfg_name(hardware_id):
-                logging.info(f"Using {cfg_name} machine, {hardware_id=} {region=}")
-                print(f"Using {cfg_name} machine, {hardware_id=} {region=}")
+                logging.info(f"Using {cfg_name} machine, {hardware_id=} {region=} {duration=} (seconds)")
             else:
                 raise SwanAPIException(f"Invalid hardware_id selected")
             
@@ -323,7 +325,7 @@ class Orchestrator(APIClient):
             
             if not job_source_uri:
                 if app_repo_image:
-                    if auto_pay == None:
+                    if auto_pay == None and private_key:
                         auto_pay = True
                     repo_res = self.get_app_repo_image(app_repo_image)
                     if repo_res and repo_res.get("status", "") == "success":
@@ -345,6 +347,9 @@ class Orchestrator(APIClient):
                 else:
                     raise SwanAPIException(f"Please provide app_repo_image, or job_source_uri, or repo_uri")
 
+            if not job_source_uri:
+                raise SwanAPIException(f"cannot get job_source_uri. make sure `app_repo_image` or `repo_uri` or `job_source_uri` is correct.")
+
             if self._verify_hardware_region(cfg_name, region):
                 params = {
                     "paid": paid,
@@ -365,8 +370,9 @@ class Orchestrator(APIClient):
                 )
                 task_uuid = result['data']['task']['uuid']
             else:
-                raise SwanAPIException(f"No {cfg_name} machine in {region}.")
-            
+                err_msg = f"No {cfg_name} machine in {region}."
+                raise SwanAPIException(err_msg)
+        
             if auto_pay:
                 result = self.make_payment(
                     task_uuid=task_uuid, 
@@ -377,6 +383,8 @@ class Orchestrator(APIClient):
 
             if result and isinstance(result, dict):
                 result['id'] = task_uuid
+
+            logging.info(f"Task created successfully, {task_uuid=}")
             return result
 
         except Exception as e:
@@ -537,7 +545,11 @@ class Orchestrator(APIClient):
 
             if not tx_hash:
                 tx_hash = self.submit_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
-            
+                if tx_hash:
+                    logging.info(f"Payment submitted successfully, {tx_hash=}")
+            else:
+                logging.info(f"Using given payment transaction hash, {tx_hash=}")
+
             if tx_hash and task_uuid:
                 params = {
                     "task_uuid": task_uuid,
@@ -553,6 +565,7 @@ class Orchestrator(APIClient):
                         self.token, 
                         None
                     )
+                logging.info(f"Task renewal request sent successfully, {task_uuid=}")
                 return result
             else:
                 raise SwanAPIException(f"{tx_hash=} or {task_uuid=} invalid")
