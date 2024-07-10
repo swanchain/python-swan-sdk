@@ -383,6 +383,7 @@ class Orchestrator(APIClient):
 
             if result and isinstance(result, dict):
                 result['id'] = task_uuid
+                result['task_uuid'] = task_uuid
 
             logging.info(f"Task created successfully, {task_uuid=}")
             return result
@@ -569,6 +570,42 @@ class Orchestrator(APIClient):
                 return result
             else:
                 raise SwanAPIException(f"{tx_hash=} or {task_uuid=} invalid")
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+        
+
+    def get_config_order_status(self, task_uuid: str, tx_hash: str):
+        """
+        Get the status of a task order (for example, a task renewal order)
+        
+        Args:
+            task_uuid: uuid of task.
+            tx_hash: transaction hash of the payment.
+        """
+
+        try:
+            if not task_uuid:
+                raise SwanAPIException(f"Invalid task_uuid")
+            
+            if not tx_hash:
+                raise SwanAPIException(f"Invalid tx_hash")
+
+            params = {
+                "task_uuid": task_uuid,
+                "tx_hash": tx_hash
+            }
+
+            result = self._request_with_params(
+                    POST, 
+                    CONFIG_ORDER_STATUS, 
+                    self.swan_url, 
+                    params, 
+                    self.token, 
+                    None
+                )
+            logging.info(f"getting config order status request sent successfully, {task_uuid=}")
+            return result
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
