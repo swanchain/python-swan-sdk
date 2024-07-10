@@ -373,6 +373,7 @@ class Orchestrator(APIClient):
                 err_msg = f"No {cfg_name} machine in {region}."
                 raise SwanAPIException(err_msg)
         
+            tx_hash = None
             if auto_pay:
                 result = self.make_payment(
                     task_uuid=task_uuid, 
@@ -380,12 +381,13 @@ class Orchestrator(APIClient):
                     private_key=private_key, 
                     hardware_id=hardware_id
                 )
+                tx_hash = result.get('tx_hash')
 
             if result and isinstance(result, dict):
                 result['id'] = task_uuid
                 result['task_uuid'] = task_uuid
 
-            logging.info(f"Task created successfully, {task_uuid=}")
+            logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}")
             return result
 
         except Exception as e:
@@ -442,7 +444,9 @@ class Orchestrator(APIClient):
             
             contract = SwanContract(private_key, self.contract_info)
         
-            return contract.submit_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
+            tx_hash = contract.submit_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
+            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {hardware_id=}. Got {tx_hash=}")
+            return tx_hash
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
@@ -477,6 +481,7 @@ class Orchestrator(APIClient):
                     self.token, 
                     None
                 )
+                logging.info(f"Payment validation request sent, {task_uuid=}, {tx_hash=}")
                 return result
             else:
                 raise SwanAPIException(f"{tx_hash=} or {task_uuid=} invalid")
@@ -517,6 +522,7 @@ class Orchestrator(APIClient):
                     task_uuid=task_uuid
                 ):
                     res['tx_hash'] = tx_hash
+                    logging.info(f"Payment submitted and validated successfully, {task_uuid=}, {tx_hash=}")
                     return res
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
@@ -546,8 +552,6 @@ class Orchestrator(APIClient):
 
             if not tx_hash:
                 tx_hash = self.submit_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
-                if tx_hash:
-                    logging.info(f"Payment submitted successfully, {tx_hash=}")
             else:
                 logging.info(f"Using given payment transaction hash, {tx_hash=}")
 
@@ -566,7 +570,11 @@ class Orchestrator(APIClient):
                         self.token, 
                         None
                     )
-                logging.info(f"Task renewal request sent successfully, {task_uuid=}")
+                result.update({
+                    "tx_hash": tx_hash,
+                    "task_uuid": task_uuid
+                })
+                logging.info(f"Task renewal request sent successfully, {task_uuid=} {tx_hash=}, {duration=}")
                 return result
             else:
                 raise SwanAPIException(f"{tx_hash=} or {task_uuid=} invalid")
@@ -604,7 +612,7 @@ class Orchestrator(APIClient):
                     self.token, 
                     None
                 )
-            logging.info(f"getting config order status request sent successfully, {task_uuid=}")
+            logging.info(f"getting config order status request sent successfully, {task_uuid=} {tx_hash=}")
             return result
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())

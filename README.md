@@ -27,6 +27,7 @@
   - [10. Terminate task (Optional)](#10-terminate-task-optional)
   - [11. Follow-up Task Status (Optional)](#11-follow-up-task-status-optional)
     - [Show results](#show-results)
+  - [12. Check Config Order Status (Optional)](#12-check-config-order-status-optional)
 - [Examples](#examples)
 - [Documentation](#documentation)
 - [License](#license)
@@ -489,6 +490,17 @@ print(r)
 Sample Output:
 ```
 ['https://real_url_link']
+```
+
+### 12. Check Config Order Status (Optional)
+
+Check config order status with `task_uuid` and `tx_hash`, for example, when create a task, a config order of type `Creation` is created in database with the payment information if available; when renew a task, a `Renewal` config order is created.
+
+We can check the status of these request to see if the payment has been validated and config order has been executed. 
+
+```python
+r = swan_orchestrator.get_config_order_status(task_uuid, tx_hash)
+print(r)
 ```
 
 
