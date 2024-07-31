@@ -46,6 +46,7 @@ PARAMETERS:
 - **start_in** (integer) - unix timestamp of starting time. Defaults to 300 seconds (5 minutes)
 - **auto_pay** (Boolean) - Automatically pays to deploy task if set to True. If True, private_key must be provided.
 - **private_key** (string) - Wallet's private_key, only used if auto_pay is True
+- **preferred_cp_list**: (list) - A list of preferred cp account addresses.
 
 
 ### submit_payment Details
