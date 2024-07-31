@@ -17,6 +17,7 @@
   - [4. Select hardware\_id and region (Optional)](#4-select-hardware_id-and-region-optional)
   - [5. Estimate Payment Amount (Optional)](#5-estimate-payment-amount-optional)
   - [6a. Create Task with prebuilt image](#6a-create-task-with-prebuilt-image)
+    - [Choose one of the prebuilt images](#choose-one-of-the-prebuilt-images)
   - [6b. Create Task with Auto Pay](#6b-create-task-with-auto-pay)
   - [6c. Renew Task with Auto Pay (optional)](#6c-renew-task-with-auto-pay-optional)
   - [6d. Deploy a task without auto\_pay (no private\_key)](#6d-deploy-a-task-without-auto_pay-no-private_key)
@@ -26,6 +27,7 @@
   - [10. Terminate task (Optional)](#10-terminate-task-optional)
   - [11. Follow-up Task Status (Optional)](#11-follow-up-task-status-optional)
     - [Show results](#show-results)
+  - [12. Check Config Order Status (Optional)](#12-check-config-order-status-optional)
 - [Examples](#examples)
 - [Documentation](#documentation)
 - [License](#license)
@@ -207,12 +209,6 @@ amount
 
 Auto-pay is on for this tutorial path, in which case task creation, payment, and deployment are all in one. If you do no want to auto-pay, `make_payment` method is available.
 
-A list of prebuilt app images can be accessed from backend, then choose one of the names as `app_repo_image` in creating task.
-
-```python
-swan_orchestrator.get_app_repo_image()
-```
-
 For more information about the [create_task Function](/docs/key_functions.md#create_task-function-details).
 
 ```python
@@ -255,9 +251,34 @@ Sample output:
   "id": "21d3fc99-d4ea-4a42-bdad-797ec15b42de"
 }
 ```
-To see how to renew this task, visit step 7b.
-This is the end of this path A, go to Step 10
 
+#### Choose one of the prebuilt images
+
+A list of prebuilt app images can be accessed from backend, then choose one of the names as `app_repo_image` in creating task.
+
+```python
+swan_orchestrator.get_app_repo_image()
+```
+
+Part of example list:
+
+```json
+[
+  {
+      "name":"Tetris",
+      "url":"https://github.com/swanchain/awesome-swanchain/tree/main/Tetris"
+  },
+  {
+      "name":"jupyter",
+      "url":"https://github.com/swanchain/awesome-swanchain/tree/main/jupyter"
+  },
+  {
+      "name":"Memory",
+      "url":"https://github.com/swanchain/awesome-swanchain/tree/main/Memory"
+  },
+  //...
+]
+```
 
 ### 6b. Create Task with Auto Pay
 
@@ -469,6 +490,17 @@ print(r)
 Sample Output:
 ```
 ['https://real_url_link']
+```
+
+### 12. Check Config Order Status (Optional)
+
+Check config order status with `task_uuid` and `tx_hash`, for example, when create a task, a config order of type `Creation` is created in database with the payment information if available; when renew a task, a `Renewal` config order is created.
+
+We can check the status of these request to see if the payment has been validated and config order has been executed. 
+
+```python
+r = swan_orchestrator.get_config_order_status(task_uuid, tx_hash)
+print(r)
 ```
 
 
