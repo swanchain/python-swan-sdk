@@ -271,7 +271,6 @@ class Orchestrator(APIClient):
             repo_name=None,
             private_key = None,
             start_in: int = 300,
-            paid = None,
             preferred_cp_list=None,
         ):
         """
@@ -322,9 +321,6 @@ class Orchestrator(APIClient):
             else:
                 raise SwanAPIException(f"Invalid hardware_id selected")
             
-            if paid is None:
-                paid = self.estimate_payment(duration, hardware_id)
-            
             if not job_source_uri:
                 if app_repo_image:
                     if auto_pay == None and private_key:
@@ -358,7 +354,6 @@ class Orchestrator(APIClient):
             
             if self._verify_hardware_region(cfg_name, region):
                 params = {
-                    "paid": paid,
                     "duration": duration,
                     "cfg_name": cfg_name,
                     "region": region,
