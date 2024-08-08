@@ -271,7 +271,7 @@ class Orchestrator(APIClient):
             repo_name=None,
             private_key = None,
             start_in: int = 300,
-            paid = None
+            preferred_cp_list=None,
         ):
         """
         Create a task via the orchestrator.
@@ -291,6 +291,7 @@ class Orchestrator(APIClient):
             auto_pay: Optional. Automatically call the submit payment method on the contract and validate payment to get the task deployed. 
             If True, the private key and wallet must be in .env (Default = False). Otherwise, the user must call the submit payment method on the contract and validate payment.
             private_key: Optional. The wallet's private key, only used if auto_pay is True.
+            preferred_cp_list: Optional. A list of preferred cp account address(es).
         
         Raises:
             SwanExceptionError: If neither app_repo_image nor job_source_uri is provided.
@@ -320,9 +321,6 @@ class Orchestrator(APIClient):
             else:
                 raise SwanAPIException(f"Invalid hardware_id selected")
             
-            if paid is None:
-                paid = self.estimate_payment(duration, hardware_id)
-            
             if not job_source_uri:
                 if app_repo_image:
                     if auto_pay == None and private_key:
@@ -350,9 +348,12 @@ class Orchestrator(APIClient):
             if not job_source_uri:
                 raise SwanAPIException(f"cannot get job_source_uri. make sure `app_repo_image` or `repo_uri` or `job_source_uri` is correct.")
 
+            preferred_cp = None
+            if preferred_cp_list and isinstance(preferred_cp_list, list):
+                preferred_cp = ','.join(preferred_cp_list)
+            
             if self._verify_hardware_region(cfg_name, region):
                 params = {
-                    "paid": paid,
                     "duration": duration,
                     "cfg_name": cfg_name,
                     "region": region,
@@ -360,6 +361,8 @@ class Orchestrator(APIClient):
                     "wallet": wallet_address,
                     "job_source_uri": job_source_uri
                 }
+                if preferred_cp:
+                    params["preferred_cp"] = preferred_cp
                 result = self._request_with_params(
                     POST, 
                     CREATE_TASK, 
@@ -451,6 +454,36 @@ class Orchestrator(APIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
 
+    def renew_payment(self, task_uuid, private_key, duration = 3600, hardware_id = None):
+        """
+        Submit payment for a task
+
+        Args:
+            task_uuid: unique id returned by `swan_api.create_task`
+            hardware_id: id of cp/hardware configuration set
+            duration: duration of service runtime (seconds).
+
+        Returns:
+            tx_hash
+        """
+        try:
+            if hardware_id is None:
+                raise SwanAPIException(f"Invalid hardware_id")
+            
+            if not private_key:
+                raise SwanAPIException(f"No private_key provided.")
+            if not self.contract_info:
+                raise SwanAPIException(f"No contract info on record, please verify contract first.")
+            
+            contract = SwanContract(private_key, self.contract_info)
+        
+            tx_hash = contract.renew_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
+            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {hardware_id=}. Got {tx_hash=}")
+            return tx_hash
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+
     def validate_payment(
             self,
             tx_hash,
@@ -529,7 +562,15 @@ class Orchestrator(APIClient):
         return None
     
 
-    def renew_task(self, task_uuid: str, duration = 3600, tx_hash = "", auto_pay = False, private_key = None, hardware_id = None):
+    def renew_task(
+            self, 
+            task_uuid: str, 
+            duration = 3600, 
+            tx_hash = "", 
+            auto_pay = False, 
+            private_key = None, 
+            hardware_id = None
+        ):
         """
         Submit payment for a task renewal and renew a task
 
@@ -551,7 +592,7 @@ class Orchestrator(APIClient):
                 raise SwanAPIException(f"auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
 
             if not tx_hash:
-                tx_hash = self.submit_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
+                tx_hash = self.renew_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
             else:
                 logging.info(f"Using given payment transaction hash, {tx_hash=}")
 

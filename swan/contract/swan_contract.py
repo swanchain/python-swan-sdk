@@ -119,6 +119,53 @@ class SwanContract():
         return self.w3.to_hex(tx_hash)
     
 
+    def renew_payment(
+            self, 
+            task_uuid: str, 
+            hardware_id: int, 
+            duration: int
+        ):
+        """
+        Submit payment for task renewal
+
+        Args:
+            task_uuid: unique id returned by `swan_api.create_task`
+            hardware_id: id of cp/hardware configuration set
+            duration: duration of service runtime (seconds).
+
+        Returns:
+            tx_hash
+        """
+        
+        # first approve payment
+        amount = int(self.estimate_payment(
+            hardware_id=hardware_id, 
+            duration=duration/3600  # duration in estimate_
+        ))
+        self._approve_payment(amount)
+
+        nonce = self.w3.eth.get_transaction_count(self.account.address)
+        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
+        max_priority_fee_per_gas = self.w3.to_wei(2, 'gwei')
+        max_fee_per_gas = base_fee + max_priority_fee_per_gas
+        if max_fee_per_gas < max_priority_fee_per_gas:
+            max_fee_per_gas = max_priority_fee_per_gas + base_fee
+        tx = self.client_contract.functions.renewPayment(
+            task_uuid, 
+            hardware_id, 
+            duration
+        ).build_transaction({
+            'from': self.account.address,
+            'nonce': nonce,
+            "maxFeePerGas": max_fee_per_gas,
+            "maxPriorityFeePerGas": max_priority_fee_per_gas,
+        })
+        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
+        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
+        self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
+        return self.w3.to_hex(tx_hash)
+    
+
     def _approve_payment(self, amount):
         """
         called in submit_payment
