@@ -272,11 +272,13 @@ class Orchestrator(APIClient):
             private_key = None,
             start_in: int = 300,
             preferred_cp_list=None,
-        ):
+            task_type: str = None,
+    ):
         """
         Create a task via the orchestrator.
 
         Args:
+            task_type: "private_task" or "public_task" (Default = None or public_task)
             wallet_address: The user's wallet address.
             hardware_id: The ID of the hardware configuration set. (Default = 0)
             region: The region of the hardware. (Default: global)
@@ -363,6 +365,8 @@ class Orchestrator(APIClient):
                 }
                 if preferred_cp:
                     params["preferred_cp"] = preferred_cp
+                if task_type:
+                    params["task_type"] = task_type
                 result = self._request_with_params(
                     POST, 
                     CREATE_TASK, 
