@@ -19,6 +19,8 @@ CONFIG_ORDER_STATUS = "/v2/config_order_status"
 GET_CONTRACT_INFO = "/contract_info"
 GET_ABI_VERSION = "/abi_version"
 GET_SOURCE_URI = "/v2/get_source_uri"
+GET_PRIVATE_TASK_TEMPORARY_NODE_URI = "/task/private_task/temporary_node_uri"
+UPLOAD_PRIVATE_PROJECT_PACK = "/task/upload_private_project_pack"
 
 # API Syntax
 GET = "GET"
