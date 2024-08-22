@@ -1,6 +1,6 @@
 # ./swan/common/constant.py
 
-ORCHESTRATOR_API_TESTNET = "https://orchestrator-api.swanchain.io"
+ORCHESTRATOR_API_TESTNET = "https://swanhub-cali.swanchain.io"
 ORCHESTRATOR_API_MAINNET = "https://orchestrator-mainnet-api.swanchain.io"
 
 # Swan API
