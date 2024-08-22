@@ -1,18 +1,17 @@
 # ./swan/common/utils.py
+import datetime
 import io
+import json
+import os
 import pathlib
 import tarfile
 from typing import Optional, List
 
 import requests
-import os
-import json
-import re
-import datetime
-
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+BUFFER_SIZE = 8192
 
 
 def parse_params_to_str(params):
@@ -120,25 +119,20 @@ def encrypt_stream(input_stream: io.BytesIO) -> io.BytesIO:
     """
     # Generate a random 256-bit key
     key = os.urandom(32)  # 32 bytes = 256 bits
-
-    # Generate a random 128-bit IV (Initialization Vector)
-    iv = os.urandom(16)  # 16 bytes = 128 bits
-
-    # Create an AES cipher with CBC mode
-    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-    encryptor = cipher.encryptor()
-
-    # Create a padder
-    padder = padding.PKCS7(algorithms.AES.block_size).padder()
-
     # Read the input stream
     data = input_stream.getvalue()
 
-    # Pad the data
-    padded_data = padder.update(data) + padder.finalize()
+    iv = os.urandom(16)
+    cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    encrypted_data = bytearray()
 
-    # Encrypt the padded data
-    encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
+    for i in range(0, len(data), BUFFER_SIZE):
+        chunk = data[i:i + BUFFER_SIZE]
+        encrypted_chunk = encryptor.update(chunk)
+        encrypted_data.extend(encrypted_chunk)
+
+    encrypted_data.extend(encryptor.finalize())
 
     # Create the output stream
     output_stream = io.BytesIO()

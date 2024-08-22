@@ -1,15 +1,34 @@
+import base64
+import json
 import logging
-import os
 import time
+from dataclasses import dataclass
 from http import HTTPStatus
-from typing import Optional
+from typing import Optional, Dict, Any
 from urllib.parse import urljoin
 
 import requests
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
 
+
+@dataclass
+class EncryptedDataStruct:
+    iv: bytes
+    encrypted_gzipped_data: bytes
+
+
+def encrypt_symmetric_key_with_rsa(symmetric_key: bytes, public_key: rsa.RSAPublicKey) -> bytes:
+    encrypted_symmetric_key = public_key.encrypt(
+        symmetric_key,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    return encrypted_symmetric_key
 
 
 class Task:
@@ -25,25 +44,28 @@ class PrivateTask(Task):
             self,
             task_uuid: str,
             orchestrator: "Orchestrator",
-            encryption_key: bytes,
+            encryption_key_base64: str,
             payment_tx_hash: Optional[str] = None
     ):
         super().__init__(task_uuid, orchestrator, payment_tx_hash)
-        self.symmetric_key = os.urandom(32)
         self.temporary_node_uri: Optional[str] = None
-        self.encryption_key = encryption_key
+        self.encryption_key_base64 = encryption_key_base64
+        self.encryption_key: Optional[bytes] = base64.b64decode(encryption_key_base64)
 
     def _is_remote_temporary_node_ready(self) -> bool:
         try:
             if not self.temporary_node_uri:
-                self.temporary_node_uri = self.orchestrator.get_private_task_temporary_node_uri(
+                resp_dict = self.orchestrator.get_private_task_temporary_node_uri(
                     task_uuid=self.task_uuid
                 )
+                self.temporary_node_uri = resp_dict["data"]["temporary_node_uri"]
 
-            if requests.get(url=self.temporary_node_uri).status_code == HTTPStatus.OK:
-                return True
-            else:
+            temporary_node_status_uri = urljoin(self.temporary_node_uri, "system_status")
+            status_resp = requests.get(url=temporary_node_status_uri)
+            if status_resp.status_code != HTTPStatus.OK:
                 return False
+            system_status = status_resp.json()
+            return system_status["data"]["status"] == "INITIALIZED"
         except Exception as e:
             logging.exception(e)
             return False
@@ -69,7 +91,24 @@ class PrivateTask(Task):
         else:
             raise ValueError("The provided key is not an RSA public key")
 
-    def deploy_task(self, retries: int = 30) -> Task:
+    def serialize_to_json(self) -> str:
+        data: Dict[str, Any] = {
+            "task_uuid": self.task_uuid,
+            "encryption_key": self.encryption_key_base64
+        }
+        return json.dumps(data)
+
+    @classmethod
+    def load_from_json(cls, json_str: str, orchestrator: "Orchestrator") -> "PrivateTask":
+        data = json.loads(json_str)
+        task = cls(
+            task_uuid=data["task_uuid"],
+            orchestrator=orchestrator,
+            encryption_key_base64=data["encryption_key"],
+        )
+        return task
+
+    def deploy_task(self, retries: int = 30) -> dict:
         for _ in range(retries):
             if not self._is_remote_temporary_node_ready():
                 time.sleep(10)
@@ -77,3 +116,12 @@ class PrivateTask(Task):
                 break
         else:
             raise Exception("Task failed to deploy, you could try again")
+
+        temporary_node_public_key = self.get_temporary_node_public_key()
+        encrypted_symmetric_key = encrypt_symmetric_key_with_rsa(self.encryption_key, temporary_node_public_key)
+
+        deploy_uri = urljoin(self.temporary_node_uri, "deploy")
+        resp = requests.post(deploy_uri, json={
+            "data_decryption_key": base64.b64encode(encrypted_symmetric_key).decode("utf-8"),
+        })
+        return resp.json()

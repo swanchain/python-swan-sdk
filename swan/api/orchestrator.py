@@ -1,5 +1,7 @@
+import base64
 import logging
 import pathlib
+import pickle
 import tempfile
 import traceback
 import json
@@ -15,6 +17,7 @@ from swan.common.constant import *
 from swan.object import HardwareConfig, task
 from swan.common.exception import SwanAPIException
 from swan.contract.swan_contract import SwanContract
+from swan.object.task import EncryptedDataStruct
 
 PRIVATE_TASK_DEFAULT_DIRS_EXCLUDE = ".git", "venv", "node_modules", ".github"
 
@@ -308,10 +311,16 @@ class Orchestrator(APIClient):
                 exclude_dirs=exclude_dirs,
             )
             encrypted_stream = utils.encrypt_stream(input_stream=project_tar_gz_stream)
-            # first 32 is the encryption key
+            # first 32 bytes is the encryption key
             encryption_key = encrypted_stream.read(32)
-            with tempfile.NamedTemporaryFile(mode="wb") as f:
-                f.write(encrypted_stream.read())
+            # the following 16 bytes is the encryption key
+            iv = encrypted_stream.read(16)
+            with tempfile.NamedTemporaryFile(mode="w+b") as f:
+                f.write(pickle.dumps({
+                    "iv": iv,
+                    "encrypted_gzipped_data": encrypted_stream.read()
+                }))
+                f.seek(0)
 
                 upload_resp = self._request_with_params(
                     method=POST,
@@ -326,63 +335,63 @@ class Orchestrator(APIClient):
                 if upload_resp["status"] != "success":
                     raise SwanAPIException(f"Fail to upload the private project: {upload_resp['message']}")
 
-            job_source_uri = upload_resp["data"]["file_url"]
+                job_source_uri = upload_resp["data"]["file_url"]
 
-            if not job_source_uri:
-                raise SwanAPIException(
-                    f"cannot get job_source_uri. make sure `app_repo_image` or `repo_uri` or `job_source_uri` is correct.")
+                if not job_source_uri:
+                    raise SwanAPIException(
+                        f"cannot get job_source_uri. make sure `app_repo_image` or `repo_uri` or `job_source_uri` is correct.")
 
-            preferred_cp = None
-            if preferred_cp_list and isinstance(preferred_cp_list, list):
-                preferred_cp = ','.join(preferred_cp_list)
+                preferred_cp = None
+                if preferred_cp_list and isinstance(preferred_cp_list, list):
+                    preferred_cp = ','.join(preferred_cp_list)
 
-            if self._verify_hardware_region(cfg_name, region):
-                params = {
-                    "duration": duration,
-                    "cfg_name": cfg_name,
-                    "region": region,
-                    "start_in": start_in,
-                    "wallet": wallet_address,
-                    "job_source_uri": job_source_uri,
-                    "task_type": "private_task"
-                }
-                if preferred_cp:
-                    params["preferred_cp"] = preferred_cp
-                result = self._request_with_params(
-                    POST,
-                    CREATE_TASK,
-                    self.swan_url,
-                    params,
-                    self.token,
-                    None
-                )
-                task_uuid = result['data']['task']['uuid']
-            else:
-                err_msg = f"No {cfg_name} machine in {region}."
-                raise SwanAPIException(err_msg)
+                if self._verify_hardware_region(cfg_name, region):
+                    params = {
+                        "duration": duration,
+                        "cfg_name": cfg_name,
+                        "region": region,
+                        "start_in": start_in,
+                        "wallet": wallet_address,
+                        "job_source_uri": job_source_uri,
+                        "task_type": "private_task"
+                    }
+                    if preferred_cp:
+                        params["preferred_cp"] = preferred_cp
+                    result = self._request_with_params(
+                        POST,
+                        CREATE_TASK,
+                        self.swan_url,
+                        params,
+                        self.token,
+                        None
+                    )
+                    task_uuid = result['data']['task']['uuid']
+                else:
+                    err_msg = f"No {cfg_name} machine in {region}."
+                    raise SwanAPIException(err_msg)
 
-            tx_hash = None
-            if auto_pay:
-                result = self.make_payment(
+                tx_hash = None
+                if auto_pay:
+                    result = self.make_payment(
+                        task_uuid=task_uuid,
+                        duration=duration,
+                        private_key=private_key,
+                        hardware_id=hardware_id
+                    )
+                    tx_hash = result.get('tx_hash')
+
+                if result and isinstance(result, dict):
+                    result['id'] = task_uuid
+                    result['task_uuid'] = task_uuid
+
+                private_task = task.PrivateTask(
                     task_uuid=task_uuid,
-                    duration=duration,
-                    private_key=private_key,
-                    hardware_id=hardware_id
+                    orchestrator=self,
+                    encryption_key_base64=base64.b64encode(encryption_key).decode("utf-8"),
+                    payment_tx_hash=tx_hash,
                 )
-                tx_hash = result.get('tx_hash')
-
-            if result and isinstance(result, dict):
-                result['id'] = task_uuid
-                result['task_uuid'] = task_uuid
-
-            private_task = task.PrivateTask(
-                task_uuid=task_uuid,
-                orchestrator=self,
-                encryption_key=encryption_key,
-                payment_tx_hash=tx_hash,
-            )
-            logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}")
-            return private_task
+                logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}")
+                return private_task
 
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
