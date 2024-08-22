@@ -35,7 +35,7 @@
 
 ## Installation
 
-To use Python Swan SDK, use **Python 3.8 or later** and **web3.py 6.15 or later**. Earlier versions are not supported.
+To use Swan SDK, **Python 3.8 or later** and **web3.py (>=6.15,<7.0)** are required.
 
 **Install via PyPI:**
 
