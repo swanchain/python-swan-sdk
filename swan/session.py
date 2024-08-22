@@ -17,7 +17,7 @@ class Session:
     def __init__(
         self,
         api_key: str = None,
-        network: str = "testnet",
+        network: str = "mainnet",
         login_url: str = None,
         login: bool = True, 
     ):
@@ -30,10 +30,10 @@ class Session:
         
         if login_url:
             self.login_url = login_url
-        elif network == "mainnet":
-            self.login_url = ORCHESTRATOR_API_MAINNET
-        else:
+        elif network == "testnet":
             self.login_url = ORCHESTRATOR_API_TESTNET
+        else:
+            self.login_url = ORCHESTRATOR_API_MAINNET
 
         self.api_client = APIClient()
         self.login = login

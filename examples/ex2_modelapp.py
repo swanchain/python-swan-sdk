@@ -1,4 +1,5 @@
 import swan
+import json
 
 api_key = '<your_api_key>'
 wallet_address = '<WALLET_ADDRESS>'
@@ -26,7 +27,7 @@ result = swan_orchestrator.create_task(
 task_uuid = result['id']
 
 task_info = swan_orchestrator.get_deployment_info(task_uuid=task_uuid)
-print(task_info)
+print(json.dumps(task_info, indent=2))
 
 ### get real url (if no url, please wait for a while, then check again)
 result_url = swan_orchestrator.get_real_url(task_uuid)
