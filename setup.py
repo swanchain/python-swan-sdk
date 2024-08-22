@@ -10,7 +10,7 @@ with open("README.md", "r") as fh:
  
 setup(
         name="swan-sdk",
-        version="0.0.5",
+        version="0.0.6",
         packages=['swan', 'swan.api', 'swan.common', 'swan.contract', 'swan.object', 'swan.contract.abi'],
         # package_data={'swan.contract.abi': ['swan/contract/abi/PaymentContract.json', 'swan/contract/abi/SwanToken.json']},
         include_package_data=True,
@@ -27,8 +27,7 @@ setup(
         ],
         install_requires=[
             "requests>=2.28.1",
-            "requests-toolbelt>=0.10.1",
-            "web3>=6.15.1"
+            "web3>=6.15,<7.0",
             ],
         entry_points={
             # placeholder
