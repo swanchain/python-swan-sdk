@@ -17,7 +17,6 @@ from swan.common.constant import *
 from swan.object import HardwareConfig, task
 from swan.common.exception import SwanAPIException
 from swan.contract.swan_contract import SwanContract
-from swan.object.task import EncryptedDataStruct
 
 PRIVATE_TASK_DEFAULT_DIRS_EXCLUDE = ".git", "venv", "node_modules", ".github"
 
@@ -832,7 +831,7 @@ class Orchestrator(APIClient):
             deployed_url = []
             for job in jobs:
                 try:
-                    if job['job_real_uri']:
+                    if job['job_real_uri'] and job['type'] != "dcc_temporary_node":
                         deployed_url.append(job['job_real_uri'])
                 except:
                     continue

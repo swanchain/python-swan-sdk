@@ -2,7 +2,6 @@ import base64
 import json
 import logging
 import time
-from dataclasses import dataclass
 from http import HTTPStatus
 from typing import Optional, Dict, Any
 from urllib.parse import urljoin
@@ -13,10 +12,8 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 
 
-@dataclass
-class EncryptedDataStruct:
-    iv: bytes
-    encrypted_gzipped_data: bytes
+class UnexpectedTemporaryNodeStatus(Exception):
+    pass
 
 
 def encrypt_symmetric_key_with_rsa(symmetric_key: bytes, public_key: rsa.RSAPublicKey) -> bytes:
@@ -63,11 +60,21 @@ class PrivateTask(Task):
             temporary_node_status_uri = urljoin(self.temporary_node_uri, "system_status")
             status_resp = requests.get(url=temporary_node_status_uri)
             if status_resp.status_code != HTTPStatus.OK:
+                logging.info(f"Waiting for the temporary node {self.temporary_node_uri} to be deployed...")
                 return False
             system_status = status_resp.json()
-            return system_status["data"]["status"] == "INITIALIZED"
+            logging.info(f"Waiting for the temporary node {self.temporary_node_uri} to be initialized...")
+            if system_status["data"]["status"] == "INITIALIZED":
+                return True
+            elif system_status["data"]["status"] == "CREATED":
+                return False
+            else:
+                raise UnexpectedTemporaryNodeStatus(f"Unexpected temporary node status: {system_status}")
+        except UnexpectedTemporaryNodeStatus as e:
+            raise e
         except Exception as e:
             logging.exception(e)
+            logging.info(f"Waiting for the temporary node to be created...")
             return False
 
     def get_temporary_node_public_key(self) -> rsa.RSAPublicKey:
@@ -108,10 +115,10 @@ class PrivateTask(Task):
         )
         return task
 
-    def deploy_task(self, retries: int = 30) -> dict:
+    def deploy_task(self, interval: int = 5, retries: int = 30) -> dict:
         for _ in range(retries):
             if not self._is_remote_temporary_node_ready():
-                time.sleep(10)
+                time.sleep(interval)
             else:
                 break
         else:
@@ -120,6 +127,7 @@ class PrivateTask(Task):
         temporary_node_public_key = self.get_temporary_node_public_key()
         encrypted_symmetric_key = encrypt_symmetric_key_with_rsa(self.encryption_key, temporary_node_public_key)
 
+        logging.info(f"Sending data decryption key to temporary node {self.temporary_node_uri}...")
         deploy_uri = urljoin(self.temporary_node_uri, "deploy")
         resp = requests.post(deploy_uri, json={
             "data_decryption_key": base64.b64encode(encrypted_symmetric_key).decode("utf-8"),
