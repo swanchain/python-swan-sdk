@@ -13,17 +13,17 @@
 - [Quick Start Guide for Swan SDK](#quick-start-guide-for-swan-sdk)
   - [1. Get Orchestrator API Key](#1-get-orchestrator-api-key)
   - [2. Login into Orchestrator Through SDK](#2-login-into-orchestrator-through-sdk)
-  - [3. Retrieve available hardware information](#3-retrieve-available-hardware-information)
-  - [4. Select hardware\_id and region (Optional)](#4-select-hardware_id-and-region-optional)
+  - [3. Retrieve Available Hardware Information](#3-retrieve-available-hardware-information)
+  - [4. Select `hardware_id` and `region` (Optional)](#4-select-hardware_id-and-region-optional)
   - [5. Estimate Payment Amount (Optional)](#5-estimate-payment-amount-optional)
-  - [6a. Create Task with prebuilt image (Optional)](#6a-create-task-with-prebuilt-image-optional)
-    - [Choose one of the prebuilt images](#choose-one-of-the-prebuilt-images)
+  - [6a. Create Task with Prebuilt Image (Optional)](#6a-create-task-with-prebuilt-image-optional)
+    - [Choose one of the Prebuilt Images](#choose-one-of-the-prebuilt-images)
   - [6b. Create Task with Auto Pay](#6b-create-task-with-auto-pay)
   - [6c. Renew Task with Auto Pay (Optional)](#6c-renew-task-with-auto-pay-optional)
-  - [6d. Deploy a task without auto\_pay (Optional)](#6d-deploy-a-task-without-auto_pay-optional)
+  - [6d. Deploy Task without Auto Pay (Optional)](#6d-deploy-task-without-auto-pay-optional)
   - [7. Make Payment (Optional)](#7-make-payment-optional)
   - [8. Validate Payment to Deploy Task (Optional)](#8-validate-payment-to-deploy-task-optional)
-  - [9. Renew task without auto\_pay (Optional)](#9-renew-task-without-auto_pay-optional)
+  - [9. Renew Task without Auto Pay (Optional)](#9-renew-task-without-auto-pay-optional)
   - [10. Terminate task (Optional)](#10-terminate-task-optional)
   - [11. Follow-up Task Status (Optional)](#11-follow-up-task-status-optional)
     - [Show results](#show-results)
@@ -47,6 +47,8 @@ pip install swan-sdk
 
 ```bash
 git clone https://github.com/swanchain/python-swan-sdk.git
+cd python-swan-sdk
+pip install .
 ```
 
 ## Quick Start
@@ -132,7 +134,7 @@ swan_orchestrator = swan.resource(
 )
 ```
 
-### 3. Retrieve available hardware information
+### 3. Retrieve Available Hardware Information
 
 Orchestrator provides a selection of Computing Providers with different hardware.
 Use `swan_orchestrator.get_hardware_config()` to retrieve all available hardware on Orchestrator.
@@ -177,7 +179,7 @@ Sample output:
 ]
 ```
 
-### 4. Select hardware_id and region (Optional)
+### 4. Select `hardware_id` and `region` (Optional)
 
 Choose a hardware with its hardware id and region. If no hardware_id is provided in `create_task` function, it will default to use free tier (`hardware_id=0`), and it no region is provided, it will default to `global`.
 
@@ -204,7 +206,7 @@ amount = swan_orchestrator.estimate_payment(hardware_id, duration_seconds)
 amount
 ```
 
-### 6a. Create Task with prebuilt image (Optional)
+### 6a. Create Task with Prebuilt Image (Optional)
 
 Auto-pay is on for this tutorial path, in which case task creation, payment, and deployment are all in one. If you do no want to auto-pay, `make_payment` method is available.
 
@@ -253,7 +255,7 @@ Sample output:
 }
 ```
 
-#### Choose one of the prebuilt images
+#### Choose one of the Prebuilt Images
 
 A list of prebuilt app images can be accessed from backend, then choose one of the names as `app_repo_image` in creating task.
 
@@ -363,7 +365,7 @@ if renew_task and renew_task['status'] == 'success':
     print(f"successfully renewed task")
 ```
 
-### 6d. Deploy a task without auto_pay (Optional)
+### 6d. Deploy Task without Auto Pay (Optional)
 
 Create (initialize) a task and then pay the task by yourself. `task_uuid`, `hardware_id`, `duration` are required to submit a payment.
 
@@ -451,7 +453,7 @@ swan_orchestrator.validate_payment(
 )
 ```
 
-### 9. Renew task without auto\_pay (Optional)
+### 9. Renew Task without Auto Pay (Optional)
 
 If you have already submitted payment for the renewal of a task, you can use the `tx_hash` with `renew_task` to extend the task.
 
