@@ -19,8 +19,6 @@ swan_orchestrator: Orchestrator = swan.resource(
     api_key=api_key,
     service_name='Orchestrator',
     network="testnet",
-    login_url='https://swanhub-cali.swanchain.io',      # dev version for testnet login url
-    url_endpoint='https://swanhub-cali.swanchain.io'    # dev version for testnet
 )
 # for mainnet
 # swan_orchestrator: Orchestrator = swan.resource(
