@@ -10,6 +10,7 @@ import requests
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from requests import RequestException
 
 
 class UnexpectedTemporaryNodeStatus(Exception):
@@ -73,8 +74,8 @@ class PrivateTask(Task):
         except UnexpectedTemporaryNodeStatus as e:
             raise e
         except Exception as e:
-            logging.exception(e)
-            logging.info(f"Waiting for the temporary node to be created...")
+            # logging.exception(e)
+            logging.info(f"Waiting for the temporary node to be ready...")
             return False
 
     def get_temporary_node_public_key(self) -> rsa.RSAPublicKey:
@@ -124,7 +125,14 @@ class PrivateTask(Task):
         else:
             raise Exception("Task failed to deploy, you could try again")
 
-        temporary_node_public_key = self.get_temporary_node_public_key()
+        for _ in range(retries):
+            try:
+                temporary_node_public_key = self.get_temporary_node_public_key()
+                break
+            except RequestException as e:
+                logging.info(f"HTTP error ({e}) while communicating with the temporary node, retrying ...")
+                time.sleep(interval)
+
         encrypted_symmetric_key = encrypt_symmetric_key_with_rsa(self.encryption_key, temporary_node_public_key)
 
         logging.info(f"Sending data decryption key to temporary node {self.temporary_node_uri}...")

@@ -1,10 +1,13 @@
 import pathlib
 import time
 
+from jedi import Project
+
 import swan
 import json
 
 from swan import Orchestrator
+from swan.object.private_project import PrivateProject
 from swan.object.task import PrivateTask
 
 api_key = '<your_api_key>'
@@ -18,8 +21,6 @@ swan_orchestrator: Orchestrator = swan.resource(
     network="testnet",
     login_url='https://swanhub-cali.swanchain.io',      # dev version for testnet login url
     url_endpoint='https://swanhub-cali.swanchain.io'    # dev version for testnet
-    # login_url='http://localhost:5008',  # dev version for testnet login url
-    # url_endpoint='http://localhost:5008'  # dev version for testnet
 )
 # for mainnet
 # swan_orchestrator: Orchestrator = swan.resource(
@@ -28,8 +29,21 @@ swan_orchestrator: Orchestrator = swan.resource(
 #     service_name='Orchestrator'
 # )
 
-private_task: PrivateTask = swan_orchestrator.create_private_task(
+private_project = PrivateProject.build_from_local_project(
+    swan_orchestrator=swan_orchestrator,
     project_path=pathlib.Path(__file__).parent / "example_private_project",
+)
+
+serialized_private_project = private_project.serialize_to_json()
+
+# An uploaded project can be serialized and stored elsewhere and use it later
+print(serialized_private_project)
+private_project = PrivateProject.load_from_json(
+    private_project_json_str=serialized_private_project,
+)
+
+private_task: PrivateTask = swan_orchestrator.create_private_task(
+    private_project=private_project,
     wallet_address=wallet_address,
     private_key=private_key,
     hardware_id=1,
@@ -37,20 +51,13 @@ private_task: PrivateTask = swan_orchestrator.create_private_task(
     auto_pay=True,
 )
 
-# You can serialize the private task object for later loads again
-# print(private_task.serialize_to_json())
-# private_task = PrivateTask.load_from_json(
-#     json_str='{"task_uuid": "e9c48e8c-e362-437c-8968-2ef28f049496", "encryption_key": "REZHbMraY2aTXpEKFo2FgjloXxGnAkmqxoXVVnvWRGY="}',
-#     orchestrator=swan_orchestrator
-# )
-
 task_uuid = private_task.task_uuid
 
 task_info = swan_orchestrator.get_deployment_info(task_uuid=task_uuid)
 print(json.dumps(task_info, indent=2))
 
 print(private_task.serialize_to_json())
-private_task.deploy_task(interval=20, retries=100)
+private_task.deploy_task(interval=10, retries=200)
 
 ### get real url (if no url, please wait for a while, then check again)
 for _ in range(100):
