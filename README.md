@@ -137,46 +137,44 @@ swan_orchestrator = swan.resource(
 Orchestrator provides a selection of Computing Providers with different hardware.
 Use `swan_orchestrator.get_hardware_config()` to retrieve all available hardware on Orchestrator.
 
-Hardware config contains a unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, available region and current status.
-
-See all available hardware in a Python dictionary:
+Hardware config contains a unique hardware ID, hardware name, description, hardware type (CPU/GPU), price per hour, available region.
 
 ```python
 hardwares = swan_orchestrator.get_hardware_config()
-```
-
-`hardwares[idx]["status"]` shows the availability of the hardware.
-`hardwares[idx]["region"]` is a list of all regions this hardware is available in.
-
-Retrieve the hardware with hardware ID 0:
-
-```python
-hardwares = swan_orchestrator.get_hardware_config()
-chosen_hardware = [hardware for hardware in hardwares if hardware['id'] == 0][0]
+print(json.dumps(hardwares, indent=2, ensure_ascii=False))
 ```
 
 Sample output:
 
 ```
-{'id': 0,
- 'name': 'C1ae.small',
- 'description': 'CPU only · 2 vCPU · 2 GiB',
- 'type': 'CPU',
- 'region': ['North Carolina-US', ...],
- 'price': '0.0',
- 'status': 'available'
-}
-```
-
-Retrieve individual hardware attributes:
-```python
-print(chosen_hardware['id']) # hardware id
-print(chosen_hardware['name']) # hardware name
-print(chosen_hardware['description']) # hardware description
-print(chosen_hardware['type']) # hardware type
-print(chosen_hardware['region']) # all avaliable hardware region
-print(chosen_hardware['price']) # current hardware price
-print(chosen_hardware['status']) # overall hardware avaliablility
+[
+  {
+    "id": 0,
+    "name": "C1ae.small",
+    "description": "CPU only · 2 vCPU · 2 GiB",
+    "type": "CPU",
+    "region": [
+      "North Carolina-US",
+      "Quebec-CA"
+    ],
+    "price": "0.0",
+    "status": "available"
+  },
+  //...
+  {
+    "id": 12,
+    "name": "G1ae.small",
+    "description": "Nvidia 3080 · 4 vCPU · 8 GiB",
+    "type": "GPU",
+    "region": [
+      "North Carolina-US",
+      "Quebec-CA"
+    ],
+    "price": "10.0",
+    "status": "available"
+  },
+  //...
+]
 ```
 
 ### 4. Select hardware_id and region (Optional)
@@ -188,13 +186,21 @@ hardware_id = 0
 region = 'global'
 ```
 
+For example, to deploy a GPU task using "Nvidia 3080 · 4 vCPU · 8 GiB" to the available computing providers in the region "Quebec-CA", the following parameters should be given to `create_task` method:
+
+```python
+hardware_id = 12
+region = 'Quebec-CA'
+```
+
+
 ### 5. Estimate Payment Amount (Optional)
 
 To estimate the payment required for the deployment. Use method `estiamte_payment` in `SwanContract`
 
 ```python
-duration = 3600 # or duration you want the deployment to run, this field is in seconds
-amount = swan_orchestrator.estimate_payment(chosen_hardware.id, duration_seconds)
+duration = 3600 # or other duration you want the deployment to run, this field is in seconds
+amount = swan_orchestrator.estimate_payment(hardware_id, duration_seconds)
 amount
 ```
 
