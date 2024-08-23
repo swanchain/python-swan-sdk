@@ -263,7 +263,7 @@ swan_orchestrator.get_app_repo_image()
 
 Part of example list:
 
-```json
+```
 [
   {
       "name":"Tetris",
