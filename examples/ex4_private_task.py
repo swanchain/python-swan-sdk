@@ -1,8 +1,6 @@
 import pathlib
 import time
 
-from jedi import Project
-
 import swan
 import json
 
