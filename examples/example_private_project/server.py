@@ -4,7 +4,7 @@ import os
 
 class MyHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/private_content':
+        if self.path == '/':
             try:
                 with open('.some_private_content', 'rb') as file:
                     self.send_response(200)
@@ -14,7 +14,7 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
             except FileNotFoundError:
                 self.send_error(404, "File not found")
         else:
-            super().do_GET()
+            self.send_error(404, "You are lost")
 
 PORT = 8000
 

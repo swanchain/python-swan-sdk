@@ -7,7 +7,7 @@ from swan.session import Session
 
 DEFAULT_SESSION = None
 
-def setup_default_session(api_key=None, network='testnet', login_url=None, **kwargs):
+def setup_default_session(api_key=None, network='mainnet', login_url=None, **kwargs):
     """
     Set up a default session, passing through any parameters to the session constructor.
     """
@@ -17,7 +17,7 @@ def setup_default_session(api_key=None, network='testnet', login_url=None, **kwa
         return 
     DEFAULT_SESSION = session
 
-def _get_default_session(api_key=None, network='testnet', login_url=None):
+def _get_default_session(api_key=None, network='mainnet', login_url=None):
     """
     Get the default session, creating one if needed.
 
@@ -33,7 +33,7 @@ def resource(api_key=None, login_url=None, *args, **kwargs):
     """
     Create a resource service client by name using the default session.
     """
-    network = kwargs.get('network', 'testnet')
+    network = kwargs.get('network', 'mainnet')
     session = _get_default_session(api_key, network, login_url)
     if session == None:
         raise ValueError(f"login failed, api key is incorrect")

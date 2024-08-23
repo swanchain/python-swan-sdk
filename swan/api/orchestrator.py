@@ -23,7 +23,7 @@ PRIVATE_TASK_DEFAULT_DIRS_EXCLUDE = ".git", "venv", "node_modules", ".github"
 
 class Orchestrator(APIClient):
   
-    def __init__(self, api_key: str, login: bool = True, network="testnet", verification: bool = True, token = None, url_endpoint: str = None):
+    def __init__(self, api_key: str, login: bool = True, network="mainnet", verification: bool = True, token = None, url_endpoint: str = None):
         """Initialize user configuration and login.
 
         Args:
@@ -44,17 +44,17 @@ class Orchestrator(APIClient):
         if url_endpoint:
             self.swan_url = url_endpoint
             logging.info(f"Using {url_endpoint}")
-        elif network == "mainnet":
-            self.swan_url = ORCHESTRATOR_API_MAINNET
-            logging.info("Using Mainnet")
-        else:
+        elif network == "testnet":
             self.swan_url = ORCHESTRATOR_API_TESTNET
             logging.info("Using Testnet")
+        else:
+            self.swan_url = ORCHESTRATOR_API_MAINNET
+            logging.info("Using Mainnet")
 
         if login:
             self.api_key_login()
         if self.token:
-            pub_addr = ORCHESTRATOR_PUBLIC_ADDRESS_MAINNET if network == "mainnet" else ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET
+            pub_addr = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET if network == "testnet" else ORCHESTRATOR_PUBLIC_ADDRESS_MAINNET
             self.get_contract_info(verification, orchestrator_public_address=pub_addr)
         
         self.get_hardware_config()
@@ -513,26 +513,35 @@ class Orchestrator(APIClient):
                     self.token, 
                     None
                 )
-                task_uuid = result['data']['task']['uuid']
+                try:
+                    task_uuid = result['data']['task']['uuid']
+                except Exception as e:
+                    err_msg = f"Task creation failed, {str(e)}."
+                    raise SwanAPIException(err_msg)
             else:
                 err_msg = f"No {cfg_name} machine in {region}."
                 raise SwanAPIException(err_msg)
         
             tx_hash = None
+            config_order = None
             if auto_pay:
-                result = self.make_payment(
+                config_result = self.make_payment(
                     task_uuid=task_uuid, 
                     duration=duration, 
                     private_key=private_key, 
                     hardware_id=hardware_id
                 )
-                tx_hash = result.get('tx_hash')
+                if config_result and isinstance(config_result, dict):
+                    tx_hash = config_result.get('tx_hash')
+                    config_order = config_result.get('data')
 
-            if result and isinstance(result, dict):
-                result['id'] = task_uuid
-                result['task_uuid'] = task_uuid
+            result['config_order'] = config_order
+            result['tx_hash'] = tx_hash
+            result['id'] = task_uuid
+            result['task_uuid'] = task_uuid
+            result['hardware_id'] = hardware_id
 
-            logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}")
+            logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {hardware_id=}")
             return result
 
         except Exception as e:
@@ -726,9 +735,7 @@ class Orchestrator(APIClient):
         """
         try:
             if hardware_id is None:
-                hardware_id = self.hardware_id_free
-                if hardware_id is None:
-                    raise SwanAPIException(f"Invalid hardware_id")
+                raise SwanAPIException(f"Invalid hardware_id")
             
             if not (auto_pay and private_key) and not tx_hash:
                 raise SwanAPIException(f"auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
