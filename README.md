@@ -65,15 +65,13 @@ Steps to get an API Key:
 
 To use Swan SDK, you must first import it and indicate which service you're going to use:
 
-To deploy a simple application with Swan SDK (see [How to get API KEY](#1-get-orchestrator-api-key)):
-
 ```python
 import swan
 
 swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orchestrator')
 ```
 
-Now that you have an `Orchestrator` resource, you can create and deploy instance applications as an Orchestrator task with the service.
+Now that you have an `Orchestrator` service, you can create and deploy instance applications as an Orchestrator task with the service.
 
 ```python
 result = swan_orchestrator.create_task(
