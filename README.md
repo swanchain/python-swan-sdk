@@ -94,6 +94,20 @@ The PYTHON SWAN SDK is a comprehensive toolkit designed to facilitate seamless i
 
 GitHub Link: https://github.com/swanchain/python-swan-sdk/tree/main
 
+```mermaid
+graph TD
+    A[Start] --> B[Get API-Key]
+    B --> C[Initialize Orchestrator]
+    C --> D[Create Task]
+    D --> E[Get Task Deployment Result]
+    D --> F[Renew Task]
+    D --> G[Terminate Task]
+    F --> E
+    E --> H[View Deployed Application]
+    H --> J[End]
+    G --> J
+```
+
 ## Features
 
 - **API Client Integration**: Streamline your development workflow with our intuitive API client.
