@@ -150,7 +150,7 @@ Sample output:
 
 ### Create and deploy a task
 
-To deploy a simple application with Swan SDK (see [Get Orchestrator API Key](#get-orchestrator-api-key)):
+Deploy a simple application with Swan SDK (see [Get Orchestrator API Key](#get-orchestrator-api-key)):
 
 ```python
 import json
@@ -182,7 +182,7 @@ A sample output:
 ['https://krfswstf2g.anlu.loveismoney.fun', 'https://l2s5o476wf.cp162.bmysec.xyz', 'https://e2uw19k9uq.cp5.node.study']
 ```
 
-It shows the this task has been deployed to 3 computing providers. If one of the app links is up, open it in the browser will show some simple information.
+It shows that this task has three applications. Open the URL in the web browser you will view the application's information if it is running correctly.
 
 ### Check information of an existing task
 
