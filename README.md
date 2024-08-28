@@ -315,7 +315,7 @@ Screenshot:
 
 ![Chain Node App](./docs/res/app_running.png)
 
-For more examples consult [examples](https://github.com/swanchain/python-swan-sdk/tree/main/examples).
+For more examples consult [SDK Samples](https://github.com/swanchain/python-sdk-docs-samples).
 
 ## License
 
