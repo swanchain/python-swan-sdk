@@ -147,7 +147,7 @@ Sample output:
 
 #### Create and deploy a task
 
-Deploy a simple application with Swan SDK (see [Get Orchestrator API Key](#get-orchestrator-api-key)):
+Deploy a simple application with Swan SDK:
 
 ```python
 import json

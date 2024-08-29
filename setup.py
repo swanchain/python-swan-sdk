@@ -10,7 +10,7 @@ with open("README.md", "r") as fh:
 
 setup(
         name="orchestrator-sdk",
-        version="0.0.7-pre1",
+        version="0.0.7-pre2",
         packages=['swan', 'swan.api', 'swan.common', 'swan.contract', 'swan.object', 'swan.contract.abi'],
         # package_data={'swan.contract.abi': ['swan/contract/abi/PaymentContract.json', 'swan/contract/abi/SwanToken.json']},
         include_package_data=True,
