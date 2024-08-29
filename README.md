@@ -11,17 +11,12 @@
   - [Using Swan](#using-swan)
 - [A Sample Tutorial](#a-sample-tutorial)
   - [Orchestrator](#orchestrator)
-  - [Fetch available instance resources](#fetch-available-instance-resources)
-  - [Create and deploy a task](#create-and-deploy-a-task)
-  - [Check information of an existing task](#check-information-of-an-existing-task)
-  - [Access application instances of an existing task](#access-application-instances-of-an-existing-task)
-  - [Renew an existing task](#renew-an-existing-task)
-  - [Terminate an existing task](#terminate-an-existing-task)
-- [Code Examples](#code-examples)
-  - [Chain Node Web Application](#chain-node-web-application)
-    - [Create Task and Deploy Application Instances](#create-task-and-deploy-application-instances)
-    - [Renew Application Instances](#renew-application-instances)
-    - [View Running Application](#view-running-application)
+    - [Fetch available instance resources](#fetch-available-instance-resources)
+    - [Create and deploy a task](#create-and-deploy-a-task)
+    - [Check information of an existing task](#check-information-of-an-existing-task)
+    - [Access application instances of an existing task](#access-application-instances-of-an-existing-task)
+    - [Renew an existing task](#renew-an-existing-task)
+    - [Terminate an existing task](#terminate-an-existing-task)
 - [License](#license)
 
 
@@ -31,7 +26,7 @@ This guide details the steps needed to install or update the SWAN SDK for Python
 
 ### Installation
 
-To use Swan SDK, you first need to install it and its dependencies. Before installing Swan SDK, install Python 3.8 or later and web3.py (>=6.15,<7.0).
+To use Swan SDK, you first need to install it and its dependencies. Before installing Swan SDK, install Python 3.8 or later and web3.py(==6.15.1).
 
 
 Install the latest Swan SDK release via **pip**:
@@ -96,11 +91,13 @@ print(app_urls)
 
 ## A Sample Tutorial
 
+For more detailed samples, consult [SDK Samples](https://github.com/swanchain/python-sdk-docs-samples).
+
 ### Orchestrator
 
-Orchestrator allows you to create task to run application instances to the powerful distributed computing providers cloud.
+Orchestrator allows you to create task to run application instances to the powerful distributed computing providers network.
 
-### Fetch available instance resources
+#### Fetch available instance resources
 
 Before using Orchestrator to deploy task, it is necessary to know which instance resources are available. Through `get_instance_resources` you can get a list of available instance resources including their `region` information.
 
@@ -148,7 +145,7 @@ Sample output:
 ```
 
 
-### Create and deploy a task
+#### Create and deploy a task
 
 Deploy a simple application with Swan SDK (see [Get Orchestrator API Key](#get-orchestrator-api-key)):
 
@@ -184,7 +181,7 @@ A sample output:
 
 It shows that this task has three applications. Open the URL in the web browser you will view the application's information if it is running correctly.
 
-### Check information of an existing task
+#### Check information of an existing task
 
 With Orchestrator, you can check information for an existing task to follow up or view task deployment.
 
@@ -199,7 +196,7 @@ task_deployment_info = swan_orchestrator.get_deployment_info(<task_uuid>)
 print(json.dumps(task_deployment_info, indent=2))
 ```
 
-### Access application instances of an existing task
+#### Access application instances of an existing task
 
 With Orchestrator, you can easily get the deployed application instances for an existing task.
 
@@ -214,7 +211,7 @@ app_urls = swan_orchestrator.get_real_url(<task_uuid>)
 print(app_urls)
 ```
 
-### Renew an existing task
+#### Renew an existing task
 
 If you have already submitted payment for the renewal of a task, you can use the `tx_hash` with `renew_task` to extend the task.
 
@@ -238,7 +235,7 @@ else:
     print(f"Unable to renew {<task_uuid>}")
 ```
 
-### Terminate an existing task
+#### Terminate an existing task
 
 You can also early terminate an existing task and its application instances. By terminating task, you will stop all the related running application instances and thus you will get refund of the remaining task duration.
 
@@ -252,70 +249,6 @@ swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orches
 swan_orchestrator.terminate_task(<task_uuid>)
 ```
 
-## Code Examples
-
-### Chain Node Web Application
-
-In this example, you will deploy a simple web application on the distributed computing provider network using Swan SDK. At the end of this example, you will have a Chain Node Frontend application running on the Swan network.
-
-#### Create Task and Deploy Application Instances
-
-```python
-import swan
-import json
-
-api_key = '<your_api_key>'
-wallet_address = '<WALLET_ADDRESS>'
-private_key = '<PRIVATE_KEY>'
-
-swan_orchestrator = swan.resource(
-    api_key=api_key, 
-    service_name='Orchestrator'
-)
-
-result = swan_orchestrator.create_task(
-    repo_uri='https://github.com/swanchain/awesome-swanchain/tree/main/ChainNode',
-    wallet_address=wallet_address,
-    private_key=private_key,
-    auto_pay=True,
-    instance_type='C1ae.medium',
-)
-
-task_uuid = result['task_uuid']
-instance_type = result['instance_type']
-task_info = swan_orchestrator.get_deployment_info(task_uuid=task_uuid)
-print(json.dumps(task_info, indent=2))
-
-### get real url (if no url, please wait for a while, then check again)
-result_url = swan_orchestrator.get_real_url(task_uuid)
-print(result_url)
-```
-
-Sample URL output:
-
-```
-['https://0sz7wqp79q.dev2.crosschain.computer', 'https://grxfl2u0cu.cp.filezoo.com.cn', 'https://0ux851gqmz.pvm.nebulablock.com']
-```
-
-#### Renew Application Instances
-
-```py
-renew_result = swan_orchestrator.renew_task(
-    task_uuid=task_uuid, 
-    duration=3600,  # seconds
-    auto_pay=True, 
-    private_key=private_key,
-    instance_type=instance_type
-)
-```
-
-#### View Running Application
-
-Screenshot:
-
-![Chain Node App](./docs/res/app_running.png)
-
-For more examples consult [SDK Samples](https://github.com/swanchain/python-sdk-docs-samples).
 
 ## License
 

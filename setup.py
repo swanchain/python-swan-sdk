@@ -26,8 +26,8 @@ setup(
             "Programming Language :: Python :: 3",
         ],
         install_requires=[
-            "requests>=2.28.1",
-            "web3>=6.15,<7.0",
+            "requests==2.28.1",
+            "web3==6.15.1",
             ],
         entry_points={
             # placeholder
