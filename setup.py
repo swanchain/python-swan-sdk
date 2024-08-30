@@ -1,16 +1,16 @@
-#setup.py
+# setup.py
 
 """ SwanSDK setup code """
- 
+
 from setuptools import setup, find_packages
- 
- 
+
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
- 
+
 setup(
-        name="swan-sdk",
-        version="0.0.6",
+        name="orchestrator-sdk",
+        version="0.0.7-pre2",
         packages=['swan', 'swan.api', 'swan.common', 'swan.contract', 'swan.object', 'swan.contract.abi'],
         # package_data={'swan.contract.abi': ['swan/contract/abi/PaymentContract.json', 'swan/contract/abi/SwanToken.json']},
         include_package_data=True,
@@ -26,8 +26,8 @@ setup(
             "Programming Language :: Python :: 3",
         ],
         install_requires=[
-            "requests>=2.28.1",
-            "web3>=6.15,<7.0",
+            "requests==2.28.1",
+            "web3==6.15.1",
             ],
         entry_points={
             # placeholder

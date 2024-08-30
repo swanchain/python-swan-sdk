@@ -31,11 +31,9 @@ class Orchestrator(APIClient):
         self.api_key = api_key
         self.contract_info = None
         self.url_endpoint = url_endpoint
-        self.cfg_name = None
-        self.hardware_id_free = 0
-        self.wallet_address = None
         self.region = "global"
         self.all_hardware = None
+        self.instance_mapping = None
     
         if url_endpoint:
             self.swan_url = url_endpoint
@@ -52,8 +50,9 @@ class Orchestrator(APIClient):
         if self.token:
             pub_addr = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET if network == "testnet" else ORCHESTRATOR_PUBLIC_ADDRESS_MAINNET
             self.get_contract_info(verification, orchestrator_public_address=pub_addr)
+            self._get_instance_mapping()
         
-        self.get_hardware_config()
+        self._get_hardware_config()
 
 
     def api_key_login(self):
@@ -82,18 +81,22 @@ class Orchestrator(APIClient):
         resp_dict = self._request_with_params(GET, request_url, self.swan_url, {}, self.token, None)
         return resp_dict
 
-    def get_source_uri(
-            self, 
+    def _get_source_uri(
+            self,
             repo_uri,
             wallet_address=None, 
-            hardware_id=None,
+            instance_type=None,
             repo_branch=None,
             repo_owner=None, 
             repo_name=None,
         ):
         try:
-            if hardware_id == None:
-                raise SwanAPIException(f"No hardware_id provided")
+            if not instance_type:
+                raise SwanAPIException(f"Invalid instance_type")
+            
+            hardware_id = self.get_instance_hardware_id(instance_type)
+            if hardware_id is None:
+                raise SwanAPIException(f"Invalid instance_type {instance_type}")
             
             if not wallet_address:
                 raise SwanAPIException(f"No wallet_address provided")
@@ -142,7 +145,7 @@ class Orchestrator(APIClient):
             return True
         return False
         
-    def get_hardware_config(self, available = True):
+    def _get_hardware_config(self, available = True):
         """Query current hardware list object.
         
         Returns:
@@ -161,6 +164,7 @@ class Orchestrator(APIClient):
         try:
             response = self._request_without_params(GET, GET_CP_CONFIG, self.swan_url, self.token)
             self.all_hardware = [HardwareConfig(hardware) for hardware in response["data"]["hardware"]]
+            self.instance_mapping = {hardware.name: hardware.to_instance_dict() for hardware in self.all_hardware}
             if available:
                 hardwares_info = [hardware.to_dict() for hardware in self.all_hardware if hardware.status == "available"]
             else:
@@ -169,31 +173,64 @@ class Orchestrator(APIClient):
         except Exception:
             logging.error("Failed to fetch hardware configurations.")
             return None
-    
-    def get_cfg_name(self, hardware_id=0):
+        
+    def _get_instance_mapping(self):
         try:
-            self.get_hardware_config()  # make sure all_hardware is updated all the time
-            hardware = [hardware for hardware in self.all_hardware if hardware.id == hardware_id][0]
-            cfg_name = hardware.name
-            return cfg_name
-        except:
-            logging.error("Failed to set hardware configurations.")
+            response = self._request_without_params(GET, GET_CP_CONFIG, self.swan_url, self.token)
+            self.all_hardware = [HardwareConfig(hardware) for hardware in response["data"]["hardware"]]
+            self.instance_mapping = {hardware.name: hardware.to_instance_dict() for hardware in self.all_hardware}
+        except Exception:
+            logging.error("Failed to fetch hardware configurations.")
+            return None
+        
+    def get_instance_resources(self, available = True):
+        """Query current hardware list object.
+        
+        Returns:
+            list of instance resource object.
+            e.g. obj.to_dict() -> 
+            {
+                'hardware_id': 0, 
+                'instance_type': 'C1ae.small', 
+                'description': 'CPU only · 2 vCPU · 2 GiB', 
+                'type': 'CPU', 
+                'region': ['North Carolina-US'], 
+                'price': '0.0', 
+                'status': 'available'
+            }
+        """
+        try:
+            response = self._request_without_params(GET, GET_CP_CONFIG, self.swan_url, self.token)
+            self.all_hardware = [HardwareConfig(hardware) for hardware in response["data"]["hardware"]]
+            if available:
+                hardwares_info = [hardware.to_instance_dict() for hardware in self.all_hardware if hardware.status == "available"]
+            else:
+                hardwares_info = [hardware.to_instance_dict() for hardware in self.all_hardware]
+            return hardwares_info
+        except Exception:
+            logging.error("Failed to fetch instance resources.")
             return None
     
-    def get_config(self):
-        current_config = {
-                    "hardware_id": self.hardware_id_free,
-                    "cfg_name": self.cfg_name,
-                    "region": self.region
-                }
-        return current_config
+    def get_instance_hardware_id(self, instance_type):
+        try:
+            return self.instance_mapping[instance_type]['hardware_id']
+        except:
+            logging.error(f"Undefined instance type {instance_type}.")
+            return None
+    
+    def get_instance_price(self, instance_type):
+        try:
+            return float(self.instance_mapping[instance_type]['price'])
+        except:
+            logging.error(f"Undefined instance type {instance_type}.")
+            return None
 
     def terminate_task(self, task_uuid: str):
         """
         Terminate a task
 
         Args:
-            task_uuid: uuid of space task.
+            task_uuid: uuid of task.
 
         Returns:
             JSON of terminated successfully or not
@@ -393,7 +430,7 @@ class Orchestrator(APIClient):
     def create_task(
             self,
             wallet_address, 
-            hardware_id: int = None, 
+            instance_type: str = None, 
             region: str = "global",
             duration: int = 3600, 
             app_repo_image: str = "",
@@ -412,7 +449,7 @@ class Orchestrator(APIClient):
 
         Args:
             wallet_address: The user's wallet address.
-            hardware_id: The ID of the hardware configuration set. (Default = 0)
+            instance_type: The type(name) of the hardware. (Default = `C1ae.small`)
             region: The region of the hardware. (Default: global)
             duration: The duration of the service runtime in seconds. (Default = 3600)
             app_repo_image: Optional. The name of a demo space.
@@ -444,16 +481,17 @@ class Orchestrator(APIClient):
             if not region:
                 region = 'global'
 
-            if hardware_id is None:
-                hardware_id = 0
-                self.hardware_id_free = 0  # to save the default hardware_id for possible task renewals
-            else:
-                self.hardware_id_free = None
+            if not duration or duration < 3600:
+                raise SwanAPIException(f"Duration must be no less than 3600 seconds")
 
-            if cfg_name := self.get_cfg_name(hardware_id):
-                logging.info(f"Using {cfg_name} machine, {hardware_id=} {region=} {duration=} (seconds)")
-            else:
-                raise SwanAPIException(f"Invalid hardware_id selected")
+            if not instance_type:
+                instance_type = 'C1ae.small'
+
+            hardware_id = self.get_instance_hardware_id(instance_type)
+            if hardware_id is None:
+                raise SwanAPIException(f"Invalid instance_type {instance_type}")
+
+            logging.info(f"Using {instance_type} machine, {region=} {duration=} (seconds)")
             
             if not job_source_uri:
                 if app_repo_image:
@@ -468,10 +506,10 @@ class Orchestrator(APIClient):
                         raise SwanAPIException(f"Invalid app_repo_image")
 
                 if repo_uri:
-                    job_source_uri = self.get_source_uri(
+                    job_source_uri = self._get_source_uri(
                             repo_uri=repo_uri,
                             wallet_address=wallet_address, 
-                            hardware_id=hardware_id,
+                            instance_type=instance_type,
                             repo_branch=repo_branch,
                             repo_owner=repo_owner,
                             repo_name=repo_name
@@ -486,10 +524,10 @@ class Orchestrator(APIClient):
             if preferred_cp_list and isinstance(preferred_cp_list, list):
                 preferred_cp = ','.join(preferred_cp_list)
             
-            if self._verify_hardware_region(cfg_name, region):
+            if self._verify_hardware_region(instance_type, region):
                 params = {
                     "duration": duration,
-                    "cfg_name": cfg_name,
+                    "cfg_name": instance_type,
                     "region": region,
                     "start_in": start_in,
                     "wallet": wallet_address,
@@ -511,7 +549,7 @@ class Orchestrator(APIClient):
                     err_msg = f"Task creation failed, {str(e)}."
                     raise SwanAPIException(err_msg)
             else:
-                err_msg = f"No {cfg_name} machine in {region}."
+                err_msg = f"No {instance_type} machine in {region}."
                 raise SwanAPIException(err_msg)
         
             tx_hash = None
@@ -521,7 +559,7 @@ class Orchestrator(APIClient):
                     task_uuid=task_uuid, 
                     duration=duration, 
                     private_key=private_key, 
-                    hardware_id=hardware_id
+                    instance_type=instance_type
                 )
                 if config_result and isinstance(config_result, dict):
                     tx_hash = config_result.get('tx_hash')
@@ -531,57 +569,55 @@ class Orchestrator(APIClient):
             result['tx_hash'] = tx_hash
             result['id'] = task_uuid
             result['task_uuid'] = task_uuid
-            result['hardware_id'] = hardware_id
+            result['instance_type'] = instance_type
+            result['price'] = self.estimate_payment(instance_type=instance_type, duration=duration)
 
-            logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {hardware_id=}")
+            logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {instance_type=}")
             return result
 
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
 
-    def estimate_payment(self, duration : float = 3600, hardware_id = None):
+    def estimate_payment(self, duration: float = 3600, instance_type: str = None):
         """Estimate required funds.
 
         Args:
-            hardware_id: integer id of hardware, can be retrieve through Swan API.
             duration: duration in hours for space runtime.
+            instance_type: instance type, e.g. C1ae.small
         
         Returns:
             int estimated price in SWAN.
             e.g. (price = 10 SWAN, duration = 1 hr) -> 10 SWAN
         """
         try:
-            if hardware_id is None:
-                raise SwanAPIException(f"Invalid hardware_id")
-            
-            if not self.contract_info:
-                raise SwanAPIException(f"No contract info on record, please verify contract first.")
-            
-            contract = SwanContract("", self.contract_info)
-
+            price = self.get_instance_price(instance_type=instance_type)
             duration_hour = duration/3600
-            amount = contract.estimate_payment(hardware_id, duration_hour)
-            return contract._wei_to_swan(amount)
+            amount = price * duration_hour
+            return amount
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
     
-    def submit_payment(self, task_uuid, private_key, duration = 3600, hardware_id = None):
+    def submit_payment(self, task_uuid, private_key, duration = 3600, instance_type = None):
         """
         Submit payment for a task
 
         Args:
             task_uuid: unique id returned by `swan_api.create_task`
-            hardware_id: id of cp/hardware configuration set
             duration: duration of service runtime (seconds).
+            instance_type: instance type, e.g. C1ae.small
 
         Returns:
             tx_hash
         """
         try:
+            if not instance_type:
+                raise SwanAPIException(f"Invalid instance_type")
+            
+            hardware_id = self.get_instance_hardware_id(instance_type)
             if hardware_id is None:
-                raise SwanAPIException(f"Invalid hardware_id")
+                raise SwanAPIException(f"Invalid instance_type {instance_type}")
             
             if not private_key:
                 raise SwanAPIException(f"No private_key provided.")
@@ -591,27 +627,31 @@ class Orchestrator(APIClient):
             contract = SwanContract(private_key, self.contract_info)
         
             tx_hash = contract.submit_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
-            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {hardware_id=}. Got {tx_hash=}")
+            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {tx_hash=}")
             return tx_hash
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
 
-    def renew_payment(self, task_uuid, private_key, duration = 3600, hardware_id = None):
+    def renew_payment(self, task_uuid, private_key, duration = 3600, instance_type = None):
         """
         Submit payment for a task
 
         Args:
             task_uuid: unique id returned by `swan_api.create_task`
-            hardware_id: id of cp/hardware configuration set
             duration: duration of service runtime (seconds).
+            instance_type: instance type, e.g. C1ae.small
 
         Returns:
             tx_hash
         """
         try:
+            if not instance_type:
+                raise SwanAPIException(f"Invalid instance_type")
+            
+            hardware_id = self.get_instance_hardware_id(instance_type)
             if hardware_id is None:
-                raise SwanAPIException(f"Invalid hardware_id")
+                raise SwanAPIException(f"Invalid instance_type {instance_type}")
             
             if not private_key:
                 raise SwanAPIException(f"No private_key provided.")
@@ -621,7 +661,7 @@ class Orchestrator(APIClient):
             contract = SwanContract(private_key, self.contract_info)
         
             tx_hash = contract.renew_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
-            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {hardware_id=}. Got {tx_hash=}")
+            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {tx_hash=}")
             return tx_hash
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
@@ -665,21 +705,25 @@ class Orchestrator(APIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
     
-    def make_payment(self, task_uuid, private_key, duration=3600, hardware_id = None):
+    def make_payment(self, task_uuid, private_key, duration=3600, instance_type = None):
         """
         Submit payment for a task and validate it on SWAN backend
 
         Args:
             task_uuid: unique id returned by `swan_api.create_task`
-            hardware_id: id of cp/hardware configuration set
             duration: duration of service runtime (seconds).
+            instance_type: instance type, e.g. C1ae.small
         
         Returns:
             JSON response from backend server including 'task_uuid'.
         """
         try:
+            if not instance_type:
+                raise SwanAPIException(f"Invalid instance_type")
+            
+            hardware_id = self.get_instance_hardware_id(instance_type)
             if hardware_id is None:
-                raise SwanAPIException(f"Invalid hardware_id") 
+                raise SwanAPIException(f"Invalid instance_type {instance_type}")
             
             if not private_key:
                 raise SwanAPIException(f"No private_key provided.")
@@ -690,7 +734,7 @@ class Orchestrator(APIClient):
                 task_uuid=task_uuid, 
                 duration=duration, 
                 private_key=private_key, 
-                hardware_id=hardware_id
+                instance_type=instance_type
             ):
                 time.sleep(3)
                 if res := self.validate_payment(
@@ -712,28 +756,29 @@ class Orchestrator(APIClient):
             tx_hash = "", 
             auto_pay = False, 
             private_key = None, 
-            hardware_id = None
+            instance_type = None
         ):
         """
-        Submit payment for a task renewal and renew a task
+        Submit payment for a task renewal (if necessary)
+        Extend a task
 
         Args:
             task_uuid: unique id returned by `swan_api.create_task`
-            hardware_id: id of cp/hardware configuration set
             duration: duration of service runtime (seconds).
+            instance_type: instance type, e.g. C1ae.small
         
         Returns:
             JSON response from backend server including 'task_uuid'.
         """
         try:
-            if hardware_id is None:
-                raise SwanAPIException(f"Invalid hardware_id")
+            if not instance_type:
+                raise SwanAPIException(f"Invalid instance_type")
             
             if not (auto_pay and private_key) and not tx_hash:
                 raise SwanAPIException(f"auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
 
             if not tx_hash:
-                tx_hash = self.renew_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, hardware_id=hardware_id)
+                tx_hash = self.renew_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, instance_type=instance_type)
             else:
                 logging.info(f"Using given payment transaction hash, {tx_hash=}")
 
@@ -845,20 +890,21 @@ class Orchestrator(APIClient):
             logging.error("An error occurred while executing get_payment_info()")
             return None
 
-    def _verify_hardware_region(self, hardware_name: str, region: str):
+    def _verify_hardware_region(self, instance_type: str, region: str):
         """Verify if the hardware exist in given region.
 
         Args:
-            hardware_name: cfg name
+            instance_type: cfg name (hardware name).
             region: geological regions.
 
         Returns:
             True when hardware exist in given region.
             False when hardware does not exist or do not exit in given region.
         """
-        self.get_hardware_config()  # make sure all_hardware is updated all the time
+        self._get_hardware_config()  # make sure all_hardware is updated all the time
         for hardware in self.all_hardware:
-            if hardware.name == hardware_name:
+            if hardware.name == instance_type:
                 if region in hardware.region or (region.lower() == 'global' and hardware.status == 'available'):
                     return True
         return False
+

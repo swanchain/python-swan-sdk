@@ -19,13 +19,13 @@ result = swan_orchestrator.create_task(
     repo_uri='https://github.com/swanchain/awesome-swanchain/tree/main/Llama3-8B-LLM-Chat',
     wallet_address=wallet_address,
     private_key=private_key,
-    hardware_id=13,
+    instance_type='G1ae.medium',
     duration=3600,
     auto_pay=True
 )
 
-task_uuid = result['id']
-
+task_uuid = result['task_uuid']
+instance_type = result['instance_type']
 task_info = swan_orchestrator.get_deployment_info(task_uuid=task_uuid)
 print(json.dumps(task_info, indent=2))
 
