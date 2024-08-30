@@ -70,9 +70,11 @@ Now that you have an `Orchestrator` service, you can create and deploy instance 
 
 ```python
 result = swan_orchestrator.create_task(
-    app_repo_image='hello_world',
+    repo_uri='https://github.com/swanchain/awesome-swanchain/tree/main/hello_world',
     wallet_address='<WALLET_ADDRESS>',
     private_key='<PRIVATE_KEY>',
+    instance_type='C1ae.small',
+    auto_pay=True
 )
 task_uuid = result['task_uuid']
 ```
@@ -93,13 +95,15 @@ print(app_urls)
 
 For more detailed samples, consult [SDK Samples](https://github.com/swanchain/python-sdk-docs-samples).
 
+For detailed description of functions, please check [Key Functions](./docs/key_functions.md).
+
 ### Orchestrator
 
 Orchestrator allows you to create task to run application instances to the powerful distributed computing providers network.
 
 #### Fetch available instance resources
 
-Before using Orchestrator to deploy task, it is necessary to know which instance resources are available. Through `get_instance_resources` you can get a list of available instance resources including their `region` information.
+Before using Orchestrator to deploy task, it is necessary to know which instance resources are available. Through `get_instance_resources` you can get a list of available instance resources including their `region` information. From the output list, you can choose an `instance_type` by checking the description for the hardware configuration requirements.
 
 ```python
 import json
@@ -156,9 +160,11 @@ import swan
 swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orchestrator')
 
 result = swan_orchestrator.create_task(
-    app_repo_image='hello_world',
+    repo_uri='https://github.com/swanchain/awesome-swanchain/tree/main/hello_world',
     wallet_address='<WALLET_ADDRESS>',
     private_key='<PRIVATE_KEY>',
+    instance_type='C1ae.small',
+    auto_pay=True
 )
 task_uuid = result['task_uuid']
 # Get task deployment info
