@@ -1,9 +1,9 @@
 # Using Swan SDK on Testnet <!-- omit in toc -->
 
-- [1. Get Orchestrator API Key](#1-get-orchestrator-api-key)
-- [2. Login into Orchestrator Through SDK](#2-login-into-orchestrator-through-sdk)
+- [Get Orchestrator API Key](#get-orchestrator-api-key)
+- [Login into Orchestrator Through SDK](#login-into-orchestrator-through-sdk)
 
-### 1. Get Orchestrator API Key
+### Get Orchestrator API Key
 
 To use `swan-sdk`, an Orchestrator API key is required. 
 
@@ -16,7 +16,7 @@ To use `swan-sdk`, an Orchestrator API key is required.
 - Click 'Show API-Key' -> 'New API Key'
 - Store your API Key safely, do not share with others.
 
-### 2. Login into Orchestrator Through SDK
+### Login into Orchestrator Through SDK
 
 To use `swan-sdk` you will need to login to Orchestrator using API Key. (Wallet login is not supported)
 

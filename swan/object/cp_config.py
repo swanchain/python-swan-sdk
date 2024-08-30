@@ -27,3 +27,15 @@ class HardwareConfig:
     def to_json(self):
         return json.dump(self, default=lambda o: o.__dict__,
                          sort_keys=True, indent=4)
+    
+
+    def to_instance_dict(self):
+        return {
+            "hardware_id": self.id,
+            "instance_type": self.name,
+            "description": self.description,
+            "type": self.type,
+            "region": self.region,
+            "price": self.price,
+            "status": self.status
+        }
