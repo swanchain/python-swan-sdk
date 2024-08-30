@@ -1,20 +1,20 @@
-# setup.py
+#setup.py
 
 """ SwanSDK setup code """
-
+ 
 from setuptools import setup, find_packages
-
-
+ 
+ 
 with open("README.md", "r") as fh:
     long_description = fh.read()
-
+ 
 setup(
-        name="orchestrator-sdk",
-        version="0.0.7-pre2",
+        name="swan-sdk",
+        version="0.0.7",
         packages=['swan', 'swan.api', 'swan.common', 'swan.contract', 'swan.object', 'swan.contract.abi'],
         # package_data={'swan.contract.abi': ['swan/contract/abi/PaymentContract.json', 'swan/contract/abi/SwanToken.json']},
         include_package_data=True,
-        description="A python developer tool kit for Swan Orchestrator services.",
+        description="A python developer tool kit for Swan services.",
         long_description=long_description,
         long_description_content_type="text/markdown",
         url="https://github.com/swanchain/python-swan-sdk",
