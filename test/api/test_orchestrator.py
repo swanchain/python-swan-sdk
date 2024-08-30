@@ -89,7 +89,7 @@ class TestOrchestrator:
             
         }
 
-        response = self.orchestrator.get_hardware_config()
+        response = self.orchestrator._get_hardware_config()
 
         assert len(self.orchestrator.all_hardware) == 3
         assert self.orchestrator.all_hardware[0].id == 0

@@ -10,11 +10,11 @@ with open("README.md", "r") as fh:
  
 setup(
         name="swan-sdk",
-        version="0.0.6",
+        version="0.0.7",
         packages=['swan', 'swan.api', 'swan.common', 'swan.contract', 'swan.object', 'swan.contract.abi'],
         # package_data={'swan.contract.abi': ['swan/contract/abi/PaymentContract.json', 'swan/contract/abi/SwanToken.json']},
         include_package_data=True,
-        description="A python developer tool kit for Swan Orchestrator services.",
+        description="A python developer tool kit for Swan services.",
         long_description=long_description,
         long_description_content_type="text/markdown",
         url="https://github.com/swanchain/python-swan-sdk",
@@ -26,8 +26,8 @@ setup(
             "Programming Language :: Python :: 3",
         ],
         install_requires=[
-            "requests>=2.28.1",
-            "web3>=6.15,<7.0",
+            "requests==2.28.1",
+            "web3==6.15.1",
             ],
         entry_points={
             # placeholder

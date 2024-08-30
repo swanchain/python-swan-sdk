@@ -42,6 +42,21 @@ class SwanContract():
             abi=get_contract_abi(SWAN_TOKEN_ABI)
         )
 
+    def get_public_wallet_address(self, private_key: str):
+        """Get public wallet address from private key.
+
+        Args:
+            private_key: private key for wallet.
+
+        Returns:
+            str public wallet address.
+        """
+        try:
+            account = Account.from_key(private_key)
+            return account.address
+        except:
+            return None
+
     def hardware_info(self, hardware_id: int):
         """Retrieve hardware information from payment contract.
 

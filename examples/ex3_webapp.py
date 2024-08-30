@@ -18,8 +18,8 @@ result = swan_orchestrator.create_task(
     auto_pay=True
 )
 
-task_uuid = result['id']
-
+task_uuid = result['task_uuid']
+instance_type = result['instance_type']
 task_info = swan_orchestrator.get_deployment_info(task_uuid=task_uuid)
 print(json.dumps(task_info, indent=2))
 
