@@ -622,7 +622,7 @@ class Orchestrator(APIClient):
             tx_hash = "", 
             auto_pay = False, 
             private_key = None, 
-            instance_type = None
+            **kwargs
         ):
         """
         Submit payment for a task renewal (if necessary)
@@ -631,14 +631,17 @@ class Orchestrator(APIClient):
         Args:
             task_uuid: unique id returned by `swan_api.create_task`
             duration: duration of service runtime (seconds).
-            instance_type: instance type, e.g. C1ae.small
+            tx_hash: (optional)tx_hash of submitted payment
+            private_key: (required if no tx_hash)
+            auto_pay: (required True if no tx_hash and private_key)
         
         Returns:
             JSON response from backend server including 'task_uuid'.
         """
         try:
+            instance_type = self.get_task_instance_type(task_uuid)
             if not instance_type:
-                raise SwanAPIException(f"Invalid instance_type")
+                raise SwanAPIException(f"Invalid instance_type for task {task_uuid}")
             
             if not (auto_pay and private_key) and not tx_hash:
                 raise SwanAPIException(f"auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
@@ -774,3 +777,15 @@ class Orchestrator(APIClient):
                     return True
         return False
 
+
+    def get_task_instance_type(self, task_uuid: str):
+        try:
+            if not task_uuid:
+                raise SwanAPIException(f"Invalid task_uuid")
+            response = self.get_deployment_info(task_uuid)
+            if not response:
+                raise SwanAPIException(f"Get task {task_uuid} failed, cannot get instance_type")
+            return response['data']['task']['task_detail']['hardware']
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
