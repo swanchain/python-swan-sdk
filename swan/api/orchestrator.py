@@ -465,21 +465,22 @@ class Orchestrator(APIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
     
-    def submit_payment(self, task_uuid, private_key, duration = 3600, instance_type = None):
+    def submit_payment(self, task_uuid, private_key, duration = 3600, **kwargs):
         """
         Submit payment for a task
 
         Args:
             task_uuid: unique id returned by `swan_api.create_task`
+            private_key: private key of owner
             duration: duration of service runtime (seconds).
-            instance_type: instance type, e.g. C1ae.small
 
         Returns:
             tx_hash
         """
         try:
+            instance_type = self.get_task_instance_type(task_uuid)
             if not instance_type:
-                raise SwanAPIException(f"Invalid instance_type")
+                raise SwanAPIException(f"Invalid instance_type for task {task_uuid}")
             
             hardware_id = self.get_instance_hardware_id(instance_type)
             if hardware_id is None:
@@ -499,21 +500,22 @@ class Orchestrator(APIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
 
-    def renew_payment(self, task_uuid, private_key, duration = 3600, instance_type = None):
+    def renew_payment(self, task_uuid, private_key, duration = 3600, **kwargs):
         """
         Submit payment for a task
 
         Args:
             task_uuid: unique id returned by `swan_api.create_task`
+            private_key: private key of owner
             duration: duration of service runtime (seconds).
-            instance_type: instance type, e.g. C1ae.small
 
         Returns:
             tx_hash
         """
         try:
+            instance_type = self.get_task_instance_type(task_uuid)
             if not instance_type:
-                raise SwanAPIException(f"Invalid instance_type")
+                raise SwanAPIException(f"Invalid instance_type for task {task_uuid}")
             
             hardware_id = self.get_instance_hardware_id(instance_type)
             if hardware_id is None:
@@ -639,17 +641,18 @@ class Orchestrator(APIClient):
             JSON response from backend server including 'task_uuid'.
         """
         try:
-            instance_type = self.get_task_instance_type(task_uuid)
-            if not instance_type:
-                raise SwanAPIException(f"Invalid instance_type for task {task_uuid}")
-            
             if not (auto_pay and private_key) and not tx_hash:
                 raise SwanAPIException(f"auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
 
             if not tx_hash:
-                tx_hash = self.renew_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, instance_type=instance_type)
+                tx_hash = self.renew_payment(
+                    task_uuid=task_uuid, 
+                    duration=duration, 
+                    private_key=private_key
+                )
+                logging.info(f"renew payment transaction hash, {tx_hash=}")
             else:
-                logging.info(f"Using given payment transaction hash, {tx_hash=}")
+                logging.info(f"will use given payment transaction hash, {tx_hash=}")
 
             if tx_hash and task_uuid:
                 params = {
