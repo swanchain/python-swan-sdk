@@ -76,9 +76,6 @@ class Orchestrator(APIClient):
             repo_uri,
             wallet_address=None, 
             instance_type=None,
-            repo_branch=None,
-            repo_owner=None, 
-            repo_name=None,
         ):
         try:
             if not instance_type:
@@ -92,9 +89,6 @@ class Orchestrator(APIClient):
                 raise SwanAPIException(f"No wallet_address provided")
 
             params = {
-                "repo_owner": repo_owner,
-                "repo_name": repo_name,
-                "repo_branch": repo_branch,
                 "wallet_address": wallet_address,
                 "hardware_id": hardware_id,
                 "repo_uri": repo_uri
@@ -300,12 +294,9 @@ class Orchestrator(APIClient):
             region: str = "global",
             duration: int = 3600, 
             app_repo_image: str = "",
-            auto_pay = None,
             job_source_uri: str = "", 
             repo_uri=None,
-            repo_branch=None,
-            repo_owner=None, 
-            repo_name=None,
+            auto_pay = True,
             private_key = None,
             start_in: int = 300,
             preferred_cp_list=None,
@@ -321,9 +312,6 @@ class Orchestrator(APIClient):
             app_repo_image: Optional. The name of a demo space.
             job_source_uri: Optional. The job source URI to be deployed. If this is provided, app_repo_image and repo_uri are ignored.
             repo_uri: Optional. The URI of the repo to be deployed. If job_source_uri and app_repo_image are not provided, this is required.
-            repo_branch: Optional. The branch of the repo to be deployed.
-            repo_owner: Optional. The owner of the repo to be deployed.
-            repo_name: Optional. The name of the repo to be deployed.
             start_in: Optional. The starting time (expected time for the app to be deployed, not mandatory). (Default = 300)
             auto_pay: Optional. Automatically call the submit payment method on the contract and validate payment to get the task deployed. 
             If True, the private key and wallet must be in .env (Default = False). Otherwise, the user must call the submit payment method on the contract and validate payment.
@@ -342,7 +330,7 @@ class Orchestrator(APIClient):
 
             if auto_pay:
                 if not private_key:
-                    raise SwanAPIException(f"please provide private_key if using auto_pay")
+                    raise SwanAPIException(f"please provide private_key or set auto_pay to False")
 
             if not region:
                 region = 'global'
@@ -376,9 +364,6 @@ class Orchestrator(APIClient):
                             repo_uri=repo_uri,
                             wallet_address=wallet_address, 
                             instance_type=instance_type,
-                            repo_branch=repo_branch,
-                            repo_owner=repo_owner,
-                            repo_name=repo_name
                         )
                 else:
                     raise SwanAPIException(f"Please provide app_repo_image, or job_source_uri, or repo_uri")
@@ -622,7 +607,7 @@ class Orchestrator(APIClient):
             task_uuid: str, 
             duration = 3600, 
             tx_hash = "", 
-            auto_pay = False, 
+            auto_pay = True, 
             private_key = None, 
             **kwargs
         ):
@@ -635,7 +620,7 @@ class Orchestrator(APIClient):
             duration: duration of service runtime (seconds).
             tx_hash: (optional)tx_hash of submitted payment
             private_key: (required if no tx_hash)
-            auto_pay: (required True if no tx_hash and private_key)
+            auto_pay: (required True if no tx_hash but with private_key provided)
         
         Returns:
             JSON response from backend server including 'task_uuid'.

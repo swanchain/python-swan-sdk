@@ -32,8 +32,10 @@ class Session:
             self.login_url = login_url
         elif network == "testnet":
             self.login_url = ORCHESTRATOR_API_TESTNET
+            logging.info("Logging in Testnet")
         else:
             self.login_url = ORCHESTRATOR_API_MAINNET
+            logging.info("Logging in Mainnet")
 
         self.api_client = APIClient()
         self.login = login
