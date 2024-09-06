@@ -330,7 +330,7 @@ class Orchestrator(APIClient):
 
             if auto_pay:
                 if not private_key:
-                    raise SwanAPIException(f"please provide private_key or set auto_pay to False")
+                    raise SwanAPIException(f"please provide private_key")
 
             if not region:
                 region = 'global'
@@ -346,7 +346,7 @@ class Orchestrator(APIClient):
                 raise SwanAPIException(f"Invalid instance_type {instance_type}")
 
             logging.info(f"Using {instance_type} machine, {region=} {duration=} (seconds)")
-            
+
             if not job_source_uri:
                 if app_repo_image:
                     if auto_pay == None and private_key:
