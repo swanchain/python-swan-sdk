@@ -74,6 +74,7 @@ class Orchestrator(APIClient):
     def _get_source_uri(
             self, 
             repo_uri,
+            repo_branch=None,
             wallet_address=None, 
             instance_type=None,
         ):
@@ -91,7 +92,8 @@ class Orchestrator(APIClient):
             params = {
                 "wallet_address": wallet_address,
                 "hardware_id": hardware_id,
-                "repo_uri": repo_uri
+                "repo_uri": repo_uri,
+                "repo_branch": repo_branch
             }
             response = self._request_with_params(POST, GET_SOURCE_URI, self.swan_url, params, self.token, None)
             job_source_uri = ""
@@ -296,6 +298,7 @@ class Orchestrator(APIClient):
             app_repo_image: str = "",
             job_source_uri: str = "", 
             repo_uri=None,
+            repo_branch=None,
             auto_pay = True,
             private_key = None,
             start_in: int = 300,
@@ -312,6 +315,7 @@ class Orchestrator(APIClient):
             app_repo_image: Optional. The name of a demo space.
             job_source_uri: Optional. The job source URI to be deployed. If this is provided, app_repo_image and repo_uri are ignored.
             repo_uri: Optional. The URI of the repo to be deployed. If job_source_uri and app_repo_image are not provided, this is required.
+            repo_branch: Optional. The branch of the repo to be deployed. In the case that repo_uri is provided, if repo_branch is given, it will be used.
             start_in: Optional. The starting time (expected time for the app to be deployed, not mandatory). (Default = 300)
             auto_pay: Optional. Automatically call the submit payment method on the contract and validate payment to get the task deployed. 
             If True, the private key and wallet must be in .env (Default = False). Otherwise, the user must call the submit payment method on the contract and validate payment.
@@ -362,6 +366,7 @@ class Orchestrator(APIClient):
                 if repo_uri:
                     job_source_uri = self._get_source_uri(
                             repo_uri=repo_uri,
+                            repo_branch=repo_branch,
                             wallet_address=wallet_address, 
                             instance_type=instance_type,
                         )
@@ -369,7 +374,7 @@ class Orchestrator(APIClient):
                     raise SwanAPIException(f"Please provide app_repo_image, or job_source_uri, or repo_uri")
 
             if not job_source_uri:
-                raise SwanAPIException(f"cannot get job_source_uri. make sure `app_repo_image` or `repo_uri` or `job_source_uri` is correct.")
+                raise SwanAPIException(f"Cannot get job_source_uri. Please double check your parameters")
 
             preferred_cp = None
             if preferred_cp_list and isinstance(preferred_cp_list, list):

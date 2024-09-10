@@ -5,6 +5,7 @@
 Supported GitHub URLs:
 
 - `https://github.com/<repo_owner>/<repo_name>/tree/<repo_branch>/<repo_directory>`
+  - In this case, make sure branch name doesn't contain `/`. This only works without `repo_branch` parameter.
   - e.g., https://github.com/swanchain/awesome-swanchain/tree/main/Llama3-8B-LLM-Chat
 - `https://github.com/<repo_owner>/<repo_name>/tree/<repo_branch>`
   - e.g., https://github.com/alphaflows/hello/tree/test
@@ -14,6 +15,12 @@ Supported GitHub URLs:
   - e.g., https://github.com/alphaflows/hello.git
 - `git@github.com:<repo_owner>/<repo_name>.git`  (branch default to `main`)
   - e.g., git@github.com:alphaflows/hello.git
+
+Note:
+- If your branch name contains `/`, please use `repo_branch` to provide the branch name. `repo_branch` is prioritized for GitHub repo's branch name.
+  - Example:
+    - `repo_uri='https://github.com/alphaflows/hello'`
+    - `repo_branch='feature/feature-branch-name-01'`
 
 ## Lagrange Space URLs
 
