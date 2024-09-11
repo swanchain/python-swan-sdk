@@ -22,6 +22,22 @@ Note:
     - `repo_uri='https://github.com/alphaflows/hello'`
     - `repo_branch='feature/feature-branch-name-01'`
 
+### Requirements for GitHub Repository
+
+#### File Requirements
+
+1. Your repository **must** include one of the following:
+   - `Dockerfile`
+   - `deploy.yaml`
+
+2. **Priority**: If both files are present, `deploy.yaml` takes precedence.
+
+#### deploy.yaml Specifications
+
+If using `deploy.yaml`:
+- **Mandatory**: Adhere to [LDL (Lagrange Definition Language) specifications](https://docs.lagrangedao.org/spaces/intro/lagrange-definition-language-ldl).
+
+
 ## Lagrange Space URLs
 
 Lagrange space URLs containing : `spaces/<space_owner>/<space_name>`
