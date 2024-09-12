@@ -1,4 +1,6 @@
 # ./swan/contract/swan_contract.py
+import os
+from functools import cached_property
 from typing import Dict
 
 from eth_account import Account
@@ -6,6 +8,7 @@ from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
 from swan.common.constant import *
+from swan.common.exception import SwanEnvironmentValueException
 from swan.common.utils import get_contract_abi
 
 
@@ -44,10 +47,33 @@ class SwanContract():
             abi=get_contract_abi(SWAN_TOKEN_ABI)
         )
 
+    @cached_property
+    def max_priority_fee_percentage(self) -> float:
+        return float(os.getenv("SWAN_SDK_PRIORITY_FEE_PERCENTAGE", 0.1))
+
+    @cached_property
+    def priority_fee_cap(self) -> float:
+        return float(os.getenv("SWAN_SDK_MAX_PRIORITY_FEE_GWEI", 0.001))
+
     def _get_fee_per_gas(self) -> Dict[str, int]:
         base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
-        max_priority_fee_per_gas = Web3.to_wei(0.001, "gwei")
+
+        if not (0 <= self.max_priority_fee_percentage <= 1):
+            raise SwanEnvironmentValueException(
+                f"Priority fee percentage should be between 0 and 1: {self.max_priority_fee_percentage=}"
+            )
+
+        # Calculate 10% of the base fee
+        priority_fee_percentage = int(base_fee * self.max_priority_fee_percentage)
+
+        # Cap the priority fee at 0.001 gwei
+        max_priority_fee_cap = Web3.to_wei(self.priority_fee_cap, "gwei")
+
+        # Use the lower value between the percentage and the cap
+        max_priority_fee_per_gas = min(priority_fee_percentage, max_priority_fee_cap)
+
         max_fee_per_gas = base_fee + max_priority_fee_per_gas
+
         return {
             "maxFeePerGas": max_fee_per_gas,
             "maxPriorityFeePerGas": max_priority_fee_per_gas,
