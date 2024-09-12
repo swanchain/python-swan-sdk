@@ -44,9 +44,9 @@ class SwanContract():
             abi=get_contract_abi(SWAN_TOKEN_ABI)
         )
 
-    def _get_fee_per_gas(self, priority_tips_percentage = 0.2) -> Dict[str, int]:
+    def _get_fee_per_gas(self) -> Dict[str, int]:
         base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
-        max_priority_fee_per_gas =  int(base_fee * priority_tips_percentage)
+        max_priority_fee_per_gas = Web3.to_wei(0.001, "gwei")
         max_fee_per_gas = base_fee + max_priority_fee_per_gas
         return {
             "maxFeePerGas": max_fee_per_gas,
