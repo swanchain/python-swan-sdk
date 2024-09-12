@@ -29,6 +29,7 @@ def task_uuid(swan_orchestrator) -> str:
         app_repo_image="hello_world",
         wallet_address=WALLET_ADDRESS,
         private_key=PRIVATE_KEY,
+        instance_type="C1ae.medium",
         auto_pay=True,
     )
 
