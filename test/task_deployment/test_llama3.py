@@ -70,9 +70,17 @@ def real_url(swan_orchestrator, task_uuid) -> str:
 
 
 def test_llama_chat_content(real_url: str):
-    response = requests.get(real_url)
-    assert response.status_code == 200
-    assert "Streamlit" in response.text
+    max_retries = 10
+    retry_interval = 30  # seconds
+
+    for _ in range(max_retries):
+        response = requests.get(real_url)
+        if response.status_code == 200:
+            assert "Streamlit" in response.text
+            return
+        time.sleep(retry_interval)
+
+    pytest.fail("Failed to test the deployed app content after maximum retries")
 
 
 if __name__ == "__main__":
