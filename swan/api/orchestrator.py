@@ -6,10 +6,10 @@ import time
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
-from swan.api_client import APIClient
-from swan.common.constant import *
+from swan.orchestrator_api_client import APIClient
+from swan.common.constants import *
 from swan.object import HardwareConfig
-from swan.common.exception import SwanAPIException
+from swan.common.exceptions import SwanAPIException
 from swan.contract.swan_contract import SwanContract
 
 class Orchestrator(APIClient):

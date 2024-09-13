@@ -3,9 +3,9 @@ import logging
 import traceback
 
 from swan.api.orchestrator import Orchestrator
-from swan.api_client import APIClient
-from swan.common.constant import *
-from swan.common.exception import SwanAPIException
+from swan.orchestrator_api_client import APIClient
+from swan.common.constants import *
+from swan.common.exceptions import SwanAPIException
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 

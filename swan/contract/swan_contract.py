@@ -4,7 +4,7 @@ from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from eth_account import Account
 
-from swan.common.constant import *
+from swan.common.constants import *
 from swan.common.utils import get_contract_abi
 
 class SwanContract():
