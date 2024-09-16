@@ -74,11 +74,9 @@ class Orchestrator(APIClient):
     def _get_source_uri(
             self, 
             repo_uri,
+            repo_branch=None,
             wallet_address=None, 
             instance_type=None,
-            repo_branch=None,
-            repo_owner=None, 
-            repo_name=None,
         ):
         try:
             if not instance_type:
@@ -92,12 +90,10 @@ class Orchestrator(APIClient):
                 raise SwanAPIException(f"No wallet_address provided")
 
             params = {
-                "repo_owner": repo_owner,
-                "repo_name": repo_name,
-                "repo_branch": repo_branch,
                 "wallet_address": wallet_address,
                 "hardware_id": hardware_id,
-                "repo_uri": repo_uri
+                "repo_uri": repo_uri,
+                "repo_branch": repo_branch
             }
             response = self._request_with_params(POST, GET_SOURCE_URI, self.swan_url, params, self.token, None)
             job_source_uri = ""
@@ -300,12 +296,10 @@ class Orchestrator(APIClient):
             region: str = "global",
             duration: int = 3600, 
             app_repo_image: str = "",
-            auto_pay = None,
             job_source_uri: str = "", 
             repo_uri=None,
             repo_branch=None,
-            repo_owner=None, 
-            repo_name=None,
+            auto_pay = True,
             private_key = None,
             start_in: int = 300,
             preferred_cp_list=None,
@@ -321,9 +315,7 @@ class Orchestrator(APIClient):
             app_repo_image: Optional. The name of a demo space.
             job_source_uri: Optional. The job source URI to be deployed. If this is provided, app_repo_image and repo_uri are ignored.
             repo_uri: Optional. The URI of the repo to be deployed. If job_source_uri and app_repo_image are not provided, this is required.
-            repo_branch: Optional. The branch of the repo to be deployed.
-            repo_owner: Optional. The owner of the repo to be deployed.
-            repo_name: Optional. The name of the repo to be deployed.
+            repo_branch: Optional. The branch of the repo to be deployed. In the case that repo_uri is provided, if repo_branch is given, it will be used.
             start_in: Optional. The starting time (expected time for the app to be deployed, not mandatory). (Default = 300)
             auto_pay: Optional. Automatically call the submit payment method on the contract and validate payment to get the task deployed. 
             If True, the private key and wallet must be in .env (Default = False). Otherwise, the user must call the submit payment method on the contract and validate payment.
@@ -342,7 +334,7 @@ class Orchestrator(APIClient):
 
             if auto_pay:
                 if not private_key:
-                    raise SwanAPIException(f"please provide private_key if using auto_pay")
+                    raise SwanAPIException(f"please provide private_key")
 
             if not region:
                 region = 'global'
@@ -358,7 +350,7 @@ class Orchestrator(APIClient):
                 raise SwanAPIException(f"Invalid instance_type {instance_type}")
 
             logging.info(f"Using {instance_type} machine, {region=} {duration=} (seconds)")
-            
+
             if not job_source_uri:
                 if app_repo_image:
                     if auto_pay == None and private_key:
@@ -374,17 +366,15 @@ class Orchestrator(APIClient):
                 if repo_uri:
                     job_source_uri = self._get_source_uri(
                             repo_uri=repo_uri,
+                            repo_branch=repo_branch,
                             wallet_address=wallet_address, 
                             instance_type=instance_type,
-                            repo_branch=repo_branch,
-                            repo_owner=repo_owner,
-                            repo_name=repo_name
                         )
                 else:
                     raise SwanAPIException(f"Please provide app_repo_image, or job_source_uri, or repo_uri")
 
             if not job_source_uri:
-                raise SwanAPIException(f"cannot get job_source_uri. make sure `app_repo_image` or `repo_uri` or `job_source_uri` is correct.")
+                raise SwanAPIException(f"Cannot get job_source_uri. Please double check your parameters")
 
             preferred_cp = None
             if preferred_cp_list and isinstance(preferred_cp_list, list):
@@ -465,21 +455,22 @@ class Orchestrator(APIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
     
-    def submit_payment(self, task_uuid, private_key, duration = 3600, instance_type = None):
+    def submit_payment(self, task_uuid, private_key, duration = 3600, **kwargs):
         """
         Submit payment for a task
 
         Args:
             task_uuid: unique id returned by `swan_api.create_task`
+            private_key: private key of owner
             duration: duration of service runtime (seconds).
-            instance_type: instance type, e.g. C1ae.small
 
         Returns:
             tx_hash
         """
         try:
+            instance_type = self.get_task_instance_type(task_uuid)
             if not instance_type:
-                raise SwanAPIException(f"Invalid instance_type")
+                raise SwanAPIException(f"Invalid instance_type for task {task_uuid}")
             
             hardware_id = self.get_instance_hardware_id(instance_type)
             if hardware_id is None:
@@ -499,21 +490,22 @@ class Orchestrator(APIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
 
-    def renew_payment(self, task_uuid, private_key, duration = 3600, instance_type = None):
+    def renew_payment(self, task_uuid, private_key, duration = 3600, **kwargs):
         """
         Submit payment for a task
 
         Args:
             task_uuid: unique id returned by `swan_api.create_task`
+            private_key: private key of owner
             duration: duration of service runtime (seconds).
-            instance_type: instance type, e.g. C1ae.small
 
         Returns:
             tx_hash
         """
         try:
+            instance_type = self.get_task_instance_type(task_uuid)
             if not instance_type:
-                raise SwanAPIException(f"Invalid instance_type")
+                raise SwanAPIException(f"Invalid instance_type for task {task_uuid}")
             
             hardware_id = self.get_instance_hardware_id(instance_type)
             if hardware_id is None:
@@ -620,7 +612,7 @@ class Orchestrator(APIClient):
             task_uuid: str, 
             duration = 3600, 
             tx_hash = "", 
-            auto_pay = False, 
+            auto_pay = True, 
             private_key = None, 
             **kwargs
         ):
@@ -633,23 +625,24 @@ class Orchestrator(APIClient):
             duration: duration of service runtime (seconds).
             tx_hash: (optional)tx_hash of submitted payment
             private_key: (required if no tx_hash)
-            auto_pay: (required True if no tx_hash and private_key)
+            auto_pay: (required True if no tx_hash but with private_key provided)
         
         Returns:
             JSON response from backend server including 'task_uuid'.
         """
         try:
-            instance_type = self.get_task_instance_type(task_uuid)
-            if not instance_type:
-                raise SwanAPIException(f"Invalid instance_type for task {task_uuid}")
-            
             if not (auto_pay and private_key) and not tx_hash:
                 raise SwanAPIException(f"auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
 
             if not tx_hash:
-                tx_hash = self.renew_payment(task_uuid=task_uuid, duration=duration, private_key=private_key, instance_type=instance_type)
+                tx_hash = self.renew_payment(
+                    task_uuid=task_uuid, 
+                    duration=duration, 
+                    private_key=private_key
+                )
+                logging.info(f"renew payment transaction hash, {tx_hash=}")
             else:
-                logging.info(f"Using given payment transaction hash, {tx_hash=}")
+                logging.info(f"will use given payment transaction hash, {tx_hash=}")
 
             if tx_hash and task_uuid:
                 params = {
