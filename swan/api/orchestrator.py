@@ -2,15 +2,17 @@ import logging
 import traceback
 import json
 import time
+from typing import List
 
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
 from swan.api_client import APIClient
 from swan.common.constant import *
-from swan.object import HardwareConfig
+from swan.object import HardwareConfig, InstanceResource
 from swan.common.exception import SwanAPIException
 from swan.contract.swan_contract import SwanContract
+from swan.object.task import Task
 
 class Orchestrator(APIClient):
   
@@ -169,7 +171,7 @@ class Orchestrator(APIClient):
             logging.error("Failed to fetch hardware configurations.")
             return None
         
-    def get_instance_resources(self, available = True):
+    def get_instance_resources(self, available_only = True):
         """Query current hardware list object.
         
         Returns:
@@ -187,12 +189,10 @@ class Orchestrator(APIClient):
         """
         try:
             response = self._request_without_params(GET, GET_CP_CONFIG, self.swan_url, self.token)
-            self.all_hardware = [HardwareConfig(hardware) for hardware in response["data"]["hardware"]]
-            if available:
-                hardwares_info = [hardware.to_instance_dict() for hardware in self.all_hardware if hardware.status == "available"]
-            else:
-                hardwares_info = [hardware.to_instance_dict() for hardware in self.all_hardware]
-            return hardwares_info
+            instance_res = [InstanceResource(hardware) for hardware in response["data"]["hardware"]]
+            if available_only:
+                instance_res = [instance for instance in instance_res if instance.status == "available"]
+            return instance_res
         except Exception:
             logging.error("Failed to fetch instance resources.")
             return None
@@ -420,6 +420,7 @@ class Orchestrator(APIClient):
                 if config_result and isinstance(config_result, dict):
                     tx_hash = config_result.get('tx_hash')
                     config_order = config_result.get('data')
+
 
             result['config_order'] = config_order
             result['tx_hash'] = tx_hash
