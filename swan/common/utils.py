@@ -1,9 +1,18 @@
 # ./swan/common/utils.py
-import requests
-import os
-import json
-import re
 import datetime
+import io
+import json
+import os
+import pathlib
+import tarfile
+from typing import Optional, List
+
+import requests
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+BUFFER_SIZE = 8192
+
 
 def parse_params_to_str(params):
     url = "?"
