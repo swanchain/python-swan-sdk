@@ -35,13 +35,10 @@ def resource(api_key=None, login_url=None, service_name=None, *args, **kwargs):
     """
     Create a resource service client by name using the default session for orchestrator, or create an mcs session
     """
-    valid_service=['Orchestrator', 'mcs']
 
-    if service_name not in valid_service:
-        raise ValueError("Invalid Service Selection")
     
     # for creating an orchestrator
-    if service_name == 'Orchestrator':
+    if service_name.lower() == 'orchestrator':
         network = kwargs.get('network', 'mainnet')
         session = _get_default_session(api_key, network, login_url)
         if session == None:
@@ -49,8 +46,11 @@ def resource(api_key=None, login_url=None, service_name=None, *args, **kwargs):
         return session.resource(service_name='Orchestrator',*args, **kwargs)
     
     # for creating a mcs bucket storage object
-    else:
+    if service_name.lower() == 'mcs':
         return BucketAPI(api_key=api_key, *args, **kwargs)
+    
+    else:
+        raise Exception(f"{service_name} is not a valid service")
 
 
 

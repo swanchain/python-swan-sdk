@@ -42,7 +42,7 @@ def bucket_info(bucket_client: swan.BucketAPI, bucket_names: list[str]) -> None:
         print(bucket.to_json())
 
     # delete the buckets
-    bucket_delete_statuses = [(bucket_name, bucket_client.delete_bucket(bucket_name)) for bucket_name in all_buckets]
+    bucket_delete_statuses = [(bucket_name, bucket_client.delete_bucket(bucket_name)) for bucket_name in created_buckets]
 
     # Determine which bucket could not be deleted
     for bucket_delete_status in bucket_delete_statuses:
