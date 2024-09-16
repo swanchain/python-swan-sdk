@@ -16,3 +16,7 @@ class SwanRequestException(Exception):
 
 class SwanParamsException(Exception):
     pass
+
+
+class SwanEnvironmentValueException(Exception):
+    pass

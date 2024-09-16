@@ -1,11 +1,16 @@
 # ./swan/contract/swan_contract.py
+import os
+from functools import cached_property
+from typing import Dict
 
+from eth_account import Account
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
-from eth_account import Account
 
 from swan.common.constant import *
+from swan.common.exception import SwanEnvironmentValueException
 from swan.common.utils import get_contract_abi
+
 
 class SwanContract():
 
@@ -41,6 +46,38 @@ class SwanContract():
             self.swan_token_contract_addr, 
             abi=get_contract_abi(SWAN_TOKEN_ABI)
         )
+
+    @cached_property
+    def max_priority_fee_percentage(self) -> float:
+        return float(os.getenv("SWAN_SDK_PRIORITY_FEE_PERCENTAGE", 0.2))
+
+    @cached_property
+    def priority_fee_cap(self) -> float:
+        return float(os.getenv("SWAN_SDK_MAX_PRIORITY_FEE_GWEI", 0.001))
+
+    def _get_fee_per_gas(self) -> Dict[str, int]:
+        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
+
+        if not (0 <= self.max_priority_fee_percentage <= 1):
+            raise SwanEnvironmentValueException(
+                f"Priority fee percentage should be between 0 and 1: {self.max_priority_fee_percentage=}"
+            )
+
+        # Calculate 10% of the base fee
+        priority_fee_percentage = int(base_fee * self.max_priority_fee_percentage)
+
+        # Cap the priority fee at 0.001 gwei
+        max_priority_fee_cap = Web3.to_wei(self.priority_fee_cap, "gwei")
+
+        # Use the lower value between the percentage and the cap
+        max_priority_fee_per_gas = min(priority_fee_percentage, max_priority_fee_cap)
+
+        max_fee_per_gas = max(base_fee, self.w3.eth.gas_price) + max_priority_fee_per_gas
+
+        return {
+            "maxFeePerGas": max_fee_per_gas,
+            "maxPriorityFeePerGas": max_priority_fee_per_gas,
+        }
 
     def get_public_wallet_address(self, private_key: str):
         """Get public wallet address from private key.
@@ -113,11 +150,6 @@ class SwanContract():
         self._approve_payment(amount)
 
         nonce = self.w3.eth.get_transaction_count(self.account.address)
-        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
-        max_priority_fee_per_gas = self.w3.to_wei(2, 'gwei')
-        max_fee_per_gas = base_fee + max_priority_fee_per_gas
-        if max_fee_per_gas < max_priority_fee_per_gas:
-            max_fee_per_gas = max_priority_fee_per_gas + base_fee
         tx = self.client_contract.functions.submitPayment(
             task_uuid, 
             hardware_id, 
@@ -125,8 +157,7 @@ class SwanContract():
         ).build_transaction({
             'from': self.account.address,
             'nonce': nonce,
-            "maxFeePerGas": max_fee_per_gas,
-            "maxPriorityFeePerGas": max_priority_fee_per_gas,
+            **self._get_fee_per_gas(),
         })
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
@@ -160,11 +191,6 @@ class SwanContract():
         self._approve_payment(amount)
 
         nonce = self.w3.eth.get_transaction_count(self.account.address)
-        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
-        max_priority_fee_per_gas = self.w3.to_wei(2, 'gwei')
-        max_fee_per_gas = base_fee + max_priority_fee_per_gas
-        if max_fee_per_gas < max_priority_fee_per_gas:
-            max_fee_per_gas = max_priority_fee_per_gas + base_fee
         tx = self.client_contract.functions.renewPayment(
             task_uuid, 
             hardware_id, 
@@ -172,8 +198,7 @@ class SwanContract():
         ).build_transaction({
             'from': self.account.address,
             'nonce': nonce,
-            "maxFeePerGas": max_fee_per_gas,
-            "maxPriorityFeePerGas": max_priority_fee_per_gas,
+            **self._get_fee_per_gas(),
         })
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
@@ -189,19 +214,13 @@ class SwanContract():
             amount: amount in wei
         """
         nonce = self.w3.eth.get_transaction_count(self.account.address)
-        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
-        max_priority_fee_per_gas = self.w3.to_wei(2, 'gwei')
-        max_fee_per_gas = base_fee + max_priority_fee_per_gas
-        if max_fee_per_gas < max_priority_fee_per_gas:
-            max_fee_per_gas = max_priority_fee_per_gas + base_fee
         tx = self.token_contract.functions.approve(
             self.client_contract.address,
             amount
         ).build_transaction({
             'from': self.account.address,
             'nonce': nonce,
-            "maxFeePerGas": max_fee_per_gas,
-            "maxPriorityFeePerGas": max_priority_fee_per_gas,
+            **self._get_fee_per_gas(),
         })
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
@@ -214,11 +233,6 @@ class SwanContract():
         deprecated
         """
         nonce = self.w3.eth.get_transaction_count(self.account.address)
-        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
-        max_priority_fee_per_gas = self.w3.to_wei(2, 'gwei')
-        max_fee_per_gas = base_fee + max_priority_fee_per_gas
-        if max_fee_per_gas < max_priority_fee_per_gas:
-            max_fee_per_gas = max_priority_fee_per_gas + base_fee
         tx = self.payment_contract.functions.lockRevenue(
             task_id, 
             hardware_id, 
@@ -226,8 +240,7 @@ class SwanContract():
         ).build_transaction({
             'from': self.account.address,
             'nonce': nonce,
-            "maxFeePerGas": max_fee_per_gas,
-            "maxPriorityFeePerGas": max_priority_fee_per_gas,
+            **self._get_fee_per_gas(),
         })
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
@@ -239,19 +252,13 @@ class SwanContract():
         deprecated
         """
         nonce = self.w3.eth.get_transaction_count(self.account.address)
-        base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
-        max_priority_fee_per_gas = self.w3.to_wei(2, 'gwei')
-        max_fee_per_gas = base_fee + max_priority_fee_per_gas
-        if max_fee_per_gas < max_priority_fee_per_gas:
-            max_fee_per_gas = max_priority_fee_per_gas + base_fee
         tx = self.token_contract.functions.approve(
             self.payment_contract.address, 
             amount
         ).build_transaction({
             'from': self.account.address,
             'nonce': nonce,
-            "maxFeePerGas": max_fee_per_gas,
-            "maxPriorityFeePerGas": max_priority_fee_per_gas,
+            **self._get_fee_per_gas(),
         })
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
