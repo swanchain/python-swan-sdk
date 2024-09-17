@@ -12,7 +12,12 @@ from swan.common.constant import *
 from swan.object import HardwareConfig, InstanceResource
 from swan.common.exception import SwanAPIException
 from swan.contract.swan_contract import SwanContract
-from swan.object.task import Task
+from swan.object import (
+    TaskCreationResult, 
+    TaskDeploymentInfo, 
+    TaskRenewalResult, 
+    TaskTerminationMessage
+)
 
 class Orchestrator(APIClient):
   
@@ -219,7 +224,7 @@ class Orchestrator(APIClient):
             task_uuid: uuid of task.
 
         Returns:
-            JSON of terminated successfully or not
+            TaskTerminationMessage object
         """
         try:
             params = {
@@ -235,7 +240,7 @@ class Orchestrator(APIClient):
                     None
                 )
             
-            return result
+            return TaskTerminationMessage.load_from_result(result)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
@@ -326,7 +331,7 @@ class Orchestrator(APIClient):
             SwanExceptionError: If neither app_repo_image nor job_source_uri is provided.
             
         Returns:
-            JSON response from the backend server including the 'task_uuid'.
+            TaskCreationResult object
         """
         try:
             if not wallet_address:
@@ -430,7 +435,7 @@ class Orchestrator(APIClient):
             result['price'] = self.estimate_payment(instance_type=instance_type, duration=duration)
 
             logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {instance_type=}")
-            return result
+            return TaskCreationResult.load_from_result(result)
 
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
@@ -629,7 +634,7 @@ class Orchestrator(APIClient):
             auto_pay: (required True if no tx_hash but with private_key provided)
         
         Returns:
-            JSON response from backend server including 'task_uuid'.
+            TaskRenewalResult object
         """
         try:
             if not (auto_pay and private_key) and not tx_hash:
@@ -665,7 +670,7 @@ class Orchestrator(APIClient):
                     "task_uuid": task_uuid
                 })
                 logging.info(f"Task renewal request sent successfully, {task_uuid=} {tx_hash=}, {duration=}")
-                return result
+                return TaskRenewalResult.load_from_result(result)
             else:
                 raise SwanAPIException(f"{tx_hash=} or {task_uuid=} invalid")
         except Exception as e:
@@ -716,11 +721,13 @@ class Orchestrator(APIClient):
             task_uuid: uuid of space task, in deployment response.
 
         Returns:
-            Deployment info.
+            TaskDeploymentInfo object
         """
         try:
             response = self._request_without_params(GET, DEPLOYMENT_INFO+task_uuid, self.swan_url, self.token)
-            return response
+            if response and not response.get('data'):
+                return response
+            return TaskDeploymentInfo.load_from_result(response)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
