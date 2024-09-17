@@ -176,7 +176,7 @@ class Orchestrator(APIClient):
             logging.error("Failed to fetch hardware configurations.")
             return None
         
-    def get_instance_resources(self, available_only = True):
+    def get_instance_resources(self, available = True):
         """Query current hardware list object.
         
         Returns:
@@ -195,7 +195,7 @@ class Orchestrator(APIClient):
         try:
             response = self._request_without_params(GET, GET_CP_CONFIG, self.swan_url, self.token)
             instance_res = [InstanceResource(hardware) for hardware in response["data"]["hardware"]]
-            if available_only:
+            if available:
                 instance_res = [instance for instance in instance_res if instance.status == "available"]
             return instance_res
         except Exception:
