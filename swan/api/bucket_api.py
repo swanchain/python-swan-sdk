@@ -1,4 +1,4 @@
-from swan.bucket_api_client import APIClient
+from swan.api_client import BucketAPIClient
 from swan.common.constant import *
 from hashlib import md5
 from queue import Queue
@@ -16,7 +16,7 @@ from swan.object.bucket_storage import Bucket, File
 
 class BucketAPI(object):
     def __init__(self, api_key=None, is_calibration=False):
-        self.api_client = APIClient(api_key=api_key, is_calibration=is_calibration)
+        self.api_client = BucketAPIClient(api_key=api_key, is_calibration=is_calibration)
 
         self.is_calibration = self.api_client.is_calibration
         self.MCS_API = self.api_client.MCS_API

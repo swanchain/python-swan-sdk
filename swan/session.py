@@ -3,7 +3,7 @@ import logging
 import traceback
 
 from swan.api.orchestrator import Orchestrator
-from swan.orchestrator_api_client import APIClient
+from swan.api_client import OrchestratorAPIClient
 from swan.common.constant import *
 from swan.common.exception import SwanAPIException
 
@@ -37,7 +37,7 @@ class Session:
             self.login_url = ORCHESTRATOR_API_MAINNET
             logging.info("Logging in Mainnet")
 
-        self.api_client = APIClient()
+        self.api_client = OrchestratorAPIClient()
         self.login = login
         if login:
             self.api_key_login()

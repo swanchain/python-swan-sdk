@@ -4,6 +4,7 @@
 # from swan.api_client import APIClient
 # from swan.contract.swan_contract import SwanContract
 from swan.session import Session
+from swan.api.orchestrator import Orchestrator
 
 from swan.api.bucket_api import BucketAPI
 
@@ -46,7 +47,7 @@ def resource(api_key=None, login_url=None, service_name=None, *args, **kwargs):
         return session.resource(service_name='Orchestrator',*args, **kwargs)
     
     # for creating a mcs bucket storage object
-    if service_name.lower() == 'mcs':
+    if service_name.lower() == 'storage':
         return BucketAPI(api_key=api_key, *args, **kwargs)
     
     else:
