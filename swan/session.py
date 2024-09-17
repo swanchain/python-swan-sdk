@@ -3,7 +3,7 @@ import logging
 import traceback
 
 from swan.api.orchestrator import Orchestrator
-from swan.api_client import APIClient
+from swan.orchestrator_api_client import APIClient
 from swan.common.constant import *
 from swan.common.exception import SwanAPIException
 

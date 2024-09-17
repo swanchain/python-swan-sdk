@@ -1,1 +1,0 @@
-# ./swan/contract/abi/__init__.py

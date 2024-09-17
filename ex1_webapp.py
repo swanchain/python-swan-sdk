@@ -10,9 +10,9 @@ wallet_address = os.getenv("WALLET_ADDRESS")
 private_key = os.getenv("PRIVATE_KEY")
 
 swan_orchestrator = swan.resource(
-    api_key=api_key, 
-    network='mainnet', 
-    service_name='Orchestrator'
+    api_key=api_key,
+    network='testnet', 
+    service_name='Orchestrator',
 )
 
 result = swan_orchestrator.create_task(
