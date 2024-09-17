@@ -1,13 +1,10 @@
 import swan
 import json
-import os
-from dotenv import load_dotenv
 
-load_dotenv("../.env")
 
-api_key = os.getenv("SWAN_API_KEY")
-wallet_address = os.getenv("WALLET_ADDRESS")
-private_key = os.getenv("PRIVATE_KEY")
+api_key = '<your_api_key>'
+wallet_address = '<WALLET_ADDRESS>'
+private_key = '<PRIVATE_KEY>'
 
 swan_orchestrator = swan.resource(
     api_key=api_key, 
