@@ -1,5 +1,5 @@
 from swan.bucket_api_client import APIClient
-from swan.common.constants import *
+from swan.common.constant import *
 from hashlib import md5
 from queue import Queue
 import threading

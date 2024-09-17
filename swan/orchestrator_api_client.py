@@ -4,7 +4,7 @@ import requests
 import json
 
 
-from swan.common.constants import GET, PUT, POST, DELETE
+from swan.common.constant import GET, PUT, POST, DELETE
 from swan.common import utils
 
 

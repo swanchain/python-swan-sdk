@@ -1,10 +1,10 @@
-from swan.common.constants import *
+from swan.common.constant import *
 from swan.common.params import Params
 import requests 
 import json
 import logging
-from swan.common import utils, exceptions
-from swan.common import constants as c
+from swan.common import exception, utils
+from swan.common import constant as c
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 from tqdm import tqdm
 from pathlib import Path
@@ -118,10 +118,10 @@ class APIClient(object):
 
         # exception handle
         if not str(response.status_code).startswith('2'):
-            raise exceptions.McsAPIException(response)
+            raise exception.McsAPIException(response)
         json_res = response.json()
         if str(json_res['status']) == 'error':
-            raise exceptions.McsRequestException(json_res['message'])
+            raise exception.McsRequestException(json_res['message'])
 
         return response.json()
 
@@ -142,10 +142,10 @@ class APIClient(object):
 
         # exception handle
         if not str(response.status_code).startswith('2'):
-            raise exceptions.McsAPIException(response)
+            raise exception.McsAPIException(response)
         json_res = response.json()
         if str(json_res['status']) == 'error':
-            raise exceptions.McsRequestException(json_res['message'])
+            raise exception.McsRequestException(json_res['message'])
 
         return response.json()
 

@@ -1,5 +1,5 @@
 import requests
-from swan.common.constants import FIL_PRICE_API
+from swan.common.constant import FIL_PRICE_API
 import json
 import os
 import datetime
