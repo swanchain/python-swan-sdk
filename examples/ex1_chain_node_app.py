@@ -1,6 +1,7 @@
 import swan
 import json
 
+
 api_key = '<your_api_key>'
 wallet_address = '<WALLET_ADDRESS>'
 private_key = '<PRIVATE_KEY>'

@@ -36,3 +36,48 @@ CONTRACT_TIMEOUT = 300
 MAX_DURATION = 1209600
 ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET = "0x29eD49c8E973696D07E7927f748F6E5Eacd5516D"
 ORCHESTRATOR_PUBLIC_ADDRESS_MAINNET = "0x4B98086A20f3C19530AF32D21F85Bc6399358e20"
+
+
+
+# bucket API stuff
+
+MCS_POLYGON_MAIN_API = "https://api.multichain.storage"
+MCS_POLYGON_MUMBAI_API = "https://calibration-mcs-api.filswan.com"
+MCS_BSC_API = 'https://calibration-mcs-bsc.filswan.com'
+
+FIL_PRICE_API = "https://api.filswan.com/stats/storage"
+# swan_mcs api
+MCS_PARAMS = "/api/v1/common/system/params"
+PRICE_RATE = "/api/v1/billing/price/filecoin"
+PAYMENT_INFO = "/api/v1/billing/deal/lockpayment/info"
+TASKS_DEALS = "/api/v1/storage/tasks/deals"
+MINT_INFO = "/api/v1/storage/mint/info"
+UPLOAD_FILE = "/api/v1/storage/ipfs/upload"
+DEAL_DETAIL = "/api/v1/storage/deal/detail/"
+USER_REGISTER = "/api/v1/user/register"
+USER_LOGIN = "/api/v1/user/login_by_metamask_signature"
+GENERATE_APIKEY = "/api/v1/user/generate_api_key"
+APIKEY_LOGIN = "/api/v2/user/login_by_api_key"
+COLLECTIONS = "/api/v1/storage/mint/nft_collections"
+COLLECTION = "/api/v1/storage/mint/nft_collection"
+# bucket api
+CREATE_BUCKET = "/api/v2/bucket/create"
+BUCKET_LIST = "/api/v2/bucket/get_bucket_list"
+DELETE_BUCKET = "/api/v2/bucket/delete"
+FILE_INFO = "/api/v2/oss_file/get_file_info"
+DELETE_FILE = "/api/v2/oss_file/delete"
+CREATE_FOLDER = "/api/v2/oss_file/create_folder"
+CHECK_UPLOAD = "/api/v2/oss_file/check"
+UPLOAD_CHUNK = "/api/v2/oss_file/upload"
+MERGE_FILE = "/api/v2/oss_file/merge"
+FILE_LIST = "/api/v2/oss_file/get_file_list"
+GET_FILE = "/api/v2/oss_file/get_file_by_object_name"
+GET_GATEWAY = "/api/v2/gateway/get_gateway"
+PIN_IPFS = "/api/v2/oss_file/pin_files_to_ipfs"
+# contract
+USDC_ABI = "ERC20.json"
+SWAN_PAYMENT_ABI = "SwanPayment.json"
+MINT_ABI = "CollectionFactory.json"
+
+CONTRACT_TIME_OUT = 300
+

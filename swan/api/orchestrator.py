@@ -7,7 +7,7 @@ from typing import List
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
-from swan.api_client import APIClient
+from swan.api_client import OrchestratorAPIClient
 from swan.common.constant import *
 from swan.object import HardwareConfig, InstanceResource
 from swan.common.exception import SwanAPIException
@@ -19,7 +19,7 @@ from swan.object import (
     TaskTerminationMessage
 )
 
-class Orchestrator(APIClient):
+class Orchestrator(OrchestratorAPIClient):
   
     def __init__(self, api_key: str, login: bool = True, network="mainnet", verification: bool = True, token = None, url_endpoint: str = None):
         """Initialize user configuration and login.
