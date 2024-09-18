@@ -2,7 +2,7 @@ import logging
 import traceback
 import json
 import time
-from typing import List
+from typing import List, Optional
 
 from eth_account import Account
 from eth_account.messages import encode_defunct
@@ -176,7 +176,7 @@ class Orchestrator(OrchestratorAPIClient):
             logging.error("Failed to fetch hardware configurations.")
             return None
         
-    def get_instance_resources(self, available = True):
+    def get_instance_resources(self, available = True) -> Optional[List[InstanceResource]]:
         """Query current hardware list object.
         
         Returns:
@@ -216,7 +216,7 @@ class Orchestrator(OrchestratorAPIClient):
             logging.error(f"Undefined instance type {instance_type}.")
             return None
 
-    def terminate_task(self, task_uuid: str):
+    def terminate_task(self, task_uuid: str) -> Optional[TaskTerminationMessage]:
         """
         Terminate a task
 
@@ -240,7 +240,7 @@ class Orchestrator(OrchestratorAPIClient):
                     None
                 )
             
-            return TaskTerminationMessage.load_from_result(result)
+            return TaskTerminationMessage.load_from_resp(result)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
@@ -296,19 +296,19 @@ class Orchestrator(OrchestratorAPIClient):
 
     def create_task(
             self,
-            wallet_address, 
-            instance_type: str = None, 
-            region: str = "global",
-            duration: int = 3600, 
-            app_repo_image: str = "",
-            job_source_uri: str = "", 
-            repo_uri=None,
-            repo_branch=None,
-            auto_pay = True,
-            private_key = None,
-            start_in: int = 300,
-            preferred_cp_list=None,
-        ):
+            wallet_address: str, 
+            instance_type: Optional[str] = None, 
+            region: Optional[str] = "global",
+            duration: Optional[int] = 3600, 
+            app_repo_image: Optional[str] = None,
+            job_source_uri: Optional[str] = None, 
+            repo_uri: Optional[str] = None,
+            repo_branch: Optional[str] = None,
+            auto_pay: Optional[bool] = True,
+            private_key: Optional[str] = None,
+            start_in: Optional[int] = 300,
+            preferred_cp_list: Optional[List[str]] = None,
+        ) -> Optional[TaskCreationResult]:
         """
         Create a task via the orchestrator.
 
@@ -435,7 +435,7 @@ class Orchestrator(OrchestratorAPIClient):
             result['price'] = self.estimate_payment(instance_type=instance_type, duration=duration)
 
             logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {instance_type=}")
-            return TaskCreationResult.load_from_result(result)
+            return TaskCreationResult.load_from_resp(result)
 
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
@@ -616,12 +616,12 @@ class Orchestrator(OrchestratorAPIClient):
     def renew_task(
             self, 
             task_uuid: str, 
-            duration = 3600, 
-            tx_hash = "", 
-            auto_pay = True, 
-            private_key = None, 
+            duration: int = 3600, 
+            tx_hash: Optional[str] = None, 
+            auto_pay: Optional[bool] = True, 
+            private_key: Optional[str] = None, 
             **kwargs
-        ):
+        ) -> Optional[TaskRenewalResult]:
         """
         Submit payment for a task renewal (if necessary)
         Extend a task
@@ -670,7 +670,7 @@ class Orchestrator(OrchestratorAPIClient):
                     "task_uuid": task_uuid
                 })
                 logging.info(f"Task renewal request sent successfully, {task_uuid=} {tx_hash=}, {duration=}")
-                return TaskRenewalResult.load_from_result(result)
+                return TaskRenewalResult.load_from_resp(result)
             else:
                 raise SwanAPIException(f"{tx_hash=} or {task_uuid=} invalid")
         except Exception as e:
@@ -714,7 +714,7 @@ class Orchestrator(OrchestratorAPIClient):
             return None
         
         
-    def get_deployment_info(self, task_uuid: str):
+    def get_deployment_info(self, task_uuid: str) -> Optional[TaskDeploymentInfo]:
         """Retrieve deployment info of a deployed space with task_uuid.
 
         Args:
@@ -727,15 +727,15 @@ class Orchestrator(OrchestratorAPIClient):
             response = self._request_without_params(GET, DEPLOYMENT_INFO+task_uuid, self.swan_url, self.token)
             if response and not response.get('data'):
                 return response
-            return TaskDeploymentInfo.load_from_result(response)
+            return TaskDeploymentInfo.load_from_resp(response)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
 
-    def get_real_url(self, task_uuid: str):
-        deployment_info = self.get_deployment_info(task_uuid)
+    def get_real_url(self, task_uuid: str) -> Optional[List[str]]:
+        task_info: TaskDeploymentInfo = self.get_deployment_info(task_uuid)
         try:
-            jobs = deployment_info['data']['jobs']
+            jobs = task_info['jobs']
             deployed_url = []
             for job in jobs:
                 try:
@@ -779,14 +779,14 @@ class Orchestrator(OrchestratorAPIClient):
         return False
 
 
-    def get_task_instance_type(self, task_uuid: str):
+    def get_task_instance_type(self, task_uuid: str) -> Optional[str]:
         try:
             if not task_uuid:
                 raise SwanAPIException(f"Invalid task_uuid")
-            response = self.get_deployment_info(task_uuid)
-            if not response:
+            task_info: TaskDeploymentInfo = self.get_deployment_info(task_uuid)
+            if not task_info:
                 raise SwanAPIException(f"Get task {task_uuid} failed, cannot get instance_type")
-            return response['data']['task']['task_detail']['hardware']
+            return task_info['task']['task_detail']['hardware']
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None

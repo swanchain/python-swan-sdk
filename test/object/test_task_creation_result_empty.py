@@ -5,7 +5,7 @@ from swan.object.models import dict_to_dataclass
 
 @pytest.fixture
 def task_creation_result_empty(task_creation_response_empty):
-    task_creation_result_empty = TaskCreationResult.load_from_result(task_creation_response_empty)
+    task_creation_result_empty = TaskCreationResult.load_from_resp(task_creation_response_empty)
     return task_creation_result_empty
 
 def test_dict_to_dataclass():

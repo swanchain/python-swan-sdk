@@ -5,7 +5,7 @@ from swan.object import TaskCreationResult
 
 @pytest.fixture
 def task_creation_result(task_creation_response):
-    task_creation_result = TaskCreationResult.load_from_result(task_creation_response)
+    task_creation_result = TaskCreationResult.load_from_resp(task_creation_response)
     return task_creation_result
 
 

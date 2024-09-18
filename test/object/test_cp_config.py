@@ -91,7 +91,7 @@ class TestInstanceConfig(unittest.TestCase):
         self.assertEqual(self.instance_config.get("non_existent_key", "default_value"), "default_value")
 
     def test_repr(self):
-        expected_repr = f"InstanceResource({self.instance_config.to_dict()})"
+        expected_repr = f"InstanceResource({self.instance_config.to_json()})"
         print(repr(self.instance_config))
         self.assertEqual(repr(self.instance_config), expected_repr)
 

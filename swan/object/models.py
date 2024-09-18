@@ -1,5 +1,5 @@
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from typing import Optional, Any, Dict, List
 
 
@@ -21,7 +21,10 @@ class Base:
 
     def get(self, key, default=None):
         return self.__dict__.get(key, default)
-
+    
+    def to_dict(self):
+        return asdict(self)
+    
 
 def dict_to_dataclass(data_class, data):
     if isinstance(data, dict):
@@ -147,7 +150,7 @@ class TaskCreationResult(Base):
     message: Optional[str] = None
 
     @staticmethod
-    def load_from_result(result: Dict[str, Any]) -> 'TaskCreationResult':
+    def load_from_resp(result: Dict[str, Any]) -> 'TaskCreationResult':
         try:
             data = result.get('data', {})
             task_data = data.get('task') if data else {}
@@ -226,7 +229,7 @@ class TaskDeploymentInfo(Base):
     message: Optional[str] = None
 
     @staticmethod
-    def load_from_result(result: Dict[str, Any]) -> 'TaskDeploymentInfo':
+    def load_from_resp(result: Dict[str, Any]) -> 'TaskDeploymentInfo':
         try:
             data = result.get('data', {})
             task_data = data.get('task') if data else {}
@@ -262,7 +265,7 @@ class TaskRenewalResult(Base):
     message: Optional[str] = None
 
     @staticmethod
-    def load_from_result(result: Dict[str, Any]) -> 'TaskRenewalResult':
+    def load_from_resp(result: Dict[str, Any]) -> 'TaskRenewalResult':
         try:
             data = result.get('data', {})
             task_data = data.get('task') if data else {}
@@ -290,7 +293,7 @@ class TaskTerminationMessage(Base):
     message: Optional[str] = None
 
     @staticmethod
-    def load_from_result(result: Dict[str, Any]) -> 'TaskTerminationMessage':
+    def load_from_resp(result: Dict[str, Any]) -> 'TaskTerminationMessage':
         try:
             data = result.get('data', {})
             return TaskTerminationMessage(

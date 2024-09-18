@@ -5,7 +5,7 @@ from swan.object import TaskDeploymentInfo
 
 @pytest.fixture
 def task_deployment_info(task_deployment_response):
-    task_deployment_info = TaskDeploymentInfo.load_from_result(task_deployment_response)
+    task_deployment_info = TaskDeploymentInfo.load_from_resp(task_deployment_response)
     return task_deployment_info
 
 
