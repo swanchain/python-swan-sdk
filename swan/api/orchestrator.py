@@ -2,15 +2,22 @@ import logging
 import traceback
 import json
 import time
+from typing import List
 
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
 from swan.api_client import OrchestratorAPIClient
 from swan.common.constant import *
-from swan.object import HardwareConfig
+from swan.object import HardwareConfig, InstanceResource
 from swan.common.exception import SwanAPIException
 from swan.contract.swan_contract import SwanContract
+from swan.object import (
+    TaskCreationResult, 
+    TaskDeploymentInfo, 
+    TaskRenewalResult, 
+    TaskTerminationMessage
+)
 
 class Orchestrator(OrchestratorAPIClient):
   
@@ -187,12 +194,10 @@ class Orchestrator(OrchestratorAPIClient):
         """
         try:
             response = self._request_without_params(GET, GET_CP_CONFIG, self.swan_url, self.token)
-            self.all_hardware = [HardwareConfig(hardware) for hardware in response["data"]["hardware"]]
+            instance_res = [InstanceResource(hardware) for hardware in response["data"]["hardware"]]
             if available:
-                hardwares_info = [hardware.to_instance_dict() for hardware in self.all_hardware if hardware.status == "available"]
-            else:
-                hardwares_info = [hardware.to_instance_dict() for hardware in self.all_hardware]
-            return hardwares_info
+                instance_res = [instance for instance in instance_res if instance.status == "available"]
+            return instance_res
         except Exception:
             logging.error("Failed to fetch instance resources.")
             return None
@@ -219,7 +224,7 @@ class Orchestrator(OrchestratorAPIClient):
             task_uuid: uuid of task.
 
         Returns:
-            JSON of terminated successfully or not
+            TaskTerminationMessage object
         """
         try:
             params = {
@@ -235,7 +240,7 @@ class Orchestrator(OrchestratorAPIClient):
                     None
                 )
             
-            return result
+            return TaskTerminationMessage.load_from_result(result)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
@@ -326,7 +331,7 @@ class Orchestrator(OrchestratorAPIClient):
             SwanExceptionError: If neither app_repo_image nor job_source_uri is provided.
             
         Returns:
-            JSON response from the backend server including the 'task_uuid'.
+            TaskCreationResult object
         """
         try:
             if not wallet_address:
@@ -421,6 +426,7 @@ class Orchestrator(OrchestratorAPIClient):
                     tx_hash = config_result.get('tx_hash')
                     config_order = config_result.get('data')
 
+
             result['config_order'] = config_order
             result['tx_hash'] = tx_hash
             result['id'] = task_uuid
@@ -429,7 +435,7 @@ class Orchestrator(OrchestratorAPIClient):
             result['price'] = self.estimate_payment(instance_type=instance_type, duration=duration)
 
             logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {instance_type=}")
-            return result
+            return TaskCreationResult.load_from_result(result)
 
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
@@ -628,7 +634,7 @@ class Orchestrator(OrchestratorAPIClient):
             auto_pay: (required True if no tx_hash but with private_key provided)
         
         Returns:
-            JSON response from backend server including 'task_uuid'.
+            TaskRenewalResult object
         """
         try:
             if not (auto_pay and private_key) and not tx_hash:
@@ -664,7 +670,7 @@ class Orchestrator(OrchestratorAPIClient):
                     "task_uuid": task_uuid
                 })
                 logging.info(f"Task renewal request sent successfully, {task_uuid=} {tx_hash=}, {duration=}")
-                return result
+                return TaskRenewalResult.load_from_result(result)
             else:
                 raise SwanAPIException(f"{tx_hash=} or {task_uuid=} invalid")
         except Exception as e:
@@ -715,11 +721,13 @@ class Orchestrator(OrchestratorAPIClient):
             task_uuid: uuid of space task, in deployment response.
 
         Returns:
-            Deployment info.
+            TaskDeploymentInfo object
         """
         try:
             response = self._request_without_params(GET, DEPLOYMENT_INFO+task_uuid, self.swan_url, self.token)
-            return response
+            if response and not response.get('data'):
+                return response
+            return TaskDeploymentInfo.load_from_result(response)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
