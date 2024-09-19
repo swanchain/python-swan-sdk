@@ -8,6 +8,7 @@
 - [Quickstart](#quickstart)
   - [Installation](#installation)
   - [Get Orchestrator API Key](#get-orchestrator-api-key)
+  - [Get Storage API Key](#get-storage-api-key)
   - [Using Swan](#using-swan)
 - [A Sample Tutorial](#a-sample-tutorial)
   - [Orchestrator](#orchestrator)
@@ -17,6 +18,11 @@
     - [Access application instances of an existing task](#access-application-instances-of-an-existing-task)
     - [Renew an existing task](#renew-an-existing-task)
     - [Terminate an existing task](#terminate-an-existing-task)
+  - [Storage](#storage)
+    - [Create and Delete Buckets](#create-and-delete-buckets)
+    - [Uploading Folders](#upload-folders)
+    - [File Manipulation](#manipulate-files)
+    - [Check Bucket Information](#get-bucket-information)
 - [License](#license)
 
 
@@ -45,7 +51,7 @@ pip install .
 
 ### Get Orchestrator API Key
 
-To use `swan-sdk`, an Orchestrator API key is required. 
+To use the `swan-sdk`  `Orchestrator` service, an Orchestrator API key is required. 
 
 Steps to get an API Key:
 
@@ -55,6 +61,14 @@ Steps to get an API Key:
 - Click 'Show API-Key' -> 'New API Key'
 - Store your API Key safely, do not share with others.
 
+### Get Storage API Key
+
+To use the `swan-sdk`  `Storage` service, an Orchestrator API key is required. 
+
+Steps to get an API Key:
+
+- go to [MultiChain Storage](https://www.multichain.storage/home), and login/make account
+- I can't really do this since I am unable to get the key myself
 
 ### Using Swan
 
@@ -63,18 +77,20 @@ To use Swan SDK, you must first import it and indicate which service you're goin
 ```python
 import swan
 
+# create an orchestrator resource
 swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orchestrator')
+
+# create a storage resource, you will need to use an mcs api key
+swan_storage = swan.resource(api_key='<MCS_API_KEY>', service_name='Storage')
 ```
 
 Now that you have an `Orchestrator` service, you can create and deploy instance applications as an Orchestrator task with the service.
 
 ```python
 result = swan_orchestrator.create_task(
-    repo_uri='https://github.com/swanchain/awesome-swanchain/tree/main/hello_world',
+    app_repo_image='hello_world',
     wallet_address='<WALLET_ADDRESS>',
     private_key='<PRIVATE_KEY>',
-    instance_type='C1ae.small',
-    auto_pay=True
 )
 task_uuid = result['task_uuid']
 ```
@@ -91,11 +107,19 @@ app_urls = swan_orchestrator.get_real_url(task_uuid)
 print(app_urls)
 ```
 
+With the `Storage` service, you can create buckets and upload files to them
+
+```python
+# Create a bucket called 'my-bucket'
+swan_storage.create_bucket(bucket_name='my-bucket')
+
+# upload a file to the bucket
+swat_storage.upload_file(bucket_name='my-bucket', object_name='my-file', folder_path='my-folder/my-file')
+```
+
 ## A Sample Tutorial
 
 For more detailed samples, consult [SDK Samples](https://github.com/swanchain/python-sdk-docs-samples).
-
-For detailed description of functions, please check [Key Functions](./docs/key_functions.md).
 
 ### Orchestrator
 
@@ -103,7 +127,7 @@ Orchestrator allows you to create task to run application instances to the power
 
 #### Fetch available instance resources
 
-Before using Orchestrator to deploy task, it is necessary to know which instance resources are available. Through `get_instance_resources` you can get a list of available instance resources including their `region` information. From the output list, you can choose an `instance_type` by checking the description for the hardware configuration requirements.
+Before using Orchestrator to deploy task, it is necessary to know which instance resources are available. Through `get_instance_resources` you can get a list of available instance resources including their `region` information.
 
 ```python
 import json
@@ -160,11 +184,9 @@ import swan
 swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orchestrator')
 
 result = swan_orchestrator.create_task(
-    repo_uri='https://github.com/swanchain/awesome-swanchain/tree/main/hello_world',
+    app_repo_image='hello_world',
     wallet_address='<WALLET_ADDRESS>',
     private_key='<PRIVATE_KEY>',
-    instance_type='C1ae.small',
-    auto_pay=True
 )
 task_uuid = result['task_uuid']
 # Get task deployment info
@@ -253,6 +275,186 @@ swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orches
 
 # Terminate an existing task (and its application instances)
 swan_orchestrator.terminate_task(<task_uuid>)
+```
+### Storage
+
+#### Create and Delete Buckets
+```python
+import swan
+
+# create a storage resource, you will need to use an mcs api key
+swan_storage = swan.resource(api_key='<MCS_API_KEY>', service_name='Storage')
+
+# create a bucket
+swan_storage.create_bucket(bucket_name='my-bucket')
+
+# delete a bucket
+swan_storage.delete_bucket(bucket_name='my-bucket')
+```
+
+#### Upload Folders
+
+You can create a folder but also upload an MCS or IPFS folder
+```python
+import swan
+
+# create a storage resource, you will need to use an mcs api key
+swan_storage = swan.resource(api_key='<MCS_API_KEY>', service_name='Storage')
+
+my_mcs_path = 'my-folder/my-mcs-folder'
+my_ipfs_path = 'my-folder/my-ipfs-folder'
+
+# create a bucket
+swan_storage.create_bucket(bucket_name='my-bucket')
+
+# create a folder, it will be stored under bucket_name/prefix/folder_name
+swan_storage.create_folder(bucket_name='my-bucket', folder_name='my-folder', prefix='my-prefix')
+
+# upload a folder as an MCS folder under bucket_name/object_name
+swan_storage.upload_folder(bucket_name='my-bucket', folder_name='my-mcs-folder', folder_path=my_mcs_path)
+
+# upload a folder as an IPFS folder under bucket_name/object_name
+bucket_client.upload_ipfs_folder(bucket_name='my-bucket', folder_name='my-ipfs-folder', folder_path=my_ipfs_path)
+```
+
+
+#### Manipulate Files
+
+```python
+import swan
+
+# create a storage resource, you will need to use an mcs api key
+swan_storage = swan.resource(api_key='<MCS_API_KEY>', service_name='Storage')
+
+my_file_path = 'my-folder/my-file'
+my_file_download_path = 'my-folder/downloaded-file'
+
+# create a bucket
+swan_storage.create_bucket(bucket_name='my-bucket')
+
+# upload a file
+swan_storage.upload_file(bucket_name='my-bucket', object_name='my-file', file_path=my_file_path)
+
+# download a file located at bucket_name/object_name
+swan_storage.download_file(bucket_name='my-bucket', object_name='my-file', local_filename=my_file_download_path)
+
+# delete a file located at bucket_name/object_name
+swan_storage.delete_file(bucket_name='my-bucket', object_name='my-file')
+```
+
+#### Get Bucket Information
+
+```python
+import swan
+
+# create a storage resource, you will need to use an mcs api key
+swan_storage = swan.resource(api_key='<MCS_API_KEY>', service_name='Storage')
+
+# get in information of a bucket
+print(swan_storage.get_bucket(bucket_name='my-bucket').to_json())
+```
+
+Sample output:
+```
+{
+    "address": "0xA87...9b0",
+    "bucket_name": "test-bucket",
+    "bucket_uid": "8721a157-8233-4d08-bb11-1911e759c2bb",
+    "created_at": "2023-01-04T17:52:04Z",
+    "deleted_at": null,
+    "file_number": 4,
+    "is_active": true,
+    "is_deleted": false,
+    "is_free": true,
+    "max_size": 34359738368,
+    "size": 9988,
+    "updated_at": "2023-01-04T17:52:04Z"
+}
+```
+
+
+```python
+# get information about a specific file
+print(swan_storage.get_file(bucket_name='my-bucket', object_name='my-file').to_json())
+```
+
+
+Sample output:
+```
+{
+    "address": "0xA87...9b0",
+    "bucket_uid": "8721a157-8233-4d08-bb11-1911e759c2bb",
+    "created_at": "2023-02-08T18:35:33Z",
+    "deleted_at": null,
+    "filehash": "65a8e27d8879283831b664bd8b7f0ad4",
+    "gateway": "https://fce2d84f11.calibration-swan-acl.filswan.com/",
+    "id": 6153,
+    "ipfs_url": "https://ipfs.multichain.storage/ipfs/Qm...",
+    "is_deleted": false,
+    "is_folder": false,
+    "name": "file1.txt",
+    "object_name": "file1.txt",
+    "payloadCid": "Qm...",
+    "pin_status": "Pinned",
+    "prefix": "",
+    "size": 13,
+    "type": 2,
+    "updated_at": "2023-02-08T18:35:33Z"
+}
+```
+
+
+```python
+# get a list of files in a bucket
+for i in swan_storage.list_files(bucket_name='my-bucket'):
+    print(i.to_json())
+```
+Sample output:
+
+```
+[
+  {
+    "address": "0xA87...9b0",
+    "bucket_uid": "8721a157-8233-4d08-bb11-1911e759c2bb",
+    "created_at": "2023-02-08T18:35:33Z",
+    "deleted_at": null,
+    "filehash": "65a8e27d8879283831b664bd8b7f0ad4",
+    "gateway": "https://fce2d84f11.calibration-swan-acl.filswan.com/",
+    "id": 6153,
+    "ipfs_url": "https://ipfs.multichain.storage/ipfs/Qm...",
+    "is_deleted": false,
+    "is_folder": false,
+    "name": "file1.txt",
+    "object_name": "file1.txt",
+    "payloadCid": "Qm...",
+    "pin_status": "Pinned",
+    "prefix": "",
+    "size": 13,
+    "type": 2,
+    "updated_at": "2023-02-08T18:35:33Z"
+  },
+  {
+    "address": "0xA87...9b0",
+    "bucket_uid": "8721a157-8233-4d08-bb11-1911e759c2bb",
+    "created_at": "2023-02-08T18:35:33Z",
+    "deleted_at": null,
+    "filehash": "65a8e27d8879283831b664bd8b7f0ad4",
+    "gateway": "https://fce2d84f11.calibration-swan-acl.filswan.com/",
+    "id": 6153,
+    "ipfs_url": "https://ipfs.multichain.storage/ipfs/Qm...",
+    "is_deleted": false,
+    "is_folder": false,
+    "name": "file1.txt",
+    "object_name": "file1.txt",
+    "payloadCid": "Qm...",
+    "pin_status": "Pinned",
+    "prefix": "",
+    "size": 13,
+    "type": 2,
+    "updated_at": "2023-02-08T18:35:33Z"
+  },
+...
+]
 ```
 
 
