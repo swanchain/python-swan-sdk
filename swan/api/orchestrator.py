@@ -200,7 +200,7 @@ class Orchestrator(OrchestratorAPIClient):
             return instance_res
         except Exception:
             logging.error("Failed to fetch instance resources.")
-            return None
+            return []
     
     def get_instance_hardware_id(self, instance_type):
         try:
