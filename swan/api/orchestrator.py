@@ -460,6 +460,58 @@ class Orchestrator(OrchestratorAPIClient):
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
+        
+    def approve_allowance(self, private_key: str, amount: float):
+        """
+        Approve in advance for the contract
+
+        Args:
+            private_key: private key of owner
+            amount: amount to approve (in ether)
+
+        Returns:
+            tx_hash
+        """
+        try:
+            if not private_key:
+                raise SwanAPIException(f"No private_key provided.")
+            if not self.contract_info:
+                raise SwanAPIException(f"No contract info on record, please verify contract first.")
+            
+            contract = SwanContract(private_key, self.contract_info)
+            logging.info(f"Approving in advance (in ether), {amount=}")
+            amount_wei = contract.to_wei(amount)
+            tx_hash = contract.approve_payment(amount_wei)
+            logging.info(f"Approved in advance (in ether), {amount=}. Got {tx_hash=}")
+            return tx_hash
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+        
+    def get_allowance(self, private_key: str):
+        """
+        Get allowance of the contract
+
+        Args:
+            private_key: private key of owner
+
+        Returns:
+            allowance in ether
+        """
+        try:
+            if not private_key:
+                raise SwanAPIException(f"No private_key provided.")
+            if not self.contract_info:
+                raise SwanAPIException(f"No contract info on record, please verify contract first.")
+            
+            contract = SwanContract(private_key, self.contract_info)
+            allowance = contract.get_allowance()
+            amount = contract.from_wei(allowance)
+            logging.info(f"Got allowance (in ether), {amount=}")
+            return amount
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
     
     def submit_payment(self, task_uuid, private_key, duration = 3600, **kwargs):
         """
