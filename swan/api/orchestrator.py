@@ -16,7 +16,8 @@ from swan.object import (
     TaskCreationResult, 
     TaskDeploymentInfo, 
     TaskRenewalResult, 
-    TaskTerminationMessage
+    TaskTerminationMessage,
+    PaymentResult
 )
 
 class Orchestrator(OrchestratorAPIClient):
@@ -414,7 +415,9 @@ class Orchestrator(OrchestratorAPIClient):
                 raise SwanAPIException(err_msg)
         
             tx_hash = None
+            tx_hash_approve = None
             config_order = None
+            amount = None
             if auto_pay:
                 config_result = self.make_payment(
                     task_uuid=task_uuid, 
@@ -425,14 +428,17 @@ class Orchestrator(OrchestratorAPIClient):
                 if config_result and isinstance(config_result, dict):
                     tx_hash = config_result.get('tx_hash')
                     config_order = config_result.get('data')
+                    tx_hash_approve = config_result.get('tx_hash_approve')
+                    amount = config_result.get('amount')
 
 
             result['config_order'] = config_order
             result['tx_hash'] = tx_hash
+            result['tx_hash_approve'] = tx_hash_approve
             result['id'] = task_uuid
             result['task_uuid'] = task_uuid
             result['instance_type'] = instance_type
-            result['price'] = self.estimate_payment(instance_type=instance_type, duration=duration)
+            result['price'] = amount
 
             logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {instance_type=}")
             return TaskCreationResult.load_from_resp(result)
@@ -442,15 +448,15 @@ class Orchestrator(OrchestratorAPIClient):
             return None
 
     def estimate_payment(self, duration: float = 3600, instance_type: str = None):
-        """Estimate required funds.
+        """Estimate required amount.
 
         Args:
-            duration: duration in hours for space runtime.
+            duration: duration in seconds for task runtime.
             instance_type: instance type, e.g. C1ae.small
         
         Returns:
             int estimated price in SWAN.
-            e.g. (price = 10 SWAN, duration = 1 hr) -> 10 SWAN
+            e.g. (price = 10 SWAN, duration = 1 hr (3600 seconds)) -> 10 SWAN
         """
         try:
             price = self.get_instance_price(instance_type=instance_type)
@@ -513,7 +519,13 @@ class Orchestrator(OrchestratorAPIClient):
             logging.error(str(e) + traceback.format_exc())
             return None
     
-    def submit_payment(self, task_uuid, private_key, duration = 3600, **kwargs):
+    def submit_payment(
+            self, 
+            task_uuid, 
+            private_key, 
+            duration = 3600, 
+            **kwargs
+        ) -> Optional[PaymentResult]:
         """
         Submit payment for a task
 
@@ -541,14 +553,20 @@ class Orchestrator(OrchestratorAPIClient):
             
             contract = SwanContract(private_key, self.contract_info)
         
-            tx_hash = contract.submit_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
-            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {tx_hash=}")
-            return tx_hash
+            payment: PaymentResult = contract.submit_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
+            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {payment.tx_hash=}")
+            return payment
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
 
-    def renew_payment(self, task_uuid, private_key, duration = 3600, **kwargs):
+    def renew_payment(
+            self, 
+            task_uuid, 
+            private_key, 
+            duration = 3600, 
+            **kwargs
+        ) -> Optional[PaymentResult]:
         """
         Submit payment for a task
 
@@ -576,9 +594,9 @@ class Orchestrator(OrchestratorAPIClient):
             
             contract = SwanContract(private_key, self.contract_info)
         
-            tx_hash = contract.renew_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
-            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {tx_hash=}")
-            return tx_hash
+            payment: PaymentResult = contract.renew_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
+            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {payment.tx_hash=}")
+            return payment
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
@@ -607,7 +625,7 @@ class Orchestrator(OrchestratorAPIClient):
                 }
                 result = self._request_with_params(
                     POST, 
-                    '/v2/task_payment_validate', 
+                    TASK_PAYMENT_VALIDATE, 
                     self.swan_url, 
                     params, 
                     self.token, 
@@ -646,7 +664,7 @@ class Orchestrator(OrchestratorAPIClient):
             if not self.contract_info:
                 raise SwanAPIException(f"No contract info on record, please verify contract first.")
             
-            if tx_hash := self.submit_payment(
+            if payment := self.submit_payment(
                 task_uuid=task_uuid, 
                 duration=duration, 
                 private_key=private_key, 
@@ -654,11 +672,13 @@ class Orchestrator(OrchestratorAPIClient):
             ):
                 time.sleep(3)
                 if res := self.validate_payment(
-                    tx_hash=tx_hash, 
+                    tx_hash=payment.tx_hash, 
                     task_uuid=task_uuid
                 ):
-                    res['tx_hash'] = tx_hash
-                    logging.info(f"Payment submitted and validated successfully, {task_uuid=}, {tx_hash=}")
+                    res['tx_hash'] = payment.tx_hash
+                    res['tx_hash_approve'] = payment.tx_hash_approve
+                    res['amount'] = payment.amount
+                    logging.info(f"Payment submitted and validated successfully, {task_uuid=}, {payment}")
                     return res
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
@@ -692,15 +712,24 @@ class Orchestrator(OrchestratorAPIClient):
             if not (auto_pay and private_key) and not tx_hash:
                 raise SwanAPIException(f"auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
 
+            tx_hash_approve = None
+            amount = None
             if not tx_hash:
-                tx_hash = self.renew_payment(
+                payment: PaymentResult = self.renew_payment(
                     task_uuid=task_uuid, 
                     duration=duration, 
                     private_key=private_key
                 )
-                logging.info(f"renew payment transaction hash, {tx_hash=}")
+                logging.info(f"renew payment transaction hash, {payment=}")
+                tx_hash = payment.tx_hash
+                tx_hash_approve = payment.tx_hash_approve
+                amount = payment.amount
             else:
                 logging.info(f"will use given payment transaction hash, {tx_hash=}")
+                amount = self.estimate_payment(
+                    duration=duration, 
+                    instance_type=self.get_task_instance_type(task_uuid)
+                )
 
             if tx_hash and task_uuid:
                 params = {
@@ -718,7 +747,9 @@ class Orchestrator(OrchestratorAPIClient):
                         None
                     )
                 result.update({
+                    "tx_hash_approve": tx_hash_approve,
                     "tx_hash": tx_hash,
+                    "price": amount,
                     "task_uuid": task_uuid
                 })
                 logging.info(f"Task renewal request sent successfully, {task_uuid=} {tx_hash=}, {duration=}")

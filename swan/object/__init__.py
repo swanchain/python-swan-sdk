@@ -8,5 +8,6 @@ from swan.object.models import (
     Job,
     CPAccount,
     TaskRenewalResult,
-    TaskTerminationMessage
+    TaskTerminationMessage,
+    PaymentResult
 )

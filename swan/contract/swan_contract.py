@@ -11,6 +11,7 @@ from web3.middleware import geth_poa_middleware
 from swan.common.constant import *
 from swan.common.exception import SwanEnvironmentValueException
 from swan.common.utils import get_contract_abi
+from swan.object import PaymentResult
 
 
 class SwanContract():
@@ -141,7 +142,7 @@ class SwanContract():
             task_uuid: str, 
             hardware_id: int, 
             duration: int
-        ):
+        ) -> PaymentResult:
         """
         Submit payment for a task
 
@@ -160,9 +161,11 @@ class SwanContract():
             duration=duration/3600  # duration in estimate_
         ))
 
+        tx_hash_approve = None
+        
         if self.get_allowance() < amount:
             logging.info(f"Approving payment for {amount} wei")
-            self.approve_payment(amount)
+            tx_hash_approve = self.approve_payment(amount)
         else:
             logging.info(f"Allowance is enough for {amount} wei")
 
@@ -179,7 +182,13 @@ class SwanContract():
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
-        return self.w3.to_hex(tx_hash)
+        tx_hash = self.w3.to_hex(tx_hash)
+
+        return PaymentResult(
+            tx_hash_approve=tx_hash_approve,
+            tx_hash=tx_hash, 
+            amount=self.from_wei(amount)
+        )
     
 
     def renew_payment(
@@ -187,7 +196,7 @@ class SwanContract():
             task_uuid: str, 
             hardware_id: int, 
             duration: int
-        ):
+        ) -> PaymentResult:
         """
         Submit payment for task renewal
 
@@ -206,9 +215,10 @@ class SwanContract():
             duration=duration/3600  # duration in estimate_
         ))
 
+        tx_hash_approve = None
         if self.get_allowance() < amount:
             logging.info(f"Approving payment for {amount} wei")
-            self.approve_payment(amount)
+            tx_hash_approve = self.approve_payment(amount)
         else:
             logging.info(f"Allowance is enough for {amount} wei")
 
@@ -225,9 +235,15 @@ class SwanContract():
         signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
-        return self.w3.to_hex(tx_hash)
+        tx_hash = self.w3.to_hex(tx_hash)
     
-
+        return PaymentResult(
+            tx_hash_approve=tx_hash_approve,
+            tx_hash=tx_hash, 
+            amount=self.from_wei(amount)
+        )
+    
+    
     def approve_payment(self, amount):
         """
         called in submit_payment

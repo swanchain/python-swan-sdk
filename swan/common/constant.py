@@ -15,7 +15,7 @@ CLAIM_REVIEW = "/claim_review"
 RENEW_TASK = "/v2/extend_task"
 PREMADE_IMAGE = "/util/example_code_mapping"
 CONFIG_ORDER_STATUS = "/v2/config_order_status"
-
+TASK_PAYMENT_VALIDATE = '/v2/task_payment_validate'
 GET_CONTRACT_INFO = "/contract_info"
 GET_ABI_VERSION = "/abi_version"
 GET_SOURCE_URI = "/v2/get_source_uri"

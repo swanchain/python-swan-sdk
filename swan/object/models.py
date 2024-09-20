@@ -140,6 +140,7 @@ class TaskCreationResult(Base):
     task: Task = field(default_factory=Task)
     config_order: ConfigOrder = field(default_factory=ConfigOrder)
     tx_hash: Optional[str] = None
+    tx_hash_approve: Optional[str] = None
     task_uuid: Optional[str] = None
     instance_type: Optional[str] = None
     price: Optional[float] = None
@@ -260,7 +261,9 @@ class TaskRenewalResult(Base):
     config_order: Optional[ConfigOrder] = field(default_factory=ConfigOrder)
     task: Optional[Task] = field(default_factory=Task)
     task_uuid: Optional[str] = None
+    tx_hash_approve: Optional[str] = None
     tx_hash: Optional[str] = None
+    price: Optional[float] = None
     status: Optional[str] = None
     message: Optional[str] = None
 
@@ -304,3 +307,9 @@ class TaskTerminationMessage(Base):
             )
         except Exception as e:
             raise ValueError(f"An error occurred while loading TaskTerminationMessage: {e}")
+
+@dataclass
+class PaymentResult(Base):
+    tx_hash_approve: Optional[str] = None
+    tx_hash: Optional[str] = None
+    amount: Optional[float] = None
