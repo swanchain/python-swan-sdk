@@ -8,6 +8,7 @@
 - [Quickstart](#quickstart)
   - [Installation](#installation)
   - [Get Orchestrator API Key](#get-orchestrator-api-key)
+  - [Get Storage API Key](#get-storage-api-key)
   - [Using Swan](#using-swan)
 - [A Sample Tutorial](#a-sample-tutorial)
   - [Orchestrator](#orchestrator)
@@ -19,9 +20,9 @@
     - [Terminate an existing task](#terminate-an-existing-task)
   - [Storage](#storage)
     - [Create and Delete Buckets](#create-and-delete-buckets)
-    - [Uploading Folders](#upload-folders)
-    - [File Manipulation](#manipulate-files)
-    - [Check Bucket Information](#get-bucket-information)
+    - [Upload Folders](#upload-folders)
+    - [Manipulate Files](#manipulate-files)
+    - [Get Bucket Information](#get-bucket-information)
 - [License](#license)
 
 
@@ -50,7 +51,7 @@ pip install .
 
 ### Get Orchestrator API Key
 
-To use `swan-sdk`, an Orchestrator API key is required. 
+To use `swan-sdk` Orchestrator service, an Orchestrator API key is required. 
 
 Steps to get an API Key:
 
@@ -62,12 +63,11 @@ Steps to get an API Key:
 
 ### Get Storage API Key
 
-To use the `swan-sdk`  `Storage` service, an Orchestrator API key is required. 
+To use the `swan-sdk` Storage service, an Storage API key is required. 
 
 Steps to get an API Key:
 
 - go to [MultiChain Storage](https://www.multichain.storage/home), and login/make account
-- I can't really do this since I am unable to get the key myself
 
 ### Using Swan
 
@@ -83,7 +83,7 @@ swan_storage = swan.resource(api_key='<MCS_API_KEY>', service_name='Storage')
 ```
 
 
-Now that you have an `Orchestrator` service, you can create and deploy instance applications as an Orchestrator task with the service.
+With `Orchestrator` service, you can create and deploy instance applications as an Orchestrator task with the service.
 
 ```python
 result = swan_orchestrator.create_task(
@@ -107,7 +107,8 @@ print(json.dumps(task_deployment_info, indent=2))
 app_urls = swan_orchestrator.get_real_url(task_uuid)
 print(app_urls)
 ```
-With the `Storage` service, you can create buckets and upload files to them
+
+With the `Storage` service, you can create buckets and upload files to them.
 
 ```python
 # Create a bucket called 'my-bucket'
@@ -279,6 +280,7 @@ swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orches
 # Terminate an existing task (and its application instances)
 swan_orchestrator.terminate_task(<task_uuid>)
 ```
+
 ### Storage
 
 #### Create and Delete Buckets
