@@ -32,7 +32,7 @@ This guide details the steps needed to install or update the SWAN SDK for Python
 
 ### Installation
 
-To use Swan SDK, you first need to install it and its dependencies. Before installing Swan SDK, install Python 3.8 or later and web3.py(==6.15.1).
+To use Swan SDK, you first need to install it and its dependencies. Before installing Swan SDK, install Python 3.8 or later and web3.py(==6.20.3).
 
 
 Install the latest Swan SDK release via **pip**:
