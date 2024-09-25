@@ -5,6 +5,7 @@ from swan.object.models import (
     Task, 
     ConfigOrder,
     TaskDeploymentInfo,
+    TaskList,
     Job,
     CPAccount,
     TaskRenewalResult,

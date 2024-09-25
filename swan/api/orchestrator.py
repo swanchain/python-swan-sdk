@@ -15,6 +15,7 @@ from swan.contract.swan_contract import SwanContract
 from swan.object import (
     TaskCreationResult, 
     TaskDeploymentInfo, 
+    TaskList,
     TaskRenewalResult, 
     TaskTerminationMessage,
     PaymentResult
@@ -440,7 +441,7 @@ class Orchestrator(OrchestratorAPIClient):
             result['instance_type'] = instance_type
             result['price'] = amount
 
-            logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {instance_type=}")
+            # logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {instance_type=}")
             return TaskCreationResult.load_from_resp(result)
 
         except Exception as e:
@@ -808,12 +809,47 @@ class Orchestrator(OrchestratorAPIClient):
         """
         try:
             response = self._request_without_params(GET, DEPLOYMENT_INFO+task_uuid, self.swan_url, self.token)
-            if response and not response.get('data'):
-                return response
             return TaskDeploymentInfo.load_from_resp(response)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
+
+
+    def get_task_list(self, 
+            wallet_address: str,
+            page: int = 1,
+            size: int = 5,
+        ) -> Optional[TaskList]:
+        """
+        Get the list of tasks for a wallet address
+
+        Args:
+            wallet_address: wallet address of the user
+            page: page number
+            size: number of tasks per page
+
+        Returns:
+            TaskList object
+        """
+        try:
+            params = {
+                "wallet_address": wallet_address,
+                "page": page,
+                "size": size
+            }
+            response = self._request_with_params(
+                GET, 
+                TASK_LIST, 
+                self.swan_url, 
+                params,
+                self.token,
+                None
+            )
+            return TaskList.load_from_resp(response)
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+
 
     def get_real_url(self, task_uuid: str) -> Optional[List[str]]:
         task_info: TaskDeploymentInfo = self.get_deployment_info(task_uuid)

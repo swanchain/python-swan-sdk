@@ -221,6 +221,27 @@ class Job(Base):
     uuid: Optional[str] = None
 
 @dataclass
+class TaskInfo(Base):
+    computing_providers: Optional[List[CPAccount]] = field(default_factory=list)
+    config_orders: Optional[List[ConfigOrder]] = field(default_factory=list)
+    jobs: Optional[List[Job]] = field(default_factory=list)
+    task: Optional[Task] = field(default_factory=Task)
+
+    def __init__(self, data: Dict[str, Any]):
+        task_data = data.get('task') if data else {}
+        self.task = dict_to_dataclass(Task, task_data) if task_data else Task()
+
+        computing_providers_data = data.get('computing_providers', []) if data else []
+        self.computing_providers = [dict_to_dataclass(CPAccount, cp) for cp in computing_providers_data]
+
+        config_orders_data = data.get('config_orders', []) if data else []
+        self.config_orders = [dict_to_dataclass(ConfigOrder, config_order) for config_order in config_orders_data]
+
+        jobs_data = data.get('jobs', []) if data else []
+        self.jobs = [dict_to_dataclass(Job, job) for job in jobs_data]
+        
+
+@dataclass
 class TaskDeploymentInfo(Base):
     computing_providers: Optional[List[CPAccount]] = field(default_factory=list)
     config_orders: Optional[List[ConfigOrder]] = field(default_factory=list)
@@ -228,34 +249,62 @@ class TaskDeploymentInfo(Base):
     task: Optional[Task] = field(default_factory=Task)
     status: Optional[str] = None
     message: Optional[str] = None
-
+    
     @staticmethod
     def load_from_resp(result: Dict[str, Any]) -> 'TaskDeploymentInfo':
         try:
             data = result.get('data', {})
-            task_data = data.get('task') if data else {}
-            task = dict_to_dataclass(Task, task_data) if task_data else Task()
-
-            computing_providers_data = data.get('computing_providers', []) if data else []
-            computing_providers = [dict_to_dataclass(CPAccount, cp) for cp in computing_providers_data]
-
-            config_orders_data = data.get('config_orders', []) if data else []
-            config_orders = [dict_to_dataclass(ConfigOrder, config_order) for config_order in config_orders_data]
-
-            jobs_data = data.get('jobs', []) if data else []
-            jobs = [dict_to_dataclass(Job, job) for job in jobs_data]
-
+            task_info = TaskInfo(data)
             return TaskDeploymentInfo(
-                task=task,
-                computing_providers=computing_providers,
-                config_orders=config_orders,
-                jobs=jobs,
+                task=task_info.task,
+                computing_providers=task_info.computing_providers,
+                config_orders=task_info.config_orders,
+                jobs=task_info.jobs,
                 status=result.get('status'),
                 message=result.get('message')
             )
         except Exception as e:
             raise ValueError(f"An error occurred while loading TaskDeploymentInfo: {e}")
-        
+
+
+@dataclass
+class TaskList(Base):
+    task_list: Optional[List[TaskInfo]] = field(default_factory=list)
+    page: Optional[int] = None
+    size: Optional[int] = None
+    total: Optional[int] = None
+    total_page: Optional[int] = None
+    status: Optional[str] = None
+    message: Optional[str] = None
+
+    @staticmethod
+    def load_from_resp(result: Dict[str, Any]) -> 'TaskList':
+        try:
+            data = result.get('data', {})
+            _list = data.get('list') if data else []
+            page = data.get('page') if data else None
+            size = data.get('size') if data else None
+            total = data.get('total') if data else None
+            total_page = data.get('total_page') if data else None
+
+            task_list = []
+            for _task_data in _list:
+                task_list.append(TaskInfo(
+                    _task_data if _task_data else {}
+                ))
+
+            return TaskList(
+                task_list=task_list,
+                page=page,
+                size=size,
+                total=total,
+                total_page=total_page,
+                status=result.get('status'),
+                message=result.get('message')
+            )
+        except Exception as e:
+            raise ValueError(f"An error occurred while loading TaskList: {e}")
+
 @dataclass
 class TaskRenewalResult(Base):
     config_order: Optional[ConfigOrder] = field(default_factory=ConfigOrder)
