@@ -63,11 +63,9 @@ Steps to get an API Key:
 
 ### Get Storage API Key
 
-To use the `swan-sdk` Storage service, an Storage API key is required. 
+To use the `swan-sdk` Multi-Chain Storage (MCS) service, an MCS API key is required. 
 
-Steps to get an API Key:
-
-- go to [MultiChain Storage](https://www.multichain.storage/home), and login/make account
+To get an MCS API Key: visit [MultiChain Storage](https://www.multichain.storage/home).
 
 ### Using Swan
 
@@ -90,8 +88,7 @@ result = swan_orchestrator.create_task(
     repo_uri='https://github.com/swanchain/awesome-swanchain/tree/main/hello_world',
     wallet_address='<WALLET_ADDRESS>',
     private_key='<PRIVATE_KEY>',
-    instance_type='C1ae.small',
-    auto_pay=True
+    instance_type='C1ae.small'
 )
 task_uuid = result['task_uuid']
 ```
@@ -101,7 +98,7 @@ Then you can follow up task deployment information and the URL for running appli
 ```python
 # Get task deployment info
 task_deployment_info = swan_orchestrator.get_deployment_info(task_uuid=task_uuid)
-print(json.dumps(task_deployment_info, indent=2))
+print(json.dumps(task_deployment_info.to_dict(), indent=2))
 
 # Get application instances URL
 app_urls = swan_orchestrator.get_real_url(task_uuid)
@@ -138,7 +135,7 @@ import swan
 swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orchestrator')
 
 available_resources = swan_orchestrator.get_instance_resources()
-print(json.dumps(available_resources, indent=2, ensure_ascii=False))
+print(json.dumps(available_resources.to_dict(), indent=2, ensure_ascii=False))
 ```
 
 Sample output:
@@ -189,13 +186,12 @@ result = swan_orchestrator.create_task(
     repo_uri='https://github.com/swanchain/awesome-swanchain/tree/main/hello_world',
     wallet_address='<WALLET_ADDRESS>',
     private_key='<PRIVATE_KEY>',
-    instance_type='C1ae.small',
-    auto_pay=True
+    instance_type='C1ae.small'
 )
 task_uuid = result['task_uuid']
 # Get task deployment info
 task_deployment_info = swan_orchestrator.get_deployment_info(task_uuid=task_uuid)
-print(json.dumps(task_deployment_info, indent=2))
+print(json.dumps(task_deployment_info.to_dict(), indent=2))
 ```
 
 It may take up to 5 minutes to get the deployment result:
@@ -225,7 +221,7 @@ swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orches
 
 # Get an existing task deployment info
 task_deployment_info = swan_orchestrator.get_deployment_info(<task_uuid>)
-print(json.dumps(task_deployment_info, indent=2))
+print(json.dumps(task_deployment_info.to_dict(), indent=2))
 ```
 
 #### Access application instances of an existing task
@@ -256,9 +252,7 @@ swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orches
 renew_result = swan_orchestrator.renew_task(
     task_uuid=<task_uuid>, 
     duration=3600, # Optional: default 3600 seconds (1 hour)
-    auto_pay=True, 
-    private_key=<PRIVATE_KEY>,
-    instance_type=<instance_type> 
+    private_key=<PRIVATE_KEY>
 )
 
 if renew_result and renew_result['status'] == 'success':
