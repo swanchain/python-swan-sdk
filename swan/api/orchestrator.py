@@ -722,9 +722,13 @@ class Orchestrator(OrchestratorAPIClient):
                     private_key=private_key
                 )
                 logging.info(f"renew payment transaction hash, {payment=}")
-                tx_hash = payment.tx_hash
-                tx_hash_approve = payment.tx_hash_approve
-                amount = payment.amount
+                if payment:
+                    tx_hash = payment.tx_hash
+                    tx_hash_approve = payment.tx_hash_approve
+                    amount = payment.amount
+                else:
+                    logging.warning(f"renwal payment failed, {task_uuid=}, {duration=}")
+                    return None
             else:
                 logging.info(f"will use given payment transaction hash, {tx_hash=}")
                 amount = self.estimate_payment(
