@@ -582,7 +582,7 @@ class Orchestrator(OrchestratorAPIClient):
         try:
             instance_type = self.get_task_instance_type(task_uuid)
             if not instance_type:
-                raise SwanAPIException(f"Invalid instance_type for task {task_uuid}")
+                raise SwanAPIException(f"Invalid task info {task_uuid}")
             
             hardware_id = self.get_instance_hardware_id(instance_type)
             if hardware_id is None:
@@ -721,8 +721,8 @@ class Orchestrator(OrchestratorAPIClient):
                     duration=duration, 
                     private_key=private_key
                 )
-                logging.info(f"renew payment transaction hash, {payment=}")
                 if payment:
+                    logging.info(f"renew payment transaction hash, {payment=}")
                     tx_hash = payment.tx_hash
                     tx_hash_approve = payment.tx_hash_approve
                     amount = payment.amount
@@ -908,7 +908,9 @@ class Orchestrator(OrchestratorAPIClient):
                 raise SwanAPIException(f"Invalid task_uuid")
             task_info: TaskDeploymentInfo = self.get_deployment_info(task_uuid)
             if not task_info:
-                raise SwanAPIException(f"Get task {task_uuid} failed, cannot get instance_type")
+                raise SwanAPIException(f"Get task {task_uuid} failed")
+            if not task_info.task.uuid:
+                raise SwanAPIException(f"Task {task_uuid} not found")
             return task_info['task']['task_detail']['hardware']
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
