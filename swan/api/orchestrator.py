@@ -38,22 +38,25 @@ class Orchestrator(OrchestratorAPIClient):
         self.region = "global"
         self.all_hardware = None
         self.instance_mapping = None
+        self.public_address = None
     
         if url_endpoint:
             self.swan_url = url_endpoint
             logging.info(f"Using {url_endpoint}")
+            self.public_address = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET
         elif network == "testnet":
             self.swan_url = ORCHESTRATOR_API_TESTNET
             logging.info("Using Testnet")
+            self.public_address = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET
         else:
             self.swan_url = ORCHESTRATOR_API_MAINNET
             logging.info("Using Mainnet")
+            self.public_address = ORCHESTRATOR_PUBLIC_ADDRESS_MAINNET
 
         if login:
             self.api_key_login()
         if self.token:
-            pub_addr = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET if network == "testnet" else ORCHESTRATOR_PUBLIC_ADDRESS_MAINNET
-            self.get_contract_info(verification, orchestrator_public_address=pub_addr)
+            self.get_contract_info(verification)
             self._get_instance_mapping()
         
         self._get_hardware_config()
@@ -115,13 +118,13 @@ class Orchestrator(OrchestratorAPIClient):
             return None
 
 
-    def get_contract_info(self, verification: bool = True, orchestrator_public_address = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET):
+    def get_contract_info(self, verification: bool = True):
         response = self._request_without_params(GET, GET_CONTRACT_INFO, self.swan_url, self.token)
         if verification:
-            if not self.contract_info_verified(
+            if not self.public_address or not self.contract_info_verified(
                 response["data"]["contract_info"], 
                 response["data"]["signature"], 
-                orchestrator_public_address
+                self.public_address
             ):
                 return False
         self.contract_info = response["data"]["contract_info"]["contract_detail"]
