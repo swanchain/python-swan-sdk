@@ -6,6 +6,7 @@ import requests
 from dotenv import load_dotenv
 
 from swan import Orchestrator
+from swan.object import TaskDeploymentInfo, TaskCreationResult, Task
 
 # Load environment variables
 load_dotenv()
@@ -18,14 +19,14 @@ PRIVATE_KEY = os.getenv('PK')
 def swan_orchestrator() -> Orchestrator:
     return swan.resource(
         api_key=API_KEY,
-        network='mainnet',
+        network='testnet',
         service_name='Orchestrator'
     )
 
 
 @pytest.fixture(scope="module")
 def task_uuid(swan_orchestrator) -> str:
-    result = swan_orchestrator.create_task(
+    result: TaskCreationResult = swan_orchestrator.create_task(
         app_repo_image="hello_world",
         wallet_address=WALLET_ADDRESS,
         private_key=PRIVATE_KEY,
@@ -33,8 +34,8 @@ def task_uuid(swan_orchestrator) -> str:
         auto_pay=True,
     )
 
-    assert 'task_uuid' in result
-    assert 'instance_type' in result
+    assert result.task_uuid is not None
+    assert result.instance_type == 'C1ae.medium'
 
     return result['task_uuid']
 
@@ -45,10 +46,12 @@ def test_create_task(swan_orchestrator, task_uuid):
 
 
 def test_get_deployment_info(swan_orchestrator, task_uuid):
-    task_info = swan_orchestrator.get_deployment_info(task_uuid=task_uuid)
+    task_info: TaskDeploymentInfo = swan_orchestrator.get_deployment_info(task_uuid=task_uuid)
 
+    assert isinstance(task_info, TaskDeploymentInfo)
+    assert isinstance(task_info.task, Task)
     assert task_info is not None
-    assert 'status' in task_info
+    assert task_info.task.status is not None
 
 
 @pytest.fixture(scope="module")
