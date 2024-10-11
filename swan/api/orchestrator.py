@@ -2,17 +2,26 @@ import logging
 import traceback
 import json
 import time
+from typing import List, Optional
 
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
-from swan.api_client import APIClient
+from swan.api_client import OrchestratorAPIClient
 from swan.common.constant import *
-from swan.object import HardwareConfig
+from swan.object import HardwareConfig, InstanceResource
 from swan.common.exception import SwanAPIException
 from swan.contract.swan_contract import SwanContract
+from swan.object import (
+    TaskCreationResult, 
+    TaskDeploymentInfo, 
+    TaskList,
+    TaskRenewalResult, 
+    TaskTerminationMessage,
+    PaymentResult
+)
 
-class Orchestrator(APIClient):
+class Orchestrator(OrchestratorAPIClient):
   
     def __init__(self, api_key: str, login: bool = True, network="mainnet", verification: bool = True, token = None, url_endpoint: str = None):
         """Initialize user configuration and login.
@@ -29,22 +38,25 @@ class Orchestrator(APIClient):
         self.region = "global"
         self.all_hardware = None
         self.instance_mapping = None
+        self.public_address = None
     
         if url_endpoint:
             self.swan_url = url_endpoint
             logging.info(f"Using {url_endpoint}")
+            self.public_address = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET
         elif network == "testnet":
             self.swan_url = ORCHESTRATOR_API_TESTNET
             logging.info("Using Testnet")
+            self.public_address = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET
         else:
             self.swan_url = ORCHESTRATOR_API_MAINNET
             logging.info("Using Mainnet")
+            self.public_address = ORCHESTRATOR_PUBLIC_ADDRESS_MAINNET
 
         if login:
             self.api_key_login()
         if self.token:
-            pub_addr = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET if network == "testnet" else ORCHESTRATOR_PUBLIC_ADDRESS_MAINNET
-            self.get_contract_info(verification, orchestrator_public_address=pub_addr)
+            self.get_contract_info(verification)
             self._get_instance_mapping()
         
         self._get_hardware_config()
@@ -106,13 +118,13 @@ class Orchestrator(APIClient):
             return None
 
 
-    def get_contract_info(self, verification: bool = True, orchestrator_public_address = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET):
+    def get_contract_info(self, verification: bool = True):
         response = self._request_without_params(GET, GET_CONTRACT_INFO, self.swan_url, self.token)
         if verification:
-            if not self.contract_info_verified(
+            if not self.public_address or not self.contract_info_verified(
                 response["data"]["contract_info"], 
                 response["data"]["signature"], 
-                orchestrator_public_address
+                self.public_address
             ):
                 return False
         self.contract_info = response["data"]["contract_info"]["contract_detail"]
@@ -169,7 +181,7 @@ class Orchestrator(APIClient):
             logging.error("Failed to fetch hardware configurations.")
             return None
         
-    def get_instance_resources(self, available = True):
+    def get_instance_resources(self, available = True) -> Optional[List[InstanceResource]]:
         """Query current hardware list object.
         
         Returns:
@@ -187,15 +199,13 @@ class Orchestrator(APIClient):
         """
         try:
             response = self._request_without_params(GET, GET_CP_CONFIG, self.swan_url, self.token)
-            self.all_hardware = [HardwareConfig(hardware) for hardware in response["data"]["hardware"]]
+            instance_res = [InstanceResource(hardware) for hardware in response["data"]["hardware"]]
             if available:
-                hardwares_info = [hardware.to_instance_dict() for hardware in self.all_hardware if hardware.status == "available"]
-            else:
-                hardwares_info = [hardware.to_instance_dict() for hardware in self.all_hardware]
-            return hardwares_info
+                instance_res = [instance for instance in instance_res if instance.status == "available"]
+            return instance_res
         except Exception:
             logging.error("Failed to fetch instance resources.")
-            return None
+            return []
     
     def get_instance_hardware_id(self, instance_type):
         try:
@@ -211,7 +221,7 @@ class Orchestrator(APIClient):
             logging.error(f"Undefined instance type {instance_type}.")
             return None
 
-    def terminate_task(self, task_uuid: str):
+    def terminate_task(self, task_uuid: str) -> Optional[TaskTerminationMessage]:
         """
         Terminate a task
 
@@ -219,7 +229,7 @@ class Orchestrator(APIClient):
             task_uuid: uuid of task.
 
         Returns:
-            JSON of terminated successfully or not
+            TaskTerminationMessage object
         """
         try:
             params = {
@@ -235,7 +245,7 @@ class Orchestrator(APIClient):
                     None
                 )
             
-            return result
+            return TaskTerminationMessage.load_from_resp(result)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
@@ -291,19 +301,19 @@ class Orchestrator(APIClient):
 
     def create_task(
             self,
-            wallet_address, 
-            instance_type: str = None, 
-            region: str = "global",
-            duration: int = 3600, 
-            app_repo_image: str = "",
-            job_source_uri: str = "", 
-            repo_uri=None,
-            repo_branch=None,
-            auto_pay = True,
-            private_key = None,
-            start_in: int = 300,
-            preferred_cp_list=None,
-        ):
+            wallet_address: str, 
+            instance_type: Optional[str] = None, 
+            region: Optional[str] = "global",
+            duration: Optional[int] = 3600, 
+            app_repo_image: Optional[str] = None,
+            job_source_uri: Optional[str] = None, 
+            repo_uri: Optional[str] = None,
+            repo_branch: Optional[str] = None,
+            auto_pay: Optional[bool] = True,
+            private_key: Optional[str] = None,
+            start_in: Optional[int] = 300,
+            preferred_cp_list: Optional[List[str]] = None,
+        ) -> Optional[TaskCreationResult]:
         """
         Create a task via the orchestrator.
 
@@ -326,7 +336,7 @@ class Orchestrator(APIClient):
             SwanExceptionError: If neither app_repo_image nor job_source_uri is provided.
             
         Returns:
-            JSON response from the backend server including the 'task_uuid'.
+            TaskCreationResult object
         """
         try:
             if not wallet_address:
@@ -409,7 +419,9 @@ class Orchestrator(APIClient):
                 raise SwanAPIException(err_msg)
         
             tx_hash = None
+            tx_hash_approve = None
             config_order = None
+            amount = None
             if auto_pay:
                 config_result = self.make_payment(
                     task_uuid=task_uuid, 
@@ -420,31 +432,35 @@ class Orchestrator(APIClient):
                 if config_result and isinstance(config_result, dict):
                     tx_hash = config_result.get('tx_hash')
                     config_order = config_result.get('data')
+                    tx_hash_approve = config_result.get('tx_hash_approve')
+                    amount = config_result.get('amount')
+
 
             result['config_order'] = config_order
             result['tx_hash'] = tx_hash
+            result['tx_hash_approve'] = tx_hash_approve
             result['id'] = task_uuid
             result['task_uuid'] = task_uuid
             result['instance_type'] = instance_type
-            result['price'] = self.estimate_payment(instance_type=instance_type, duration=duration)
+            result['price'] = amount
 
-            logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {instance_type=}")
-            return result
+            # logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {instance_type=}")
+            return TaskCreationResult.load_from_resp(result)
 
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
 
     def estimate_payment(self, duration: float = 3600, instance_type: str = None):
-        """Estimate required funds.
+        """Estimate required amount.
 
         Args:
-            duration: duration in hours for space runtime.
+            duration: duration in seconds for task runtime.
             instance_type: instance type, e.g. C1ae.small
         
         Returns:
             int estimated price in SWAN.
-            e.g. (price = 10 SWAN, duration = 1 hr) -> 10 SWAN
+            e.g. (price = 10 SWAN, duration = 1 hr (3600 seconds)) -> 10 SWAN
         """
         try:
             price = self.get_instance_price(instance_type=instance_type)
@@ -454,43 +470,66 @@ class Orchestrator(APIClient):
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
-    
-    def submit_payment(self, task_uuid, private_key, duration = 3600, **kwargs):
+        
+    def approve_allowance(self, private_key: str, amount: float):
         """
-        Submit payment for a task
+        Approve in advance for the contract
 
         Args:
-            task_uuid: unique id returned by `swan_api.create_task`
             private_key: private key of owner
-            duration: duration of service runtime (seconds).
+            amount: amount to approve (in ether)
 
         Returns:
             tx_hash
         """
         try:
-            instance_type = self.get_task_instance_type(task_uuid)
-            if not instance_type:
-                raise SwanAPIException(f"Invalid instance_type for task {task_uuid}")
-            
-            hardware_id = self.get_instance_hardware_id(instance_type)
-            if hardware_id is None:
-                raise SwanAPIException(f"Invalid instance_type {instance_type}")
-            
             if not private_key:
                 raise SwanAPIException(f"No private_key provided.")
             if not self.contract_info:
                 raise SwanAPIException(f"No contract info on record, please verify contract first.")
             
             contract = SwanContract(private_key, self.contract_info)
-        
-            tx_hash = contract.submit_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
-            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {tx_hash=}")
+            logging.info(f"Approving in advance (in ether), {amount=}")
+            amount_wei = contract.to_wei(amount)
+            tx_hash = contract.approve_payment(amount_wei)
+            logging.info(f"Approved in advance (in ether), {amount=}. Got {tx_hash=}")
             return tx_hash
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
+        
+    def get_allowance(self, private_key: str):
+        """
+        Get allowance of the contract
 
-    def renew_payment(self, task_uuid, private_key, duration = 3600, **kwargs):
+        Args:
+            private_key: private key of owner
+
+        Returns:
+            allowance in ether
+        """
+        try:
+            if not private_key:
+                raise SwanAPIException(f"No private_key provided.")
+            if not self.contract_info:
+                raise SwanAPIException(f"No contract info on record, please verify contract first.")
+            
+            contract = SwanContract(private_key, self.contract_info)
+            allowance = contract.get_allowance()
+            amount = contract.from_wei(allowance)
+            logging.info(f"Got allowance (in ether), {amount=}")
+            return amount
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+    
+    def submit_payment(
+            self, 
+            task_uuid, 
+            private_key, 
+            duration = 3600, 
+            **kwargs
+        ) -> Optional[PaymentResult]:
         """
         Submit payment for a task
 
@@ -518,9 +557,50 @@ class Orchestrator(APIClient):
             
             contract = SwanContract(private_key, self.contract_info)
         
-            tx_hash = contract.renew_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
-            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {tx_hash=}")
-            return tx_hash
+            payment: PaymentResult = contract.submit_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
+            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {payment.tx_hash=}")
+            return payment
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+
+    def renew_payment(
+            self, 
+            task_uuid, 
+            private_key, 
+            duration = 3600, 
+            **kwargs
+        ) -> Optional[PaymentResult]:
+        """
+        Submit payment for a task
+
+        Args:
+            task_uuid: unique id returned by `swan_api.create_task`
+            private_key: private key of owner
+            duration: duration of service runtime (seconds).
+
+        Returns:
+            tx_hash
+        """
+        try:
+            instance_type = self.get_task_instance_type(task_uuid)
+            if not instance_type:
+                raise SwanAPIException(f"Invalid task info {task_uuid}")
+            
+            hardware_id = self.get_instance_hardware_id(instance_type)
+            if hardware_id is None:
+                raise SwanAPIException(f"Invalid instance_type {instance_type}")
+            
+            if not private_key:
+                raise SwanAPIException(f"No private_key provided.")
+            if not self.contract_info:
+                raise SwanAPIException(f"No contract info on record, please verify contract first.")
+            
+            contract = SwanContract(private_key, self.contract_info)
+        
+            payment: PaymentResult = contract.renew_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
+            logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {payment.tx_hash=}")
+            return payment
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
@@ -549,7 +629,7 @@ class Orchestrator(APIClient):
                 }
                 result = self._request_with_params(
                     POST, 
-                    '/v2/task_payment_validate', 
+                    TASK_PAYMENT_VALIDATE, 
                     self.swan_url, 
                     params, 
                     self.token, 
@@ -588,7 +668,7 @@ class Orchestrator(APIClient):
             if not self.contract_info:
                 raise SwanAPIException(f"No contract info on record, please verify contract first.")
             
-            if tx_hash := self.submit_payment(
+            if payment := self.submit_payment(
                 task_uuid=task_uuid, 
                 duration=duration, 
                 private_key=private_key, 
@@ -596,11 +676,13 @@ class Orchestrator(APIClient):
             ):
                 time.sleep(3)
                 if res := self.validate_payment(
-                    tx_hash=tx_hash, 
+                    tx_hash=payment.tx_hash, 
                     task_uuid=task_uuid
                 ):
-                    res['tx_hash'] = tx_hash
-                    logging.info(f"Payment submitted and validated successfully, {task_uuid=}, {tx_hash=}")
+                    res['tx_hash'] = payment.tx_hash
+                    res['tx_hash_approve'] = payment.tx_hash_approve
+                    res['amount'] = payment.amount
+                    logging.info(f"Payment submitted and validated successfully, {task_uuid=}, {payment}")
                     return res
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
@@ -610,12 +692,12 @@ class Orchestrator(APIClient):
     def renew_task(
             self, 
             task_uuid: str, 
-            duration = 3600, 
-            tx_hash = "", 
-            auto_pay = True, 
-            private_key = None, 
+            duration: int = 3600, 
+            tx_hash: Optional[str] = None, 
+            auto_pay: Optional[bool] = True, 
+            private_key: Optional[str] = None, 
             **kwargs
-        ):
+        ) -> Optional[TaskRenewalResult]:
         """
         Submit payment for a task renewal (if necessary)
         Extend a task
@@ -628,21 +710,34 @@ class Orchestrator(APIClient):
             auto_pay: (required True if no tx_hash but with private_key provided)
         
         Returns:
-            JSON response from backend server including 'task_uuid'.
+            TaskRenewalResult object
         """
         try:
             if not (auto_pay and private_key) and not tx_hash:
                 raise SwanAPIException(f"auto_pay off or tx_hash not provided, please provide a tx_hash or set auto_pay to True and provide private_key")
 
+            tx_hash_approve = None
+            amount = None
             if not tx_hash:
-                tx_hash = self.renew_payment(
+                payment: PaymentResult = self.renew_payment(
                     task_uuid=task_uuid, 
                     duration=duration, 
                     private_key=private_key
                 )
-                logging.info(f"renew payment transaction hash, {tx_hash=}")
+                if payment:
+                    logging.info(f"renew payment transaction hash, {payment=}")
+                    tx_hash = payment.tx_hash
+                    tx_hash_approve = payment.tx_hash_approve
+                    amount = payment.amount
+                else:
+                    logging.warning(f"renwal payment failed, {task_uuid=}, {duration=}")
+                    return None
             else:
                 logging.info(f"will use given payment transaction hash, {tx_hash=}")
+                amount = self.estimate_payment(
+                    duration=duration, 
+                    instance_type=self.get_task_instance_type(task_uuid)
+                )
 
             if tx_hash and task_uuid:
                 params = {
@@ -660,11 +755,13 @@ class Orchestrator(APIClient):
                         None
                     )
                 result.update({
+                    "tx_hash_approve": tx_hash_approve,
                     "tx_hash": tx_hash,
+                    "price": amount,
                     "task_uuid": task_uuid
                 })
                 logging.info(f"Task renewal request sent successfully, {task_uuid=} {tx_hash=}, {duration=}")
-                return result
+                return TaskRenewalResult.load_from_resp(result)
             else:
                 raise SwanAPIException(f"{tx_hash=} or {task_uuid=} invalid")
         except Exception as e:
@@ -708,26 +805,63 @@ class Orchestrator(APIClient):
             return None
         
         
-    def get_deployment_info(self, task_uuid: str):
+    def get_deployment_info(self, task_uuid: str) -> Optional[TaskDeploymentInfo]:
         """Retrieve deployment info of a deployed space with task_uuid.
 
         Args:
             task_uuid: uuid of space task, in deployment response.
 
         Returns:
-            Deployment info.
+            TaskDeploymentInfo object
         """
         try:
             response = self._request_without_params(GET, DEPLOYMENT_INFO+task_uuid, self.swan_url, self.token)
-            return response
+            return TaskDeploymentInfo.load_from_resp(response)
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
 
-    def get_real_url(self, task_uuid: str):
-        deployment_info = self.get_deployment_info(task_uuid)
+
+    def get_task_list(self, 
+            wallet_address: str,
+            page: int = 1,
+            size: int = 5,
+        ) -> Optional[TaskList]:
+        """
+        Get the list of tasks for a wallet address
+
+        Args:
+            wallet_address: wallet address of the user
+            page: page number
+            size: number of tasks per page
+
+        Returns:
+            TaskList object
+        """
         try:
-            jobs = deployment_info['data']['jobs']
+            params = {
+                "wallet_address": wallet_address,
+                "page": page,
+                "size": size
+            }
+            response = self._request_with_params(
+                GET, 
+                TASK_LIST, 
+                self.swan_url, 
+                params,
+                self.token,
+                None
+            )
+            return TaskList.load_from_resp(response)
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+
+
+    def get_real_url(self, task_uuid: str) -> Optional[List[str]]:
+        task_info: TaskDeploymentInfo = self.get_deployment_info(task_uuid)
+        try:
+            jobs = task_info['jobs']
             deployed_url = []
             for job in jobs:
                 try:
@@ -771,14 +905,16 @@ class Orchestrator(APIClient):
         return False
 
 
-    def get_task_instance_type(self, task_uuid: str):
+    def get_task_instance_type(self, task_uuid: str) -> Optional[str]:
         try:
             if not task_uuid:
                 raise SwanAPIException(f"Invalid task_uuid")
-            response = self.get_deployment_info(task_uuid)
-            if not response:
-                raise SwanAPIException(f"Get task {task_uuid} failed, cannot get instance_type")
-            return response['data']['task']['task_detail']['hardware']
+            task_info: TaskDeploymentInfo = self.get_deployment_info(task_uuid)
+            if not task_info:
+                raise SwanAPIException(f"Get task {task_uuid} failed")
+            if not task_info.task.uuid:
+                raise SwanAPIException(f"Task {task_uuid} not found")
+            return task_info['task']['task_detail']['hardware']
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
