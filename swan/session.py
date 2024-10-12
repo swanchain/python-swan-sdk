@@ -3,7 +3,7 @@ import logging
 import traceback
 
 from swan.api.orchestrator import Orchestrator
-from swan.api_client import APIClient
+from swan.api_client import OrchestratorAPIClient
 from swan.common.constant import *
 from swan.common.exception import SwanAPIException
 
@@ -32,10 +32,12 @@ class Session:
             self.login_url = login_url
         elif network == "testnet":
             self.login_url = ORCHESTRATOR_API_TESTNET
+            logging.info("Logging in Testnet")
         else:
             self.login_url = ORCHESTRATOR_API_MAINNET
+            logging.info("Logging in Mainnet")
 
-        self.api_client = APIClient()
+        self.api_client = OrchestratorAPIClient()
         self.login = login
         if login:
             self.api_key_login()
