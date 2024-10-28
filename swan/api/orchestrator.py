@@ -20,6 +20,7 @@ from swan.object import (
     TaskTerminationMessage,
     PaymentResult
 )
+from swan.common.utils import validate_ip_or_cidr
 
 class Orchestrator(OrchestratorAPIClient):
   
@@ -313,6 +314,7 @@ class Orchestrator(OrchestratorAPIClient):
             private_key: Optional[str] = None,
             start_in: Optional[int] = 300,
             preferred_cp_list: Optional[List[str]] = None,
+            ip_whitelist: Optional[List[str]] = None
         ) -> Optional[TaskCreationResult]:
         """
         Create a task via the orchestrator.
@@ -331,6 +333,7 @@ class Orchestrator(OrchestratorAPIClient):
             If True, the private key and wallet must be in .env (Default = False). Otherwise, the user must call the submit payment method on the contract and validate payment.
             private_key: Optional. The wallet's private key, only used if auto_pay is True.
             preferred_cp_list: Optional. A list of preferred cp account address(es).
+            ip_whitelist: Optional. A list of IP addresses which can access the application.
         
         Raises:
             SwanExceptionError: If neither app_repo_image nor job_source_uri is provided.
@@ -389,6 +392,14 @@ class Orchestrator(OrchestratorAPIClient):
             preferred_cp = None
             if preferred_cp_list and isinstance(preferred_cp_list, list):
                 preferred_cp = ','.join(preferred_cp_list)
+
+            ip_whitelist_str = None
+            if ip_whitelist and isinstance(ip_whitelist, list):
+                # validate ip address
+                for ip in ip_whitelist:
+                    if not validate_ip_or_cidr(ip):
+                        raise SwanAPIException(f"Invalid ip address: {ip}")
+                ip_whitelist_str = ','.join(ip_whitelist)
             
             if self._verify_hardware_region(instance_type, region):
                 params = {
@@ -401,6 +412,8 @@ class Orchestrator(OrchestratorAPIClient):
                 }
                 if preferred_cp:
                     params["preferred_cp"] = preferred_cp
+                if ip_whitelist_str:
+                    params["ip_whitelist"] = ip_whitelist_str
                 result = self._request_with_params(
                     POST, 
                     CREATE_TASK, 
