@@ -59,6 +59,7 @@ response = swan_orchestrator.create_task(
   auto_pay=True,
   private_key="string",
   preferred_cp_list="list"
+  ip_whitelist="list"
 )
 ```
 
@@ -75,6 +76,7 @@ PARAMETERS:
 - **auto_pay** (Boolean) - Automatically pays to deploy task if set to True. If True(default), private_key must be provided.
 - **private_key** (string) - Wallet's private_key, only used if auto_pay is True
 - **preferred_cp_list**: (list) - A list of preferred cp account addresses.
+- **ip_whitelist**: (list) - A list of IP addresses which can access the application.
 
 
 ### `get_deployment_info` Details

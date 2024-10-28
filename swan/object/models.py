@@ -349,8 +349,8 @@ class TaskTerminationMessage(Base):
         try:
             data = result.get('data', {})
             return TaskTerminationMessage(
-                retryable=result.get('retryable') if data else None,
-                task_status=result.get('task_status') if data else None,
+                retryable=data.get('retryable') if data else None,
+                task_status=data.get('task_status') if data else None,
                 status=result.get('status'),
                 message=result.get('message')
             )
