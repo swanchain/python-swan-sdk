@@ -91,6 +91,7 @@ class TaskDetail(Base):
     storage_source: Optional[str] = None
     type: Optional[str] = None
     updated_at: Optional[int] = None
+    ip_whitelist: Optional[List[str]] = None
 
 @dataclass
 class Task(Base):
