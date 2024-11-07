@@ -1,6 +1,7 @@
 # ./swan/object/cp_config.py
 
 import json
+from datetime import datetime, timezone
 
 class HardwareConfig:
 
@@ -50,6 +51,8 @@ class InstanceResource:
         self.region = config["region"]
         self.price = config["hardware_price"]
         self.status = config["hardware_status"]
+        self.snapshot_id = config.get("snapshot_id", None)
+        self.expire_time = config.get("expire_time", None)
     
     def to_dict(self):
         return {
@@ -59,8 +62,18 @@ class InstanceResource:
             "type": self.type,
             "region": self.region,
             "price": self.price,
-            "status": self.status
+            "status": self.status,
+            "snapshot_id": self.snapshot_id,
+            "expire_time": self.time_str(self.expire_time)
         }
+    
+    def time_str(self, timestamp):
+        try:
+            if timestamp:
+                return datetime.fromtimestamp(timestamp, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S %Z")
+        except:
+            pass
+        return timestamp
     
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, indent=2)
