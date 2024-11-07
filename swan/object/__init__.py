@@ -10,5 +10,6 @@ from swan.object.models import (
     CPAccount,
     TaskRenewalResult,
     TaskTerminationMessage,
-    PaymentResult
+    PaymentResult,
+    TaskDetail
 )
