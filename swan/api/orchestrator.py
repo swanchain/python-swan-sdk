@@ -714,7 +714,7 @@ class Orchestrator(OrchestratorAPIClient):
                     res['tx_hash'] = payment.tx_hash
                     res['tx_hash_approve'] = payment.tx_hash_approve
                     res['amount'] = payment.amount
-                    logging.info(f"Payment submitted and validated successfully, {task_uuid=}, {payment}")
+                    logging.info(f"Payment and validation submitted successfully, {task_uuid=}, {payment}")
                     return res
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
@@ -931,7 +931,7 @@ class Orchestrator(OrchestratorAPIClient):
         """
         self._get_hardware_config()  # make sure all_hardware is updated all the time
         for hardware in self.all_hardware:
-            if hardware.name == instance_type:
+            if hardware.instance_type == instance_type:
                 if region in hardware.region or (region.lower() == 'global' and hardware.status == 'available'):
                     return True
         return False
