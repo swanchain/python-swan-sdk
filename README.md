@@ -143,40 +143,6 @@ available_resources = swan_orchestrator.get_instance_resources()
 print(available_resources)
 ```
 
-Sample output:
-
-```
-[
-  {
-    "hardware_id": 0,
-    "instance_type": "C1ae.small",
-    "description": "CPU only · 2 vCPU · 2 GiB",
-    "type": "CPU",
-    "region": [
-      "North Carolina-US",
-      "Quebec-CA"
-    ],
-    "price": "0.0",
-    "status": "available"
-  },
-  //...
-  {
-    "hardware_id": 12,
-    "instance_type": "G1ae.small",
-    "description": "Nvidia 3080 · 4 vCPU · 8 GiB",
-    "type": "GPU",
-    "region": [
-      "North Carolina-US",
-      "Quebec-CA"
-    ],
-    "price": "10.0",
-    "status": "available"
-  },
-  //...
-]
-```
-
-
 #### Create and deploy a task
 
 Deploy a simple application with Swan SDK:
