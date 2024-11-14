@@ -162,7 +162,7 @@ class SwanContract():
         #     duration=duration/3600  # duration in estimate_
         # ))
         price_per_hour_wei = self.to_wei(price_per_hour)
-        amount = int(price_per_hour_wei * duration / 3600)
+        amount = self.to_wei(price_per_hour * duration / 3600)
 
         tx_hash_approve = None
         
@@ -220,7 +220,7 @@ class SwanContract():
         #     duration=duration/3600  # duration in estimate_
         # ))
         price_per_hour_wei = self.to_wei(price_per_hour)
-        amount = int(price_per_hour_wei * duration / 3600)
+        amount = self.to_wei(price_per_hour * duration / 3600)
 
         tx_hash_approve = None
         if self.get_allowance() < amount:
