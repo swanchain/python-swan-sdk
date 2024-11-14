@@ -107,7 +107,8 @@ class Orchestrator(OrchestratorAPIClient):
                 "wallet_address": wallet_address,
                 "hardware_id": hardware_id,
                 "repo_uri": repo_uri,
-                "repo_branch": repo_branch
+                "repo_branch": repo_branch,
+                "dp": "true"
             }
             response = self._request_with_params(POST, GET_SOURCE_URI, self.swan_url, params, self.token, None)
             job_source_uri = ""
@@ -561,7 +562,7 @@ class Orchestrator(OrchestratorAPIClient):
             # instance_type = self.get_task_instance_type(task_uuid)
             task_detail: TaskDetail = self.get_task_detail(task_uuid)
             instance_type = task_detail.hardware
-            price_per_hour = task_detail.price_per_hour
+            price_per_hour = float(task_detail.price_per_hour)
             if not instance_type:
                 raise SwanAPIException(f"Invalid instance_type for task {task_uuid}")
             
@@ -610,7 +611,7 @@ class Orchestrator(OrchestratorAPIClient):
             # instance_type = self.get_task_instance_type(task_uuid)
             task_detail: TaskDetail = self.get_task_detail(task_uuid)
             instance_type = task_detail.hardware
-            price_per_hour = task_detail.price_per_hour
+            price_per_hour = float(task_detail.price_per_hour)
             if not instance_type:
                 raise SwanAPIException(f"Invalid task info {task_uuid}")
             
