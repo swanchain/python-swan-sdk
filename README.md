@@ -140,42 +140,8 @@ import swan
 swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orchestrator')
 
 available_resources = swan_orchestrator.get_instance_resources()
-print(json.dumps(available_resources.to_dict(), indent=2, ensure_ascii=False))
+print(available_resources)
 ```
-
-Sample output:
-
-```
-[
-  {
-    "hardware_id": 0,
-    "instance_type": "C1ae.small",
-    "description": "CPU only · 2 vCPU · 2 GiB",
-    "type": "CPU",
-    "region": [
-      "North Carolina-US",
-      "Quebec-CA"
-    ],
-    "price": "0.0",
-    "status": "available"
-  },
-  //...
-  {
-    "hardware_id": 12,
-    "instance_type": "G1ae.small",
-    "description": "Nvidia 3080 · 4 vCPU · 8 GiB",
-    "type": "GPU",
-    "region": [
-      "North Carolina-US",
-      "Quebec-CA"
-    ],
-    "price": "10.0",
-    "status": "available"
-  },
-  //...
-]
-```
-
 
 #### Create and deploy a task
 
@@ -254,16 +220,11 @@ import swan
 
 swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orchestrator')
 
-renew_result = swan_orchestrator.renew_task(
+swan_orchestrator.renew_task(
     task_uuid=<task_uuid>, 
     duration=3600, # Optional: default 3600 seconds (1 hour)
     private_key=<PRIVATE_KEY>
 )
-
-if renew_result and renew_result['status'] == 'success':
-    print(f"successfully renewed {<task_uuid>}")
-else:
-    print(f"Unable to renew {<task_uuid>}")
 ```
 
 #### Terminate an existing task

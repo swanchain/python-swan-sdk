@@ -3,6 +3,7 @@ from swan.common.constant import FIL_PRICE_API
 import json
 import os
 import datetime
+import re
 
 
 # both util functions
@@ -85,3 +86,27 @@ def datetime_to_unixtime(datetime_str: str):
         return unix_timestamp
     except:
         return datetime_str
+    
+
+def is_valid_ipv4(ip):
+    pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
+    if re.match(pattern, ip):
+        return all(0 <= int(octet) <= 255 for octet in ip.split('.'))
+    return False
+
+def is_valid_ipv6(ip):
+    pattern = r'^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$'
+    return bool(re.match(pattern, ip))
+
+def is_valid_cidr(cidr):
+    ip, prefix = cidr.split('/')
+    if is_valid_ipv4(ip):
+        return 0 <= int(prefix) <= 32
+    elif is_valid_ipv6(ip):
+        return 0 <= int(prefix) <= 128
+    return False
+
+def validate_ip_or_cidr(entry):
+    if '/' in entry:
+        return is_valid_cidr(entry)
+    return is_valid_ipv4(entry) or is_valid_ipv6(entry)

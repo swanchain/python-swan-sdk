@@ -18,8 +18,10 @@ from swan.object import (
     TaskList,
     TaskRenewalResult, 
     TaskTerminationMessage,
-    PaymentResult
+    PaymentResult,
+    TaskDetail
 )
+from swan.common.utils import validate_ip_or_cidr
 
 class Orchestrator(OrchestratorAPIClient):
   
@@ -105,7 +107,8 @@ class Orchestrator(OrchestratorAPIClient):
                 "wallet_address": wallet_address,
                 "hardware_id": hardware_id,
                 "repo_uri": repo_uri,
-                "repo_branch": repo_branch
+                "repo_branch": repo_branch,
+                "dp": "true"
             }
             response = self._request_with_params(POST, GET_SOURCE_URI, self.swan_url, params, self.token, None)
             job_source_uri = ""
@@ -160,9 +163,9 @@ class Orchestrator(OrchestratorAPIClient):
             }
         """
         try:
-            response = self._request_without_params(GET, GET_CP_CONFIG, self.swan_url, self.token)
-            self.all_hardware = [HardwareConfig(hardware) for hardware in response["data"]["hardware"]]
-            self.instance_mapping = {hardware.name: hardware.to_instance_dict() for hardware in self.all_hardware}
+            response = self._request_without_params(GET, GET_CP_CONFIG_DP, self.swan_url, self.token)
+            self.all_hardware = [InstanceResource(hardware) for hardware in response["data"]["hardware"]]
+            self.instance_mapping = {hardware.instance_type: hardware.to_dict() for hardware in self.all_hardware}
             if available:
                 hardwares_info = [hardware.to_dict() for hardware in self.all_hardware if hardware.status == "available"]
             else:
@@ -174,9 +177,9 @@ class Orchestrator(OrchestratorAPIClient):
         
     def _get_instance_mapping(self):
         try:
-            response = self._request_without_params(GET, GET_CP_CONFIG, self.swan_url, self.token)
-            self.all_hardware = [HardwareConfig(hardware) for hardware in response["data"]["hardware"]]
-            self.instance_mapping = {hardware.name: hardware.to_instance_dict() for hardware in self.all_hardware}
+            response = self._request_without_params(GET, GET_CP_CONFIG_DP, self.swan_url, self.token)
+            self.all_hardware = [InstanceResource(hardware) for hardware in response["data"]["hardware"]]
+            self.instance_mapping = {hardware.instance_type: hardware.to_dict() for hardware in self.all_hardware}
         except Exception:
             logging.error("Failed to fetch hardware configurations.")
             return None
@@ -194,11 +197,13 @@ class Orchestrator(OrchestratorAPIClient):
                 'type': 'CPU', 
                 'region': ['North Carolina-US'], 
                 'price': '0.0', 
-                'status': 'available'
+                'status': 'available',
+                'snapshot_id': 1731004200,
+                'expire_time': 1731005239
             }
         """
         try:
-            response = self._request_without_params(GET, GET_CP_CONFIG, self.swan_url, self.token)
+            response = self._request_without_params(GET, GET_CP_CONFIG_DP, self.swan_url, self.token)
             instance_res = [InstanceResource(hardware) for hardware in response["data"]["hardware"]]
             if available:
                 instance_res = [instance for instance in instance_res if instance.status == "available"]
@@ -313,6 +318,7 @@ class Orchestrator(OrchestratorAPIClient):
             private_key: Optional[str] = None,
             start_in: Optional[int] = 300,
             preferred_cp_list: Optional[List[str]] = None,
+            ip_whitelist: Optional[List[str]] = None
         ) -> Optional[TaskCreationResult]:
         """
         Create a task via the orchestrator.
@@ -331,6 +337,7 @@ class Orchestrator(OrchestratorAPIClient):
             If True, the private key and wallet must be in .env (Default = False). Otherwise, the user must call the submit payment method on the contract and validate payment.
             private_key: Optional. The wallet's private key, only used if auto_pay is True.
             preferred_cp_list: Optional. A list of preferred cp account address(es).
+            ip_whitelist: Optional. A list of IP addresses which can access the application.
         
         Raises:
             SwanExceptionError: If neither app_repo_image nor job_source_uri is provided.
@@ -389,6 +396,14 @@ class Orchestrator(OrchestratorAPIClient):
             preferred_cp = None
             if preferred_cp_list and isinstance(preferred_cp_list, list):
                 preferred_cp = ','.join(preferred_cp_list)
+
+            ip_whitelist_str = None
+            if ip_whitelist and isinstance(ip_whitelist, list):
+                # validate ip address
+                for ip in ip_whitelist:
+                    if not validate_ip_or_cidr(ip):
+                        raise SwanAPIException(f"Invalid ip address: {ip}")
+                ip_whitelist_str = ','.join(ip_whitelist)
             
             if self._verify_hardware_region(instance_type, region):
                 params = {
@@ -401,6 +416,8 @@ class Orchestrator(OrchestratorAPIClient):
                 }
                 if preferred_cp:
                     params["preferred_cp"] = preferred_cp
+                if ip_whitelist_str:
+                    params["ip_whitelist"] = ip_whitelist_str
                 result = self._request_with_params(
                     POST, 
                     CREATE_TASK, 
@@ -542,7 +559,10 @@ class Orchestrator(OrchestratorAPIClient):
             tx_hash
         """
         try:
-            instance_type = self.get_task_instance_type(task_uuid)
+            # instance_type = self.get_task_instance_type(task_uuid)
+            task_detail: TaskDetail = self.get_task_detail(task_uuid)
+            instance_type = task_detail.hardware
+            price_per_hour = float(task_detail.price_per_hour)
             if not instance_type:
                 raise SwanAPIException(f"Invalid instance_type for task {task_uuid}")
             
@@ -557,7 +577,12 @@ class Orchestrator(OrchestratorAPIClient):
             
             contract = SwanContract(private_key, self.contract_info)
         
-            payment: PaymentResult = contract.submit_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
+            payment: PaymentResult = contract.submit_payment(
+                task_uuid=task_uuid, 
+                hardware_id=hardware_id, 
+                price_per_hour=price_per_hour,
+                duration=duration
+            )
             logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {payment.tx_hash=}")
             return payment
         except Exception as e:
@@ -583,7 +608,10 @@ class Orchestrator(OrchestratorAPIClient):
             tx_hash
         """
         try:
-            instance_type = self.get_task_instance_type(task_uuid)
+            # instance_type = self.get_task_instance_type(task_uuid)
+            task_detail: TaskDetail = self.get_task_detail(task_uuid)
+            instance_type = task_detail.hardware
+            price_per_hour = float(task_detail.price_per_hour)
             if not instance_type:
                 raise SwanAPIException(f"Invalid task info {task_uuid}")
             
@@ -598,7 +626,12 @@ class Orchestrator(OrchestratorAPIClient):
             
             contract = SwanContract(private_key, self.contract_info)
         
-            payment: PaymentResult = contract.renew_payment(task_uuid=task_uuid, hardware_id=hardware_id, duration=duration)
+            payment: PaymentResult = contract.renew_payment(
+                task_uuid=task_uuid, 
+                hardware_id=hardware_id, 
+                price_per_hour=price_per_hour,
+                duration=duration
+            )
             logging.info(f"Payment submitted, {task_uuid=}, {duration=}, {instance_type=}. Got {payment.tx_hash=}")
             return payment
         except Exception as e:
@@ -682,7 +715,7 @@ class Orchestrator(OrchestratorAPIClient):
                     res['tx_hash'] = payment.tx_hash
                     res['tx_hash_approve'] = payment.tx_hash_approve
                     res['amount'] = payment.amount
-                    logging.info(f"Payment submitted and validated successfully, {task_uuid=}, {payment}")
+                    logging.info(f"Payment and validation submitted successfully, {task_uuid=}, {payment}")
                     return res
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
@@ -899,7 +932,7 @@ class Orchestrator(OrchestratorAPIClient):
         """
         self._get_hardware_config()  # make sure all_hardware is updated all the time
         for hardware in self.all_hardware:
-            if hardware.name == instance_type:
+            if hardware.instance_type == instance_type:
                 if region in hardware.region or (region.lower() == 'global' and hardware.status == 'available'):
                     return True
         return False
@@ -915,6 +948,20 @@ class Orchestrator(OrchestratorAPIClient):
             if not task_info.task.uuid:
                 raise SwanAPIException(f"Task {task_uuid} not found")
             return task_info['task']['task_detail']['hardware']
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+            return None
+
+    def get_task_detail(self, task_uuid: str) -> Optional[TaskDetail]:
+        try:
+            if not task_uuid:
+                raise SwanAPIException(f"Invalid task_uuid")
+            task_info: TaskDeploymentInfo = self.get_deployment_info(task_uuid)
+            if not task_info or not task_info.task or not task_info.task.task_detail:
+                raise SwanAPIException(f"Get task {task_uuid} failed")
+            if not task_info.task.uuid:
+                raise SwanAPIException(f"Task {task_uuid} not found")
+            return task_info.task.task_detail
         except Exception as e:
             logging.error(str(e) + traceback.format_exc())
             return None
