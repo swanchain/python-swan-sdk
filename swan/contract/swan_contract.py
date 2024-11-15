@@ -96,34 +96,34 @@ class SwanContract():
         except:
             return None
 
-    def hardware_info(self, hardware_id: int):
-        """Retrieve hardware information from payment contract.
+    # def hardware_info(self, hardware_id: int):
+    #     """Retrieve hardware information from payment contract.
 
-        Args:
-            hardware_id: integer id of hardware, can be retrieve through Swan API.
+    #     Args:
+    #         hardware_id: integer id of hardware, can be retrieve through Swan API.
 
-        Returms:
-            tuple[] hardware information, [name: str, price/hr: int, avaliability: bool]
-            e.g. ['C1ae.medium', 1000000000000000000, True]
-            see more detial in ./swan/contract/abi/paymentContract.json
-        """
-        # hardware_info = self.payment_contract.functions.hardwareInfo(hardware_id).call()
-        hardware_info = self.client_contract.functions.hardwareInfo(hardware_id).call()
-        return hardware_info
+    #     Returms:
+    #         tuple[] hardware information, [name: str, price/hr: int, avaliability: bool]
+    #         e.g. ['C1ae.medium', 1000000000000000000, True]
+    #         see more detial in ./swan/contract/abi/paymentContract.json
+    #     """
+    #     # hardware_info = self.payment_contract.functions.hardwareInfo(hardware_id).call()
+    #     hardware_info = self.client_contract.functions.hardwareInfo(hardware_id).call()
+    #     return hardware_info
     
-    def estimate_payment(self, hardware_id: int, duration: int):
-        """Estimate required funds for lock_renvenue() function.
+    # def estimate_payment(self, hardware_id: int, duration: int):
+    #     """Estimate required funds for lock_renvenue() function.
 
-        Args:
-            hardware_id: integer id of hardware, can be retrieve through Swan API.
-            duration: duration in hours for space runtime.
+    #     Args:
+    #         hardware_id: integer id of hardware, can be retrieve through Swan API.
+    #         duration: duration in hours for space runtime.
         
-        Returns:
-            int estimated price in wei (18 decimal, 1e-18 swan).
-            e.g. (price = 1000 wei, duration = 1 hr) -> 1000 wei
-        """
-        price = self.hardware_info(hardware_id)[1]
-        return price * duration
+    #     Returns:
+    #         int estimated price in wei (18 decimal, 1e-18 swan).
+    #         e.g. (price = 1000 wei, duration = 1 hr) -> 1000 wei
+    #     """
+    #     price = self.hardware_info(hardware_id)[1]
+    #     return price * duration
 
     def get_allowance(self):
         """Get allowance of swan token for payment contract.
@@ -141,6 +141,7 @@ class SwanContract():
             self, 
             task_uuid: str, 
             hardware_id: int, 
+            price_per_hour: float,
             duration: int
         ) -> PaymentResult:
         """
@@ -156,10 +157,12 @@ class SwanContract():
         """
         
         # first approve payment
-        amount = int(self.estimate_payment(
-            hardware_id=hardware_id, 
-            duration=duration/3600  # duration in estimate_
-        ))
+        # amount = int(self.estimate_payment(
+        #     hardware_id=hardware_id, 
+        #     duration=duration/3600  # duration in estimate_
+        # ))
+        price_per_hour_wei = self.to_wei(price_per_hour)
+        amount = self.to_wei(price_per_hour * duration / 3600)
 
         tx_hash_approve = None
         
@@ -173,6 +176,7 @@ class SwanContract():
         tx = self.client_contract.functions.submitPayment(
             task_uuid, 
             hardware_id, 
+            price_per_hour_wei,
             duration
         ).build_transaction({
             'from': self.account.address,
@@ -195,6 +199,7 @@ class SwanContract():
             self, 
             task_uuid: str, 
             hardware_id: int, 
+            price_per_hour: float,
             duration: int
         ) -> PaymentResult:
         """
@@ -210,10 +215,12 @@ class SwanContract():
         """
         
         # first approve payment
-        amount = int(self.estimate_payment(
-            hardware_id=hardware_id, 
-            duration=duration/3600  # duration in estimate_
-        ))
+        # amount = int(self.estimate_payment(
+        #     hardware_id=hardware_id, 
+        #     duration=duration/3600  # duration in estimate_
+        # ))
+        price_per_hour_wei = self.to_wei(price_per_hour)
+        amount = self.to_wei(price_per_hour * duration / 3600)
 
         tx_hash_approve = None
         if self.get_allowance() < amount:
@@ -226,6 +233,7 @@ class SwanContract():
         tx = self.client_contract.functions.renewPayment(
             task_uuid, 
             hardware_id, 
+            price_per_hour_wei,
             duration
         ).build_transaction({
             'from': self.account.address,
@@ -264,71 +272,7 @@ class SwanContract():
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
         self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
         return self.w3.to_hex(tx_hash)
-    
 
-    def lock_revenue(self, task_id: str, hardware_id: int, duration: int):
-        """
-        deprecated
-        """
-        nonce = self.w3.eth.get_transaction_count(self.account.address)
-        tx = self.payment_contract.functions.lockRevenue(
-            task_id, 
-            hardware_id, 
-            duration
-        ).build_transaction({
-            'from': self.account.address,
-            'nonce': nonce,
-            **self._get_fee_per_gas(),
-        })
-        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
-        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-        self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
-        return self.w3.to_hex(tx_hash)
-    
-    def _approve_swan_token(self, amount):
-        """
-        deprecated
-        """
-        nonce = self.w3.eth.get_transaction_count(self.account.address)
-        tx = self.token_contract.functions.approve(
-            self.payment_contract.address, 
-            amount
-        ).build_transaction({
-            'from': self.account.address,
-            'nonce': nonce,
-            **self._get_fee_per_gas(),
-        })
-        signed_tx = self.w3.eth.account.sign_transaction(tx, self.account._private_key)
-        tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
-        self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=CONTRACT_TIMEOUT)
-        return self.w3.to_hex(tx_hash)
-    
-    def _get_swan_balance(self, address=None):
-        """Retrieve swan token balance of any wallet from Swan token contract.
-
-        Args:
-            address: wallet address to check balance. If None, retrieve own token balance.
-
-        Returns:
-            int Swan token balance in wei (18 decimal, 1e-18 swan).
-        """
-        if not address:
-            address = self.account.address
-        return self.token_contract.functions.balanceOf(address).call()
-    
-    def _wei_to_swan(self, value: int, decimal: int = 18):
-        """Convert wei to swan.
-
-        Args:
-            value: integer value in wei.
-            decimal: number of decimal digit if swan token (defaut 18)
-        
-        Return:
-            float converted value with correct decimal (default swan, 18 decimal).
-        """
-        if value == 0: 
-            return 0
-        return self.w3.from_wei(value, 'ether')
     
     def to_wei(self, value: float):
         return int(self.w3.to_wei(value, 'ether'))
@@ -336,10 +280,3 @@ class SwanContract():
     def from_wei(self, value: float):
         return float(self.w3.from_wei(value, 'ether'))
     
-    def _get_swan_gas(self):
-        """Get current gas on Swan chain
-
-        Returns:
-            int current gas price in wei.
-        """
-        return self.w3.eth.gas_price
