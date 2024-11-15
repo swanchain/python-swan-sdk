@@ -204,6 +204,68 @@
     "inputs": [
       {
         "indexed": false,
+        "internalType": "address",
+        "name": "payer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "uuid",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "hardwareId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "price",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "duration",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "snapshotId",
+        "type": "uint256"
+      }
+    ],
+    "name": "PaymentSubmitted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [],
+    "name": "PricesUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "snapshotId",
+        "type": "uint256"
+      }
+    ],
+    "name": "PricesUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
         "internalType": "string",
         "name": "taskId",
         "type": "string"
@@ -329,6 +391,19 @@
       }
     ],
     "name": "claimableRefund",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getSnapshotId",
     "outputs": [
       {
         "internalType": "uint256",
@@ -527,6 +602,34 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskUuid",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "hardwareId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "hardwarePricePerHour",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "duration",
+        "type": "uint256"
+      }
+    ],
+    "name": "renewPayment",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "renounceOwnership",
     "outputs": [],
@@ -618,6 +721,19 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "newSnapshotId",
+        "type": "uint256"
+      }
+    ],
+    "name": "setSnapshotId",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "taskManager",
         "type": "address"
@@ -637,6 +753,34 @@
       }
     ],
     "name": "setWallet",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "taskUuid",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "hardwareId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "hardwarePricePerHour",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "duration",
+        "type": "uint256"
+      }
+    ],
+    "name": "submitPayment",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -690,12 +834,81 @@
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "taskUuid",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "hardwareId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "hardwarePricePerHour",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "duration",
+        "type": "uint256"
+      }
+    ],
+    "name": "submitPrivatePayment",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "newOwner",
         "type": "address"
       }
     ],
     "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "newSnapshotId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "hardwareIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "pricePerHour",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "updatePrices",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "hardwareIds",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "pricePerHour",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "updatePrices",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
