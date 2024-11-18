@@ -53,6 +53,7 @@ class InstanceResource:
         self.status = config["hardware_status"]
         self.snapshot_id = config.get("snapshot_id", None)
         self.expiry_time = config.get("expiry_time", None)
+        self.ssh_ready = config.get("ssh_ready", [])
     
     def to_dict(self):
         return {
@@ -64,7 +65,8 @@ class InstanceResource:
             "price": self.price,
             "status": self.status,
             "snapshot_id": self.snapshot_id,
-            "expiry_time": self.time_str(self.expiry_time)
+            "expiry_time": self.time_str(self.expiry_time),
+            "ssh_ready": self.ssh_ready
         }
     
     def time_str(self, timestamp):
