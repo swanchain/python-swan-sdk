@@ -45,7 +45,7 @@ available_instances = swan_orchestrator.get_instance_resources()
 print(available_instances)
 ```
 
-In the output of available resources list, choose a `cp_account_address` in `ssh_ready` list:
+In the output of available resources list, choose a `cp_account_address` in `ssh_ready` list of the instance type you want (such as `C1ae.small`):
 
 ```
 [InstanceResource({
@@ -102,7 +102,7 @@ result = swan_orchestrator.create_task(
     repo_uri='<YOUR-GITHUB-REPO-URI-FOR-SSH>',
     wallet_address='<WALLET_ADDRESS>',
     private_key='<PRIVATE_KEY>',
-    instance_type='C1ae.small',
+    instance_type='<INSTANCE_TYPE>', #such as 'C1ae.small',
     preferred_cp_list=['SSH-READY-CP-ACCOUNT-ADDRESS']
 )
 task_uuid = result['task_uuid']
