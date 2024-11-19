@@ -39,11 +39,67 @@ import swan
 
 swan_orchestrator = swan.resource(api_key='<SWAN_API_KEY>', service_name='Orchestrator')
 
+available_instances = swan_orchestrator.get_instance_resources()
+print(available_instances)
+```
+
+In the output of available resources list, choose a `cp_account_address` in `ssh_ready` list:
+
+```
+[InstanceResource({
+  "hardware_id": 0,
+  "instance_type": "C1ae.small",
+  "description": "CPU only \u00b7 2 vCPU \u00b7 2 GiB",
+  "type": "CPU",
+  "region": [
+    "Virginia-US",
+    "Quebec-CA",
+    "Jakarta-ID",
+    "Kowloon City-HK",
+    "North Rhine-Westphalia-DE",
+    "Seoul-KR",
+    "Eastern-HK",
+    "Ivano-Frankivsk Oblast-UA",
+    "Kowloon-HK",
+    "Saxony-DE",
+    "Jiangsu-CN",
+    "Tokyo-JP",
+    "Kuala Lumpur-MY",
+    "North West-SG",
+    "Central and Western District-HK",
+    "Central and Western-HK",
+    "National Capital Territory of Delhi-IN",
+    "Florida-US"
+  ],
+  "price": "0.48",
+  "status": "available",
+  "snapshot_id": 1732047600,
+  "expiry_time": 1732048445,
+  "ssh_ready": [
+    {
+      "cp_account_address": "0xEf675CA43Ce25b2594079caCE98C7362733E1F5B",
+      "region": "Quebec-CA"
+    },
+    {
+      "cp_account_address": "0x4cbe96669516961Ebaf7225Fe07a34d56c4B2B12",
+      "region": "North West-SG"
+    },
+    {
+      "cp_account_address": "0x34378963383667F87b5C185A7b716c2C353EF9d2",
+      "region": "Florida-US"
+    }
+  ]
+```
+
+Deploy the SSH application to use that `cp_account_address`, put it in the `preferred_cp_list`.
+
+```py
 result = swan_orchestrator.create_task(
     repo_uri='<YOUR-GITHUB-REPO-URI-FOR-SSH>',
     wallet_address='<WALLET_ADDRESS>',
     private_key='<PRIVATE_KEY>',
-    instance_type='C1ae.small'
+    instance_type='C1ae.small',
+    preferred_cp_list=['SSH-READY-CP-ACCOUNT-ADDRESS']
 )
 task_uuid = result['task_uuid']
 # Get task deployment info
