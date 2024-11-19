@@ -33,6 +33,8 @@ deployment:
 
 ## Deploy SSH Application with Swan SDK
 
+1. Choose a computing provider who can support SSH application
+
 ```py
 import json
 import swan
@@ -90,6 +92,8 @@ In the output of available resources list, choose a `cp_account_address` in `ssh
     }
   ]
 ```
+
+2. Deploy SSH application with the selected CP
 
 Deploy the SSH application to use that `cp_account_address`, put it in the `preferred_cp_list`.
 
