@@ -212,7 +212,7 @@ print(app_urls)
 
 #### Renew an existing task
 
-If you have already submitted payment for the renewal of a task, you can use the `tx_hash` with `renew_task` to extend the task.
+You can extend task duration before task duration ends by using `renew_task`.
 
 ```python
 import json

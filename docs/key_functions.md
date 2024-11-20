@@ -8,12 +8,6 @@
   - [`get_real_url` Details](#get_real_url-details)
   - [`renew_task` Details](#renew_task-details)
   - [`terminate_task` Details](#terminate_task-details)
-- [Other Functions](#other-functions)
-  - [`make_payment` Details](#make_payment-details)
-  - [`renew_payment` Details](#renew_payment-details)
-  - [`submit_payment` Details](#submit_payment-details)
-  - [`validate_payment` Details](#validate_payment-details)
-  - [`get_app_repo_image` Details](#get_app_repo_image-details)
 
 ## Core Functions
 
@@ -131,18 +125,16 @@ response = swan_orchestrator.renew_task(
   tx_hash="string", 
   auto_pay = True, 
   private_key="string", 
-  instance_type=None, 
 )
 ```
 
 PARAMETERS:
 - **task_uuid** (string) **[REQUIRED]** - The task_uuid to be extended
-- **duration** (integer) - id of cp/hardware configuration set. Defaults to 0 (Free tier).
-- **tx_hash** (string) - The tx_hash of payment
-- **auto_pay** (Boolean) - Automatically pays to extend task if set to True. If True(default), private_key must be provided.
+- **duration** (integer) - Duration to extend (default to 3600 seconds)
+- **tx_hash** (string) - Optional. The tx_hash of payment
+- **auto_pay** (Boolean) - Automatically pays to extend task if set to True. If True(default), private_key must be provided. (default to True)
 **IMPORTANT** If auto_pay is False, tx_hash must be provided
 - **private_key** (string) - Wallet's private_key, only used if auto_pay is True
-- **instance_type** (string) **[REQUIRED]** - instance type of hardware config. Defaults to 'C1ae.small' (Free tier).
 
 
 ### `terminate_task` Details
@@ -162,123 +154,4 @@ response = swan_orchestrator.terminate_task(
 ```
 PARAMETERS:
 - **task_uuid** (string) **[REQUIRED]** - The task_uuid to be terminates
-
-
-## Other Functions
-
-Functions in this category should be used more as references to know logic behind the core functions.
-
-### `make_payment` Details
-
-This function consists of two steps: `submit_payment` and `validate_payment`. Only the payment for a task is validated, the task can be deployed.
-
-```python
-swan_orchestrator.make_payment(**kwargs)
-```
-
-Submit a payment to SWAN contract for a task
-
-**Request Syntax**:
-
-```python
-response = swan_orchestrator.make_payment(
-  task_uuid="string",
-  private_key="string", 
-  duration = 3600, 
-  instance_type=None, 
-)
-```
-PARAMETERS:
-- **task_uuid** (string) **[REQUIRED]** - task_uuid of task being paid for
-- **private_key** (string) **[REQUIRED]** - Wallet's private_key
-- **duration** (integer) - duration of service runtime in seconds. Defaults to 3600 seconds (1 hour).
-- **instance_type** (string) - instance type of hardware config. Defaults to 'C1ae.small' (Free tier).
-
-
-### `renew_payment` Details
-
-```python
-swan_orchestrator.renew_payment(**kwargs)
-```
-
-Submit a payment to SWAN contract for a task
-
-**Request Syntax**:
-
-```python
-response = swan_orchestrator.renew_payment(
-  task_uuid="string",
-  private_key="string", 
-  duration = 3600, 
-  instance_type=None, 
-)
-```
-PARAMETERS:
-- **task_uuid** (string) **[REQUIRED]** - task_uuid of task being paid for
-- **private_key** (string) **[REQUIRED]** - Wallet's private_key
-- **duration** (integer) - duration of service runtime in seconds. Defaults to 3600 seconds (1 hour).
-- **instance_type** (string) - instance type of hardware config. Defaults to 'C1ae.small' (Free tier).
-
-
-### `submit_payment` Details
-
-```python
-swan_orchestrator.submit_payment(**kwargs)
-```
-
-Submit a payment to SWAN contract for a task
-
-**Request Syntax**:
-
-```python
-response = swan_orchestrator.submit_payment(
-  task_uuid="string",
-  private_key="string", 
-  duration = 3600, 
-  instance_type=None, 
-)
-```
-PARAMETERS:
-- **task_uuid** (string) **[REQUIRED]** - task_uuid of task being paid for
-- **private_key** (string) **[REQUIRED]** - Wallet's private_key
-- **duration** (integer) - duration of service runtime in seconds. Defaults to 3600 seconds (1 hour).
-- **instance_type** (string) - instance type of hardware config. Defaults to 'C1ae.small' (Free tier).
-
-
-### `validate_payment` Details
-```python
-swan_orchestrator.validate_payment(**kwargs)
-```
-
-Deploy task on orchestrator with proof of payment
-
-**Request Syntax**:
-```python
-response = swan_orchestrator.validate_payment(
-  tx_hash="string",
-  task_uuid="string"
-)
-```
-PARAMETERS:
-- **tx_hash** (string) **[REQUIRED]** - tx_hash/receipt of payment to SWAN contract for task with task_uuid 
-- **task_uuid** (string) **[REQUIRED]** - task_uuid of task being extended
-
-
-### `get_app_repo_image` Details
-
-```python
-swan_orchestrator.get_app_repo_image(**kwargs)
-```
-
-Finds repository image of pre-defined applications
-
-**Request Syntax**:
-
-```python
-response = swan_orchestrator.get_app_repo_image(
-  name="string"
-)
-```
-PARAMETERS:
-- **name** (string) - If name is provided, it will return the repository image of pre-defined applications. If name is not provided, returns all repository image of pre-defined applications.
 
