@@ -40,20 +40,16 @@ class Orchestrator(OrchestratorAPIClient):
         self.region = "global"
         self.all_hardware = None
         self.instance_mapping = None
-        self.public_address = None
-    
+
         if url_endpoint:
             self.swan_url = url_endpoint
             logging.info(f"Using {url_endpoint}")
-            self.public_address = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET
         elif network == "testnet":
             self.swan_url = ORCHESTRATOR_API_TESTNET
             logging.info("Using Testnet")
-            self.public_address = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET
         else:
             self.swan_url = ORCHESTRATOR_API_MAINNET
             logging.info("Using Mainnet")
-            self.public_address = ORCHESTRATOR_PUBLIC_ADDRESS_MAINNET
 
         if login:
             self.api_key_login()
@@ -123,28 +119,8 @@ class Orchestrator(OrchestratorAPIClient):
 
     def get_contract_info(self, verification: bool = True):
         response = self._request_without_params(GET, GET_CONTRACT_INFO, self.swan_url, self.token)
-        if verification:
-            if not self.public_address or not self.contract_info_verified(
-                response["data"]["contract_info"], 
-                response["data"]["signature"], 
-                self.public_address
-            ):
-                return False
         self.contract_info = response["data"]["contract_info"]["contract_detail"]
         return True
-    
-    def contract_info_verified(
-            self, 
-            contract_info, 
-            signature, 
-            orchestrator_public_address = ORCHESTRATOR_PUBLIC_ADDRESS_TESTNET
-        ):
-        message_json = json.dumps(contract_info)
-        msghash = encode_defunct(text=message_json)
-        public_address = Account.recover_message(msghash, signature=signature)
-        if public_address == orchestrator_public_address:
-            return True
-        return False
         
     def _get_hardware_config(self, available = True):
         """Query current hardware list object.
