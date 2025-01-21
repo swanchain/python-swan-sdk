@@ -221,27 +221,8 @@ class Orchestrator(OrchestratorAPIClient):
 
     def get_custom_instance_result(self, custom_instance: Optional[dict] = {}, region: Optional[str] = 'global'):
         try:
-            gpu_model = custom_instance.get("gpu_model")
-            gpu_count = custom_instance.get("gpu_count", 1)
-
-            try:
-                cpu = int(custom_instance.get("cpu"))
-                memory = int(custom_instance.get("memory"))
-                storage = int(custom_instance.get("storage"))
-            except Exception as e:
-                logging.error("Incorrect type of input, cpu, memory and storage should be integer")
-                return None
+            params = self.validate_custom_instance(custom_instance)
             
-            params = {
-                "cpu": cpu,
-                "memory": memory,
-                "storage": storage,
-            }
-
-            if gpu_model:
-                params["gpu_model"] = gpu_model
-                params["gpu_count"] = gpu_count
-
             if region:
                 params["region"] = region
 
@@ -251,6 +232,20 @@ class Orchestrator(OrchestratorAPIClient):
             logging.error("Failed to fetch custom instance info.")
             return None
 
+    def validate_custom_instance(self, custom_instance: Optional[dict] = {}):
+        """Validate custom instance input"""
+        # gpu_model should be a string
+        gpu_model = custom_instance.get("gpu_model")
+        if not isinstance(gpu_model, str):
+            raise SwanAPIException("gpu model is not a string")
+
+        # cpu, memory, storage and gpu_count should be integer and greater than 0
+        int_inputs = ["cpu", "memory", "storage", "gpu_count"]
+        for key in int_inputs:
+            if key not in custom_instance or not isinstance(custom_instance[key], int) or custom_instance[key] <= 0:
+                raise SwanAPIException(f"{key} should be a positive integer")
+
+        return custom_instance
 
 
     def terminate_task(self, task_uuid: str) -> Optional[TaskTerminationMessage]:
@@ -389,7 +384,8 @@ class Orchestrator(OrchestratorAPIClient):
                 raise SwanAPIException(f"Duration must be no less than 3600 seconds")
 
             if custom_instance:
-                logging.info(f"Using custom instance {custom_instance}, {region=} {duration=} (seconds)")
+                logging.info(f"Input custom instance {custom_instance}, {region=} {duration=} (seconds)")
+                custom_instance = self.validate_custom_instance(custom_instance)
             else:
                 if not instance_type:
                     instance_type = 'C1ae.small'
@@ -398,7 +394,7 @@ class Orchestrator(OrchestratorAPIClient):
                 if hardware_id is None:
                     raise SwanAPIException(f"Invalid instance_type {instance_type}")
 
-                logging.info(f"Using {instance_type} machine, {region=} {duration=} (seconds)")
+                logging.info(f"Input instance {instance_type}, {region=} {duration=} (seconds)")
 
             if not job_source_uri:
                 if app_repo_image:
@@ -457,6 +453,8 @@ class Orchestrator(OrchestratorAPIClient):
             if custom_instance:
                 params["custom_instance"] = json.dumps(custom_instance)
                 custom_instance_result: CustomInstanceResult = self.get_custom_instance_result(custom_instance, region)
+                if not custom_instance_result:
+                    raise SwanAPIException(f"Please check your custom instance input.")
                 if not custom_instance_result.available:
                     raise SwanAPIException(f"Custom instance {custom_instance} is not available in {region}.")
             else:
