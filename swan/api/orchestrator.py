@@ -215,8 +215,8 @@ class Orchestrator(OrchestratorAPIClient):
             }
             response = self._request_with_params(GET, GET_GPU_SELECTION_LIST, self.swan_url, params, self.token, None)
             return GPUSelectionList.load_from_resp(response)
-        except Exception:
-            logging.error("Failed to fetch gpu selection list.")
+        except Exception as e:
+            logging.error(f"Failed to fetch gpu selection list. {e}")
             return None
 
     def get_custom_instance_result(self, custom_instance: Optional[dict] = {}, region: Optional[str] = 'global'):
@@ -228,8 +228,8 @@ class Orchestrator(OrchestratorAPIClient):
 
             response = self._request_with_params(POST, CUSTOM_INSTANCE, self.swan_url, params, self.token, None)
             return CustomInstanceResult.load_from_resp(response)
-        except Exception:
-            logging.error("Failed to fetch custom instance info.")
+        except Exception as e:
+            logging.error(f"Failed to fetch custom instance info. {e}")
             return None
 
     def validate_custom_instance(self, custom_instance: Optional[dict] = {}):
