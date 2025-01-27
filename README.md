@@ -14,6 +14,11 @@
   - [Orchestrator](#orchestrator)
     - [Fetch available instance resources](#fetch-available-instance-resources)
     - [Create and deploy a task](#create-and-deploy-a-task)
+    - [Optional: Create and deploy a task with custom instance](#optional-create-and-deploy-a-task-with-custom-instance)
+      - [Step 1: Get GPU Selection List](#step-1-get-gpu-selection-list)
+      - [Step 2: Define Custom Instance](#step-2-define-custom-instance)
+      - [Step 3: Check Custom Instance Availability](#step-3-check-custom-instance-availability)
+      - [Step 4: Create Task with Custom Instance](#step-4-create-task-with-custom-instance)
     - [Check information of an existing task](#check-information-of-an-existing-task)
     - [Access application instances of an existing task](#access-application-instances-of-an-existing-task)
     - [Renew an existing task](#renew-an-existing-task)
@@ -179,6 +184,88 @@ A sample output:
 ```
 
 It shows that this task has three applications. Open the URL in the web browser you will view the application's information if it is running correctly.
+
+
+#### Optional: Create and deploy a task with custom instance
+
+Instead of using the pre-defined instance types, you can also define your own instance configurations. 
+
+##### Step 1: Get GPU Selection List
+
+First, retrieve the list of available GPUs using the `get_gpu_selection_list` function to check the available GPU models in certain region.
+
+```python
+region = 'all'  # Can be 'all', 'global', or specific regions like 'Quebec-CA'
+gpu_list = swan_orchestrator.get_gpu_selection_list(region)
+```
+
+This step provides information about which GPUs are available in the specified region.
+
+- `region='all'`: will list all regions for GPU resources with max capacity (the maximum will be aggregated within each available region)
+- `region='global'`: will list all GPU resources across worldwide (aggregated within global range)
+- `region='Quebec-CA'`: will list all GPU resources in this region
+
+##### Step 2: Define Custom Instance
+
+Define the custom instance with the desired specifications (`cpu`, `memory`, `storage`, `gpu_model`, and `gpu_count` are required; memory and storage units are in gigabytes GB; for these parameters, only integers are acceptable):
+
+```python
+custom_instance = {
+    "cpu": 2,
+    "memory": 2,
+    "storage": 5,
+    "gpu_model": "NVIDIA 3080",
+    "gpu_count": 1
+}
+```
+
+##### Step 3: Check Custom Instance Availability
+
+Use the `get_custom_instance_result` function to check the price and availability of the custom instance:
+
+```python
+region = 'Quebec-CA'  # Specify the desired region
+result = swan_orchestrator.get_custom_instance_result(custom_instance, region)
+```
+
+This function will return information about whether the custom instance is available and its pricing.
+
+
+Example response:
+
+```json
+{
+  "available": true,
+  "custom_instance": {
+    "cpu": 2,
+    "gpu_count": 1,
+    "gpu_model": "NVIDIA 3080",
+    "memory": 2,
+    "region": "Quebec-CA",
+    "storage": 5
+  },
+  "price_expiry_time": "2025-01-20 18:41:52 UTC",
+  "price_per_hour": 1.98
+}
+```
+
+##### Step 4: Create Task with Custom Instance
+
+If the custom instance is available, proceed to create the task with that custom instance:
+
+```python
+result: TaskCreationResult = swan_orchestrator.create_task(
+    repo_uri='https://github.com/swanchain/awesome-swanchain/tree/main/MusicGen',
+    wallet_address='<WALLET_ADDRESS>',
+    private_key='<PRIVATE_KEY>',
+    custom_instance=custom_instance
+)
+```
+
+Note that when providing a `custom_instance`, the `instance_type` parameter is ignored in the task creation process.
+
+By following these steps, you can efficiently select GPUs, check the availability of a custom instance, and create a task using the custom specifications.
+
 
 #### Check information of an existing task
 
