@@ -5,9 +5,13 @@ from abc import ABC, abstractmethod
 
 
 class DeployType(IntEnum):
+    # new CP ap: /lagrange/cp/deploy
     FIELD = 0
     DOCKERFILE = 1
     YAML = 2
+
+    # old CP api: /lagrange/jobs
+    SOURCE_URI = -99
 
 
 @dataclass
@@ -71,7 +75,7 @@ class TaskSpec(ABC):
     @property
     @abstractmethod
     def deploy_type(self) -> DeployType:
-        """Return the deployment type:  0: field; 1: docker; 2: yaml """
+        """Return the deployment type: None: old job deployment API,  0: field; 1: docker; 2: yaml """
         pass
 
 
@@ -79,6 +83,8 @@ class DockerfileTaskSpec(TaskSpec):
     def __init__(
             self,
             dockerfile_content: str,
+            wallet_address: str,
+            hardware_spec: HardwareSpec,
             *args,
             **kwargs
     ):
@@ -89,13 +95,14 @@ class DockerfileTaskSpec(TaskSpec):
             *args: Variable length argument list for TaskSpec parameters.
             **kwargs: Arbitrary keyword arguments for TaskSpec parameters.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(wallet_address=wallet_address, hardware_spec=hardware_spec, *args, **kwargs)
         self.dockerfile_content = dockerfile_content
 
     def get_deployment_content(self) -> str:
         return self.dockerfile_content
 
-    def deploy_type(self) -> int:
+    @property
+    def deploy_type(self) -> DeployType:
         return DeployType.DOCKERFILE
 
 
@@ -103,6 +110,8 @@ class YamlTaskSpec(TaskSpec):
     def __init__(
             self,
             yaml_content: str,
+            wallet_address: str,
+            hardware_spec: HardwareSpec,
             *args,
             **kwargs
     ):
@@ -113,12 +122,13 @@ class YamlTaskSpec(TaskSpec):
             *args: Variable length argument list for TaskSpec parameters.
             **kwargs: Arbitrary keyword arguments for TaskSpec parameters.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(wallet_address=wallet_address, hardware_spec=hardware_spec, *args, **kwargs)
         self.yaml_content = yaml_content
 
     def get_deployment_content(self) -> str:
         return self.yaml_content
 
+    @property
     def deploy_type(self) -> DeployType:
         return DeployType.YAML
 
@@ -127,6 +137,7 @@ class ResourceUrlTaskSpec(TaskSpec):
     def __init__(
             self,
             resource_url: str,
+            wallet_address: str,
             *args,
             **kwargs
     ):
@@ -138,11 +149,12 @@ class ResourceUrlTaskSpec(TaskSpec):
             *args: Variable length argument list for TaskSpec parameters.
             **kwargs: Arbitrary keyword arguments for TaskSpec parameters.
         """
-        super().__init__(*args, **kwargs)
+        super().__init__(wallet_address=wallet_address, *args, **kwargs)
         self.resource_url = resource_url
 
+    @property
     def deploy_type(self) -> DeployType:
-        return DeployType.FIELD
+        return DeployType.SOURCE_URI
 
     def get_deployment_content(self) -> str:
         return self.resource_url

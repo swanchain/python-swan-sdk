@@ -251,11 +251,14 @@ class Orchestrator(OrchestratorAPIClient):
         """Validate custom instance input"""
         # gpu_model should be a string
         gpu_model = custom_instance.get("gpu_model")
-        if not isinstance(gpu_model, str):
-            raise SwanAPIException("gpu model is not a string")
+        gpu_count = custom_instance.get("gpu_count")
+
+        if gpu_count > 0:
+            if not gpu_model:
+                raise SwanAPIException("gpu model is not a string with gpu count is greater than 0.")
 
         # cpu, memory, storage and gpu_count should be integer and greater than 0
-        int_inputs = ["cpu", "memory", "storage", "gpu_count"]
+        int_inputs = ["cpu", "memory", "storage"]
         for key in int_inputs:
             if key not in custom_instance or not isinstance(custom_instance[key], int) or custom_instance[key] <= 0:
                 raise SwanAPIException(f"{key} should be a positive integer")
@@ -348,6 +351,10 @@ class Orchestrator(OrchestratorAPIClient):
             job_source_uri = None
             if isinstance(task_spec, ResourceUrlTaskSpec):
                 job_source_uri = task_spec.get_deployment_content()
+            elif isinstance(task_spec, YamlTaskSpec):
+                pass
+            elif isinstance(task_spec, DockerfileTaskSpec):
+                pass
 
             preferred_cp = None
             if preferred_cp_list and isinstance(preferred_cp_list, list):
@@ -379,8 +386,8 @@ class Orchestrator(OrchestratorAPIClient):
                     custom_instance["gpu_model"] = gpu_spec.gpu_model
                     custom_instance["gpu_count"] = gpu_spec.count
                 else:
-                    custom_instance["gpu_model"] = "CPU Only"
-                    custom_instance["gpu_count"] = 1
+                    custom_instance["gpu_model"] = None
+                    custom_instance["gpu_count"] = 0
 
             # validate wallet address should be corresponding to the payment private key
             if task_spec.auto_pay_private_key is not None:
@@ -397,7 +404,9 @@ class Orchestrator(OrchestratorAPIClient):
                 "region": region,
                 "start_in": 600,
                 "wallet": task_spec.wallet_address,
-                "job_source_uri": job_source_uri
+                "job_source_uri": job_source_uri,
+                "deploy_type": int(task_spec.deploy_type.value),
+                "deploy_content": task_spec.get_deployment_content(),
             }
             if preferred_cp:
                 params["preferred_cp"] = preferred_cp
@@ -519,6 +528,11 @@ class Orchestrator(OrchestratorAPIClient):
             if not duration or duration < 3600:
                 raise SwanAPIException(f"Duration must be no less than 3600 seconds")
 
+            if not custom_instance and not instance_type and not deploy_task_spec:
+                raise SwanAPIException(f"Please provide either custom_instance or instance_type or deploy_task_spec "
+                                       f"to determine the hardware configuration")
+
+            hardware_spec: Optional[HardwareSpec] = None
             if custom_instance:
                 logging.info(f"Input custom instance {custom_instance}, {region=} {duration=} (seconds)")
                 custom_instance = self.validate_custom_instance(custom_instance)
@@ -531,10 +545,7 @@ class Orchestrator(OrchestratorAPIClient):
                     ],
                     instance_type=None,
                 )
-            else:
-                if not instance_type:
-                    instance_type = 'C1ae.small'
-
+            elif instance_type:
                 hardware_instance = self.get_hardware_instance(instance_type=instance_type)
 
                 if hardware_instance is None:
@@ -551,8 +562,10 @@ class Orchestrator(OrchestratorAPIClient):
                     ],
                     instance_type=instance_type,
                 )
-
                 logging.info(f"Input instance {instance_type}, {region=} {duration=} (seconds)")
+
+            elif deploy_task_spec:
+                pass
 
             if not job_source_uri and not deploy_task_spec:
                 if app_repo_image:
@@ -602,7 +615,9 @@ class Orchestrator(OrchestratorAPIClient):
                     deploy_task_spec.wallet_address = wallet_address
                 if job_source_uri:
                     deploy_task_spec.resource_uri = job_source_uri
-                deploy_task_spec.hardware_spec = hardware_spec
+                if hardware_spec:
+                    # override from custom instance or instance type
+                    deploy_task_spec.hardware_spec = hardware_spec
                 if region != "global":
                     deploy_task_spec.region = region
                 if duration:
