@@ -29,7 +29,7 @@ from swan.object.task_spec import (
     HardwareSpec,
     GpuSpec,
     YamlTaskSpec,
-    DockerfileTaskSpec,
+    DockerfileTaskSpec, TaskSpecFactory,
 )
 
 
@@ -344,7 +344,7 @@ class Orchestrator(OrchestratorAPIClient):
                 None
             )
 
-    def _deploy_task(self, task_spec: TaskSpec):
+    def _deploy_task(self, wallet_address: str, task_spec: TaskSpec):
         try:
             preferred_cp_list = task_spec.preferred_cp_list
             ip_whitelist = task_spec.ip_whitelist
@@ -393,8 +393,8 @@ class Orchestrator(OrchestratorAPIClient):
             if task_spec.auto_pay_private_key is not None:
                 # Create an Account object from the private key
                 account = Account.from_key(task_spec.auto_pay_private_key)
-                if account.address != task_spec.wallet_address:
-                    raise SwanAPIException(f"Wallet address {task_spec.wallet_address} "
+                if account.address != wallet_address:
+                    raise SwanAPIException(f"Wallet address {wallet_address} "
                                            f"should be corresponding to the auto payment wallet: {account.address}")
 
             # create task deployment
@@ -403,7 +403,7 @@ class Orchestrator(OrchestratorAPIClient):
                 "cfg_name": instance_type,
                 "region": region,
                 "start_in": 600,
-                "wallet": task_spec.wallet_address,
+                "wallet": wallet_address,
                 "job_source_uri": job_source_uri,
                 "deploy_type": int(task_spec.deploy_type.value),
                 "deploy_content": task_spec.get_deployment_content(),
@@ -481,11 +481,11 @@ class Orchestrator(OrchestratorAPIClient):
             repo_branch: Optional[str] = None,
             auto_pay: Optional[bool] = True,
             private_key: Optional[str] = None,
-            start_in: Optional[int] = 300,
+            start_in: Optional[int] = None,
             preferred_cp_list: Optional[List[str]] = None,
             ip_whitelist: Optional[List[str]] = None,
             custom_instance: Optional[dict] = None,
-            deploy_task_spec: Optional[Union[YamlTaskSpec, DockerfileTaskSpec]] = None,
+            base_task_spec: Optional[Union[YamlTaskSpec, DockerfileTaskSpec]] = None,
         ) -> Optional[TaskCreationResult]:
         """
         Create a task via the orchestrator.
@@ -506,7 +506,7 @@ class Orchestrator(OrchestratorAPIClient):
             preferred_cp_list: Optional. A list of preferred cp account address(es).
             ip_whitelist: Optional. A list of IP addresses which can access the application.
             custom_instance: Optional. A dictionary containing custom instance information. If provided, instance_type is ignored.
-            deploy_task_spec: Optional. A predefined task specification,
+            base_task_spec: Optional. A predefined task specification,
         
         Raises:
             SwanExceptionError: If neither app_repo_image nor job_source_uri is provided.
@@ -528,7 +528,7 @@ class Orchestrator(OrchestratorAPIClient):
             if not duration or duration < 3600:
                 raise SwanAPIException(f"Duration must be no less than 3600 seconds")
 
-            if not custom_instance and not instance_type and not deploy_task_spec:
+            if not custom_instance and not instance_type and not base_task_spec:
                 raise SwanAPIException(f"Please provide either custom_instance or instance_type or deploy_task_spec "
                                        f"to determine the hardware configuration")
 
@@ -564,10 +564,11 @@ class Orchestrator(OrchestratorAPIClient):
                 )
                 logging.info(f"Input instance {instance_type}, {region=} {duration=} (seconds)")
 
-            elif deploy_task_spec:
+            elif base_task_spec:
+                # no extra handling for the task data source if a task spec is passing in
                 pass
 
-            if not job_source_uri and not deploy_task_spec:
+            if not job_source_uri and not base_task_spec:
                 if app_repo_image:
                     if auto_pay == None and private_key:
                         auto_pay = True
@@ -590,52 +591,55 @@ class Orchestrator(OrchestratorAPIClient):
                 else:
                     raise SwanAPIException(f"Please provide app_repo_image, or job_source_uri, or repo_uri")
 
-            if not job_source_uri and not deploy_task_spec:
+            if not job_source_uri and not base_task_spec:
                 raise SwanAPIException(f"Cannot get task deployment content, we need a job_source_uri or "
                                        f"dockerfile/yaml deployment file content. Please double check your parameters")
 
-            logging.info(f"Using deployment content: {job_source_uri=} {deploy_task_spec=}")
+            logging.info(f"Using deployment content: {job_source_uri=} {base_task_spec=}")
 
-            if deploy_task_spec is None:
-                deploy_task_spec = ResourceUrlTaskSpec(
-                    wallet_address=wallet_address,
+            if base_task_spec is None:
+                base_task_spec = TaskSpecFactory.build_resource_url_task(
                     resource_url=job_source_uri,
                     hardware_spec=hardware_spec,
                     region=region,
+                    start_in=start_in,
                     duration_in_secs=duration,
                     auto_pay_private_key=auto_pay and private_key,
                     preferred_cp_list=preferred_cp_list,
                     ip_whitelist=ip_whitelist,
                 )
+
             else:
                 # deploy_task_spec is not None,
                 # if there are non-default arguments, override the arguments to the deploy_task_spec
                 #
                 if wallet_address:
-                    deploy_task_spec.wallet_address = wallet_address
+                    base_task_spec.wallet_address = wallet_address
                 if job_source_uri:
-                    deploy_task_spec.resource_uri = job_source_uri
+                    base_task_spec.resource_uri = job_source_uri
                 if hardware_spec:
                     # override from custom instance or instance type
-                    deploy_task_spec.hardware_spec = hardware_spec
+                    base_task_spec.hardware_spec = hardware_spec
                 if region != "global":
-                    deploy_task_spec.region = region
+                    base_task_spec.region = region
+                if start_in is not None:
+                    base_task_spec.start_in = start_in
                 if duration:
-                    deploy_task_spec.duration_in_secs = duration
+                    base_task_spec.duration_in_secs = duration
                 if auto_pay and private_key:
-                    deploy_task_spec.auto_pay_private_key = private_key
+                    base_task_spec.auto_pay_private_key = private_key
                 if preferred_cp_list:
-                    deploy_task_spec.preferred_cp_list = preferred_cp_list
+                    base_task_spec.preferred_cp_list = preferred_cp_list
                 if ip_whitelist:
-                    deploy_task_spec.ip_whitelist = ip_whitelist
-                if isinstance(deploy_task_spec, YamlTaskSpec):
-                    if not deploy_task_spec.yaml_content:
+                    base_task_spec.ip_whitelist = ip_whitelist
+                if isinstance(base_task_spec, YamlTaskSpec):
+                    if not base_task_spec.yaml_content:
                         raise SwanAPIException(f"yaml_content of deploy_task_spec object should not be empty")
-                elif isinstance(deploy_task_spec, DockerfileTaskSpec):
-                    if not deploy_task_spec.dockerfile_content:
+                elif isinstance(base_task_spec, DockerfileTaskSpec):
+                    if not base_task_spec.dockerfile_content:
                         raise SwanAPIException(f"dockerfile_content of deploy_task_spec object should not be empty")
 
-            return self._deploy_task(task_spec=deploy_task_spec)
+            return self._deploy_task(wallet_address=wallet_address, task_spec=base_task_spec)
         except Exception as e:
             logging.exception(e)
 

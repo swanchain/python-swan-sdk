@@ -34,9 +34,9 @@ class TaskSpec(ABC):
 
     def __init__(
             self,
-            wallet_address: str,
             hardware_spec: HardwareSpec,
             region: str = "global",
+            start_in: int = 300,
             duration_in_secs: int = 3600,
             auto_pay_private_key: Optional[str] = None,
             preferred_cp_list: Optional[List[str]] = None,
@@ -50,6 +50,7 @@ class TaskSpec(ABC):
                 Includes CPU, memory, storage, and GPU requirements.
             region (str, optional): Geographic region where the task should be deployed.
                 Defaults to "global".
+            start_in (int, optional): Expected start time of the task in seconds. Defaults to 300.
             duration_in_secs (int, optional): Duration for which computing resources should be
                 allocated, in seconds. Defaults to 3600 (1 hour).
             auto_pay_private_key (Optional[str], optional): Private key for automatic payment
@@ -59,8 +60,8 @@ class TaskSpec(ABC):
             ip_whitelist (Optional[List[str]], optional): List of IP addresses allowed to access
                 the deployed application. If not provided, access will not be restricted by IP.
         """
-        self.wallet_address = wallet_address
         self.region = region
+        self.start_in = start_in
         self.duration_in_secs = duration_in_secs
         self.hardware_spec = hardware_spec
         self.auto_pay_private_key = auto_pay_private_key
@@ -83,7 +84,6 @@ class DockerfileTaskSpec(TaskSpec):
     def __init__(
             self,
             dockerfile_content: str,
-            wallet_address: str,
             hardware_spec: HardwareSpec,
             *args,
             **kwargs
@@ -95,7 +95,7 @@ class DockerfileTaskSpec(TaskSpec):
             *args: Variable length argument list for TaskSpec parameters.
             **kwargs: Arbitrary keyword arguments for TaskSpec parameters.
         """
-        super().__init__(wallet_address=wallet_address, hardware_spec=hardware_spec, *args, **kwargs)
+        super().__init__(hardware_spec=hardware_spec, *args, **kwargs)
         self.dockerfile_content = dockerfile_content
 
     def get_deployment_content(self) -> str:
@@ -110,7 +110,6 @@ class YamlTaskSpec(TaskSpec):
     def __init__(
             self,
             yaml_content: str,
-            wallet_address: str,
             hardware_spec: HardwareSpec,
             *args,
             **kwargs
@@ -122,7 +121,7 @@ class YamlTaskSpec(TaskSpec):
             *args: Variable length argument list for TaskSpec parameters.
             **kwargs: Arbitrary keyword arguments for TaskSpec parameters.
         """
-        super().__init__(wallet_address=wallet_address, hardware_spec=hardware_spec, *args, **kwargs)
+        super().__init__(hardware_spec=hardware_spec, *args, **kwargs)
         self.yaml_content = yaml_content
 
     def get_deployment_content(self) -> str:
@@ -137,7 +136,6 @@ class ResourceUrlTaskSpec(TaskSpec):
     def __init__(
             self,
             resource_url: str,
-            wallet_address: str,
             *args,
             **kwargs
     ):
@@ -149,7 +147,7 @@ class ResourceUrlTaskSpec(TaskSpec):
             *args: Variable length argument list for TaskSpec parameters.
             **kwargs: Arbitrary keyword arguments for TaskSpec parameters.
         """
-        super().__init__(wallet_address=wallet_address, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.resource_url = resource_url
 
     @property
@@ -168,6 +166,7 @@ class TaskSpecFactory:
             dockerfile_content: str,
             hardware_spec: HardwareSpec,
             region: str = "global",
+            start_in: int = 300,
             duration_in_secs: int = 3600,
             auto_pay_private_key: Optional[str] = None,
             preferred_cp_list: Optional[List[str]] = None,
@@ -177,6 +176,7 @@ class TaskSpecFactory:
             dockerfile_content=dockerfile_content,
             hardware_spec=hardware_spec,
             region=region,
+            start_in=start_in,
             duration_in_secs=duration_in_secs,
             auto_pay_private_key=auto_pay_private_key,
             preferred_cp_list=preferred_cp_list,
@@ -188,6 +188,7 @@ class TaskSpecFactory:
             yaml_content: str,
             hardware_spec: HardwareSpec,
             region: str = "global",
+            start_in: int = 300,
             duration_in_secs: int = 3600,
             auto_pay_private_key: Optional[str] = None,
             preferred_cp_list: Optional[List[str]] = None,
@@ -197,6 +198,7 @@ class TaskSpecFactory:
             yaml_content=yaml_content,
             hardware_spec=hardware_spec,
             region=region,
+            start_in=start_in,
             duration_in_secs=duration_in_secs,
             auto_pay_private_key=auto_pay_private_key,
             preferred_cp_list=preferred_cp_list,
@@ -208,6 +210,7 @@ class TaskSpecFactory:
             resource_url: str,
             hardware_spec: HardwareSpec,
             region: str = "global",
+            start_in: int = 300,
             duration_in_secs: int = 3600,
             auto_pay_private_key: Optional[str] = None,
             preferred_cp_list: Optional[List[str]] = None,
@@ -217,6 +220,7 @@ class TaskSpecFactory:
             resource_url=resource_url,
             hardware_spec=hardware_spec,
             region=region,
+            start_in=start_in,
             duration_in_secs=duration_in_secs,
             auto_pay_private_key=auto_pay_private_key,
             preferred_cp_list=preferred_cp_list,
