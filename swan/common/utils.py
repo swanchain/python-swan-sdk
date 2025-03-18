@@ -110,3 +110,35 @@ def validate_ip_or_cidr(entry):
     if '/' in entry:
         return is_valid_cidr(entry)
     return is_valid_ipv4(entry) or is_valid_ipv6(entry)
+
+
+def parse_resource_string(resource_string: str) -> dict:
+    parts = resource_string.split(' · ')
+
+    gpu_model = "CPU Only"
+    gpu_count = 1
+    if not parts[0].startswith('CPU'):
+        gpu_model = parts[0].strip()
+        gpu_count = 1
+
+    # Parse CPU count
+    vcpu_str = parts[1].replace('vCPU', '').strip()
+    try:
+        vcpu = int(vcpu_str)
+    except ValueError:
+        raise ValueError(f"Could not parse CPU value: {vcpu_str}")
+
+    # Parse memory
+    memory_str = parts[2].replace('GiB', '').strip()
+    try:
+        memory = int(memory_str)
+    except ValueError:
+        raise ValueError(f"Could not parse memory value: {memory_str}")
+
+    return {
+        "cpu": vcpu,
+        "memory": memory,
+        "gpu_count": gpu_count,
+        "gpu_model": gpu_model,
+        "storage": 30
+    }

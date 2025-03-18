@@ -1,29 +1,37 @@
-import logging
-import traceback
 import json
+import logging
 import time
-from typing import List, Optional
+import traceback
+from typing import List, Optional, Union, Dict, Any
 
 from eth_account import Account
-from eth_account.messages import encode_defunct
 
 from swan.api_client import OrchestratorAPIClient
 from swan.common.constant import *
-from swan.object import HardwareConfig, InstanceResource
 from swan.common.exception import SwanAPIException
+from swan.common.utils import validate_ip_or_cidr, parse_resource_string
 from swan.contract.swan_contract import SwanContract
+from swan.object import InstanceResource
 from swan.object import (
-    TaskCreationResult, 
-    TaskDeploymentInfo, 
+    TaskCreationResult,
+    TaskDeploymentInfo,
     TaskList,
-    TaskRenewalResult, 
+    TaskRenewalResult,
     TaskTerminationMessage,
     PaymentResult,
     TaskDetail,
     GPUSelectionList,
     CustomInstanceResult
 )
-from swan.common.utils import validate_ip_or_cidr
+from swan.object.task_spec import (
+    TaskSpec,
+    ResourceUrlTaskSpec,
+    HardwareSpec,
+    GpuSpec,
+    YamlTaskSpec,
+    DockerfileTaskSpec, TaskSpecFactory,
+)
+
 
 class Orchestrator(OrchestratorAPIClient):
   
@@ -200,6 +208,13 @@ class Orchestrator(OrchestratorAPIClient):
         except:
             logging.error(f"Undefined instance type {instance_type}.")
             return None
+
+    def get_hardware_instance(self, instance_type: str) -> Optional[Dict[str, Any]]:
+        try:
+            return self.instance_mapping[instance_type]
+        except:
+            logging.error(f"Undefined instance type {instance_type}.")
+            return None
     
     def get_instance_price(self, instance_type):
         try:
@@ -236,11 +251,14 @@ class Orchestrator(OrchestratorAPIClient):
         """Validate custom instance input"""
         # gpu_model should be a string
         gpu_model = custom_instance.get("gpu_model")
-        if not isinstance(gpu_model, str):
-            raise SwanAPIException("gpu model is not a string")
+        gpu_count = custom_instance.get("gpu_count")
+
+        if gpu_count > 0:
+            if not gpu_model:
+                raise SwanAPIException("gpu model is not a string with gpu count is greater than 0.")
 
         # cpu, memory, storage and gpu_count should be integer and greater than 0
-        int_inputs = ["cpu", "memory", "storage", "gpu_count"]
+        int_inputs = ["cpu", "memory", "storage"]
         for key in int_inputs:
             if key not in custom_instance or not isinstance(custom_instance[key], int) or custom_instance[key] <= 0:
                 raise SwanAPIException(f"{key} should be a positive integer")
@@ -326,6 +344,131 @@ class Orchestrator(OrchestratorAPIClient):
                 None
             )
 
+    def _deploy_task(self, wallet_address: str, task_spec: TaskSpec):
+        try:
+            preferred_cp_list = task_spec.preferred_cp_list
+            ip_whitelist = task_spec.ip_whitelist
+            job_source_uri = None
+            if isinstance(task_spec, ResourceUrlTaskSpec):
+                job_source_uri = task_spec.get_deployment_content()
+            elif isinstance(task_spec, YamlTaskSpec):
+                pass
+            elif isinstance(task_spec, DockerfileTaskSpec):
+                pass
+
+            preferred_cp = None
+            if preferred_cp_list and isinstance(preferred_cp_list, list):
+                preferred_cp = ','.join(preferred_cp_list)
+
+            ip_whitelist_str = None
+            if ip_whitelist and isinstance(ip_whitelist, list):
+                # validate ip address
+                for ip in ip_whitelist:
+                    if not validate_ip_or_cidr(ip):
+                        raise SwanAPIException(f"Invalid ip address: {ip}")
+                ip_whitelist_str = ','.join(ip_whitelist)
+
+            region = task_spec.region
+            instance_type = task_spec.hardware_spec.instance_type
+            if instance_type is not None:
+                # instance_type not none, this is not custom config
+                custom_instance = None
+            else:
+                # custom config
+
+                gpu_spec: GpuSpec = task_spec.hardware_spec.gpus[0] if task_spec.hardware_spec.gpus else None
+                custom_instance = {
+                    "cpu": task_spec.hardware_spec.cpu,
+                    "memory": task_spec.hardware_spec.memory,
+                    "storage": task_spec.hardware_spec.storage,
+                }
+                if gpu_spec:
+                    custom_instance["gpu_model"] = gpu_spec.gpu_model
+                    custom_instance["gpu_count"] = gpu_spec.count
+                else:
+                    custom_instance["gpu_model"] = None
+                    custom_instance["gpu_count"] = 0
+
+            # validate wallet address should be corresponding to the payment private key
+            if task_spec.auto_pay_private_key is not None:
+                # Create an Account object from the private key
+                account = Account.from_key(task_spec.auto_pay_private_key)
+                if account.address != wallet_address:
+                    raise SwanAPIException(f"Wallet address {wallet_address} "
+                                           f"should be corresponding to the auto payment wallet: {account.address}")
+
+            # create task deployment
+            params = {
+                "duration": task_spec.duration_in_secs,
+                "cfg_name": instance_type,
+                "region": region,
+                "start_in": 600,
+                "wallet": wallet_address,
+                "job_source_uri": job_source_uri,
+                "deploy_type": int(task_spec.deploy_type.value),
+                "deploy_content": task_spec.get_deployment_content(),
+            }
+            if preferred_cp:
+                params["preferred_cp"] = preferred_cp
+            if ip_whitelist_str:
+                params["ip_whitelist"] = ip_whitelist_str
+
+            if custom_instance:
+                params["custom_instance"] = json.dumps(custom_instance)
+                custom_instance_result: CustomInstanceResult = self.get_custom_instance_result(custom_instance, region)
+                if not custom_instance_result:
+                    raise SwanAPIException(f"Please check your custom instance input.")
+                if not custom_instance_result.available:
+                    raise SwanAPIException(f"Custom instance {custom_instance} is not available in {region}.")
+            else:
+                if not self._verify_hardware_region(instance_type, region):
+                    raise SwanAPIException(f"No {instance_type} machine in {region}.")
+
+            result = self._request_with_params(
+                POST,
+                CREATE_TASK,
+                self.swan_url,
+                params,
+                self.token,
+                None
+            )
+
+            try:
+                task_uuid = result['data']['task']['uuid']
+            except Exception as e:
+                raise SwanAPIException(f"Task creation failed, {str(e)}.")
+
+            tx_hash = None
+            tx_hash_approve = None
+            config_order = None
+            amount = None
+            if task_spec.auto_pay_private_key:
+                config_result = self.make_payment(
+                    task_uuid=task_uuid,
+                    duration=task_spec.duration_in_secs,
+                    private_key=task_spec.auto_pay_private_key,
+                )
+                if config_result and isinstance(config_result, dict):
+                    tx_hash = config_result.get('tx_hash')
+                    config_order = config_result.get('data')
+                    tx_hash_approve = config_result.get('tx_hash_approve')
+                    amount = config_result.get('amount')
+
+            result['config_order'] = config_order
+            result['tx_hash'] = tx_hash
+            result['tx_hash_approve'] = tx_hash_approve
+            result['id'] = task_uuid
+            result['task_uuid'] = task_uuid
+            result['instance_type'] = instance_type
+            result['price'] = amount
+
+            # logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {instance_type=}")
+            return TaskCreationResult.load_from_resp(result)
+
+        except Exception as e:
+            logging.error(str(e) + traceback.format_exc())
+        return None
+
     def create_task(
             self,
             wallet_address: str, 
@@ -338,10 +481,11 @@ class Orchestrator(OrchestratorAPIClient):
             repo_branch: Optional[str] = None,
             auto_pay: Optional[bool] = True,
             private_key: Optional[str] = None,
-            start_in: Optional[int] = 300,
+            start_in: Optional[int] = None,
             preferred_cp_list: Optional[List[str]] = None,
             ip_whitelist: Optional[List[str]] = None,
-            custom_instance: Optional[dict] = None
+            custom_instance: Optional[dict] = None,
+            base_task_spec: Optional[Union[YamlTaskSpec, DockerfileTaskSpec]] = None,
         ) -> Optional[TaskCreationResult]:
         """
         Create a task via the orchestrator.
@@ -362,6 +506,7 @@ class Orchestrator(OrchestratorAPIClient):
             preferred_cp_list: Optional. A list of preferred cp account address(es).
             ip_whitelist: Optional. A list of IP addresses which can access the application.
             custom_instance: Optional. A dictionary containing custom instance information. If provided, instance_type is ignored.
+            base_task_spec: Optional. A predefined task specification,
         
         Raises:
             SwanExceptionError: If neither app_repo_image nor job_source_uri is provided.
@@ -383,20 +528,47 @@ class Orchestrator(OrchestratorAPIClient):
             if not duration or duration < 3600:
                 raise SwanAPIException(f"Duration must be no less than 3600 seconds")
 
+            if not custom_instance and not instance_type and not base_task_spec:
+                raise SwanAPIException(f"Please provide either custom_instance or instance_type or deploy_task_spec "
+                                       f"to determine the hardware configuration")
+
+            hardware_spec: Optional[HardwareSpec] = None
             if custom_instance:
                 logging.info(f"Input custom instance {custom_instance}, {region=} {duration=} (seconds)")
                 custom_instance = self.validate_custom_instance(custom_instance)
-            else:
-                if not instance_type:
-                    instance_type = 'C1ae.small'
+                hardware_spec = HardwareSpec(
+                    cpu=custom_instance.get("cpu"),
+                    memory=custom_instance.get("memory"),
+                    storage=custom_instance.get("storage"),
+                    gpus=[
+                        GpuSpec(gpu_model=custom_instance.get("gpu_model"), count=custom_instance.get("gpu_count"))
+                    ],
+                    instance_type=None,
+                )
+            elif instance_type:
+                hardware_instance = self.get_hardware_instance(instance_type=instance_type)
 
-                hardware_id = self.get_instance_hardware_id(instance_type)
-                if hardware_id is None:
+                if hardware_instance is None:
                     raise SwanAPIException(f"Invalid instance_type {instance_type}")
-
+                hardware_description = hardware_instance.get("description")
+                hardware_description_dict = parse_resource_string(resource_string=hardware_description)
+                hardware_spec = HardwareSpec(
+                    cpu=hardware_description_dict.get("cpu"),
+                    memory=hardware_description_dict.get("memory"),
+                    storage=hardware_description_dict.get("storage"),
+                    gpus=[
+                        GpuSpec(gpu_model=hardware_description_dict.get("gpu_model"),
+                                count=hardware_description_dict.get("gpu_count"))
+                    ],
+                    instance_type=instance_type,
+                )
                 logging.info(f"Input instance {instance_type}, {region=} {duration=} (seconds)")
 
-            if not job_source_uri:
+            elif base_task_spec:
+                # no extra handling for the task data source if a task spec is passing in
+                pass
+
+            if not job_source_uri and not base_task_spec:
                 if app_repo_image:
                     if auto_pay == None and private_key:
                         auto_pay = True
@@ -410,103 +582,67 @@ class Orchestrator(OrchestratorAPIClient):
 
                 if repo_uri:
                     job_source_uri = self._get_source_uri(
-                            repo_uri=repo_uri,
-                            repo_branch=repo_branch,
-                            wallet_address=wallet_address, 
-                            instance_type=instance_type,
-                            custom_instance=custom_instance
-                        )
+                        repo_uri=repo_uri,
+                        repo_branch=repo_branch,
+                        wallet_address=wallet_address,
+                        instance_type=instance_type,
+                        custom_instance=custom_instance
+                    )
                 else:
                     raise SwanAPIException(f"Please provide app_repo_image, or job_source_uri, or repo_uri")
 
-            if not job_source_uri:
-                raise SwanAPIException(f"Cannot get job_source_uri. Please double check your parameters")
-            
-            logging.info(f"Using job_source_uri: {job_source_uri}")
+            if not job_source_uri and not base_task_spec:
+                raise SwanAPIException(f"Cannot get task deployment content, we need a job_source_uri or "
+                                       f"dockerfile/yaml deployment file content. Please double check your parameters")
 
-            preferred_cp = None
-            if preferred_cp_list and isinstance(preferred_cp_list, list):
-                preferred_cp = ','.join(preferred_cp_list)
+            logging.info(f"Using deployment content: {job_source_uri=} {base_task_spec=}")
 
-            ip_whitelist_str = None
-            if ip_whitelist and isinstance(ip_whitelist, list):
-                # validate ip address
-                for ip in ip_whitelist:
-                    if not validate_ip_or_cidr(ip):
-                        raise SwanAPIException(f"Invalid ip address: {ip}")
-                ip_whitelist_str = ','.join(ip_whitelist)
-
-            # create task deployment
-            params = {
-                "duration": duration,
-                "cfg_name": instance_type,
-                "region": region,
-                "start_in": start_in,
-                "wallet": wallet_address,
-                "job_source_uri": job_source_uri
-            }
-            if preferred_cp:
-                params["preferred_cp"] = preferred_cp
-            if ip_whitelist_str:
-                params["ip_whitelist"] = ip_whitelist_str
-
-            if custom_instance:
-                params["custom_instance"] = json.dumps(custom_instance)
-                custom_instance_result: CustomInstanceResult = self.get_custom_instance_result(custom_instance, region)
-                if not custom_instance_result:
-                    raise SwanAPIException(f"Please check your custom instance input.")
-                if not custom_instance_result.available:
-                    raise SwanAPIException(f"Custom instance {custom_instance} is not available in {region}.")
-            else:
-                if not self._verify_hardware_region(instance_type, region):
-                    raise SwanAPIException(f"No {instance_type} machine in {region}.")
-            
-            result = self._request_with_params(
-                POST, 
-                CREATE_TASK, 
-                self.swan_url, 
-                params, 
-                self.token, 
-                None
-            )
-
-
-            try:
-                task_uuid = result['data']['task']['uuid']
-            except Exception as e:
-                raise SwanAPIException(f"Task creation failed, {str(e)}.")
-        
-            tx_hash = None
-            tx_hash_approve = None
-            config_order = None
-            amount = None
-            if auto_pay:
-                config_result = self.make_payment(
-                    task_uuid=task_uuid, 
-                    duration=duration, 
-                    private_key=private_key
+            if base_task_spec is None:
+                base_task_spec = TaskSpecFactory.build_resource_url_task(
+                    resource_url=job_source_uri,
+                    hardware_spec=hardware_spec,
+                    region=region,
+                    start_in=start_in,
+                    duration_in_secs=duration,
+                    auto_pay_private_key=auto_pay and private_key,
+                    preferred_cp_list=preferred_cp_list,
+                    ip_whitelist=ip_whitelist,
                 )
-                if config_result and isinstance(config_result, dict):
-                    tx_hash = config_result.get('tx_hash')
-                    config_order = config_result.get('data')
-                    tx_hash_approve = config_result.get('tx_hash_approve')
-                    amount = config_result.get('amount')
 
+            else:
+                # deploy_task_spec is not None,
+                # if there are non-default arguments, override the arguments to the deploy_task_spec
+                #
+                if wallet_address:
+                    base_task_spec.wallet_address = wallet_address
+                if job_source_uri:
+                    base_task_spec.resource_uri = job_source_uri
+                if hardware_spec:
+                    # override from custom instance or instance type
+                    base_task_spec.hardware_spec = hardware_spec
+                if region != "global":
+                    base_task_spec.region = region
+                if start_in is not None:
+                    base_task_spec.start_in = start_in
+                if duration:
+                    base_task_spec.duration_in_secs = duration
+                if auto_pay and private_key:
+                    base_task_spec.auto_pay_private_key = private_key
+                if preferred_cp_list:
+                    base_task_spec.preferred_cp_list = preferred_cp_list
+                if ip_whitelist:
+                    base_task_spec.ip_whitelist = ip_whitelist
+                if isinstance(base_task_spec, YamlTaskSpec):
+                    if not base_task_spec.yaml_content:
+                        raise SwanAPIException(f"yaml_content of deploy_task_spec object should not be empty")
+                elif isinstance(base_task_spec, DockerfileTaskSpec):
+                    if not base_task_spec.dockerfile_content:
+                        raise SwanAPIException(f"dockerfile_content of deploy_task_spec object should not be empty")
 
-            result['config_order'] = config_order
-            result['tx_hash'] = tx_hash
-            result['tx_hash_approve'] = tx_hash_approve
-            result['id'] = task_uuid
-            result['task_uuid'] = task_uuid
-            result['instance_type'] = instance_type
-            result['price'] = amount
-
-            # logging.info(f"Task created successfully, {task_uuid=}, {tx_hash=}, {instance_type=}")
-            return TaskCreationResult.load_from_resp(result)
-
+            return self._deploy_task(wallet_address=wallet_address, task_spec=base_task_spec)
         except Exception as e:
-            logging.error(str(e) + traceback.format_exc())
-            return None
+            logging.exception(e)
+
 
     def estimate_payment(self, duration: float = 3600, instance_type: str = None):
         """Estimate required amount.
