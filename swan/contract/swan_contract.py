@@ -55,7 +55,11 @@ class SwanContract():
 
     @cached_property
     def priority_fee_cap(self) -> float:
-        return float(os.getenv("SWAN_SDK_MAX_PRIORITY_FEE_GWEI", 0.001))
+        return float(os.getenv("SWAN_SDK_MAX_PRIORITY_FEE_GWEI", 0.2))
+
+    @cached_property
+    def min_priority_fee(self) -> float:
+        return float(os.getenv("SWAN_SDK_MIN_PRIORITY_FEE_GWEI", 0.0))
 
     def _get_fee_per_gas(self) -> Dict[str, int]:
         base_fee = self.w3.eth.get_block('latest')['baseFeePerGas']
@@ -70,9 +74,10 @@ class SwanContract():
 
         # Cap the priority fee at 0.001 gwei
         max_priority_fee_cap = Web3.to_wei(self.priority_fee_cap, "gwei")
+        min_priority_fee = Web3.to_wei(self.min_priority_fee, "gwei")
 
         # Use the lower value between the percentage and the cap
-        max_priority_fee_per_gas = min(priority_fee_percentage, max_priority_fee_cap)
+        max_priority_fee_per_gas = max(min_priority_fee, min(priority_fee_percentage, max_priority_fee_cap))
 
         max_fee_per_gas = max(base_fee, self.w3.eth.gas_price) + max_priority_fee_per_gas
 
